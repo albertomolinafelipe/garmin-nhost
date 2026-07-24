@@ -1,0 +1,38 @@
+name = 'ondra'
+command = ['uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', '8000']
+
+# Public image built & pushed by .github/workflows/ondra-image.yml (GHCR).
+# No pullCredentials needed while the package is public.
+[image]
+image = 'ghcr.io/albertomolinafelipe/garmin-ondra:latest'
+
+# ondra fails fast at startup unless all three are present.
+[[environment]]
+name = 'ONDRA_REMOTE_SCHEMA_SECRET'
+value = '{{ secrets.ONDRA_REMOTE_SCHEMA_SECRET }}'
+
+[[environment]]
+name = 'ONDRA_HASURA_GRAPHQL_ADMIN_SECRET'
+value = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
+
+# ondra -> staging Hasura (public URL + admin secret).
+[[environment]]
+name = 'HASURA_GRAPHQL_URL'
+value = 'https://gveadpbyligtshgtemcl.hasura.eu-central-1.nhost.run/v1/graphql'
+
+[[ports]]
+port = 8000
+type = 'http'
+publish = true
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 125
+memory = 256
+
+[healthCheck]
+port = 8000
+initialDelaySeconds = 10
+probePeriodSeconds = 20
