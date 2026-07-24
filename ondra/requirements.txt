@@ -1,0 +1,5 @@
+fastapi==0.115.12
+uvicorn==0.34.2
+
+# Phase 7 must add explicit, exact pins for BOTH garminconnect and garth;
+# garth must not be accepted only as garminconnect's transitive dependency.

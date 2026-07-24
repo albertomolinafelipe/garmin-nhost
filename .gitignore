@@ -1,0 +1,13 @@
+.env
+.secrets
+.nhost/
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+node_modules/
+dist/
+*.tsbuildinfo
+dashboard/vite.config.js
+dashboard/vite.config.d.ts
+.DS_Store
