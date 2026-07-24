@@ -1,1 +1,9 @@
-- "!include remote_schemas/ondra.yaml"
+- name: ondra
+  definition:
+    url_from_env: ONDRA_GRAPHQL_URL
+    timeout_seconds: 60
+    headers:
+      - name: X-Ondra-Secret
+        value_from_env: ONDRA_REMOTE_SCHEMA_SECRET
+    forward_client_headers: false
+  comment: Bounded Garmin sync remote schema; protected by a dedicated shared secret.
