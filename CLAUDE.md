@@ -24,6 +24,14 @@ Hasura admin-secret access is the only authorization model. There are no Nhost A
 
 The canonical presentation taxonomy is `dashboard/src/activityTypes.ts` when ported from the read-only reference `garmin-dash/web/src/activityTypes.ts`: climbing subtype is one of `boulder`, `route`, `board`, or `mix`, and climbing requires `focus`. The database deliberately keeps `subtype` as unconstrained free text so presentation taxonomy changes do not require a migration.
 
+## ondra sync remote schema
+
+The frozen mutation is `syncActivities(days: Int = 7, maxActivities: Int = 20): SyncResult!`. `days` is limited to 1..31 and `maxActivities` to 1..100, inclusive. Omitted arguments use the defaults; zero, negative, and above-limit values produce a GraphQL error without starting work. Calls are deliberately small bounded units so a future dashboard can loop them without exceeding Hasura's remote-schema timeout.
+
+The frozen `SyncResult` fields are `activities_created`, `activities_updated`, `sleep_created`, `sleep_updated`, `streams_written`, `activities_failed`, and `errors: [String!]!`. Do not restore the legacy `fits_downloaded` or `fits_missing` fields: FIT bytes are discarded in this architecture. Partial ingestion failures in later phases return a successful result with `activities_failed` and `errors` populated rather than failing the whole GraphQL operation.
+
+Hasura forwards `X-Ondra-Secret` from `ONDRA_REMOTE_SCHEMA_SECRET`, and ondra rejects `/graphql` before resolver execution unless it matches. This dedicated shared secret must be distinct from `ONDRA_HASURA_GRAPHQL_ADMIN_SECRET`: the former authenticates Hasura to ondra, while the latter is used only for ondra's future write-backs to Hasura. Never log either value.
+
 ## Stream payload
 
 `activity_streams.payload` is a JSON document. Its exact keys, units, ordering, malformed-point behavior, and downsampling budget are placeholders in this phase and will be frozen in Phase 5. Do not infer or independently extend that contract before then.

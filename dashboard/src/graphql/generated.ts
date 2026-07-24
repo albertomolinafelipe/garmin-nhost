@@ -82,6 +82,17 @@ export type String_Comparison_Exp = {
   _similar?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type SyncResult = {
+  __typename?: 'SyncResult';
+  activities_created: Scalars['Int']['output'];
+  activities_failed: Scalars['Int']['output'];
+  activities_updated: Scalars['Int']['output'];
+  errors: Array<Scalars['String']['output']>;
+  sleep_created: Scalars['Int']['output'];
+  sleep_updated: Scalars['Int']['output'];
+  streams_written: Scalars['Int']['output'];
+};
+
 /** columns and relationships of "activities" */
 export type Activities = {
   __typename?: 'activities';
@@ -1510,6 +1521,8 @@ export type Mutation_Root = {
   insert_sleep?: Maybe<Sleep_Mutation_Response>;
   /** insert a single row into the table: "sleep" */
   insert_sleep_one?: Maybe<Sleep>;
+  /** Run one bounded sync. Omitted arguments use small defaults; values outside their documented positive bounds are rejected. */
+  syncActivities: SyncResult;
   /** update data of the table: "activities" */
   update_activities?: Maybe<Activities_Mutation_Response>;
   /** update single row of the table: "activities" */
@@ -1638,6 +1651,13 @@ export type Mutation_RootInsert_SleepArgs = {
 export type Mutation_RootInsert_Sleep_OneArgs = {
   object: Sleep_Insert_Input;
   on_conflict?: InputMaybe<Sleep_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootSyncActivitiesArgs = {
+  days?: Scalars['Int']['input'];
+  maxActivities?: Scalars['Int']['input'];
 };
 
 
@@ -1786,6 +1806,8 @@ export type Query_Root = {
   food_options: Array<Food_Options>;
   /** fetch aggregated fields from the table: "food_options" */
   food_options_aggregate: Food_Options_Aggregate;
+  /** Service readiness marker. */
+  service: Scalars['String']['output'];
   /** fetch data from the table: "sleep" */
   sleep: Array<Sleep>;
   /** fetch aggregated fields from the table: "sleep" */
@@ -2512,6 +2534,15 @@ export type FoodOptionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type FoodOptionsQuery = { food_options: Array<{ value: string | null }> };
 
+export type SyncActivitiesMutationVariables = Exact<{
+  days?: number | null | undefined;
+  maxActivities?: number | null | undefined;
+}>;
+
+
+export type SyncActivitiesMutation = { syncActivities: { activities_created: number, activities_updated: number, sleep_created: number, sleep_updated: number, streams_written: number, activities_failed: number, errors: Array<string> } };
+
 
 export const ActivitiesSmokeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ActivitiesSmoke"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activities"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"start_time"},"value":{"kind":"EnumValue","value":"desc_nulls_last"}}]}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"IntValue","value":"25"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"garmin_activity_id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"activity_type"}},{"kind":"Field","name":{"kind":"Name","value":"subtype"}},{"kind":"Field","name":{"kind":"Name","value":"start_time"}},{"kind":"Field","name":{"kind":"Name","value":"duration_s"}},{"kind":"Field","name":{"kind":"Name","value":"distance_m"}}]}}]}}]} as unknown as DocumentNode<ActivitiesSmokeQuery, ActivitiesSmokeQueryVariables>;
 export const FoodOptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FoodOptions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"food_options"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"value"},"value":{"kind":"EnumValue","value":"asc"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"value"}}]}}]}}]} as unknown as DocumentNode<FoodOptionsQuery, FoodOptionsQueryVariables>;
+export const SyncActivitiesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncActivities"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"days"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"7"}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"maxActivities"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"20"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"syncActivities"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"days"},"value":{"kind":"Variable","name":{"kind":"Name","value":"days"}}},{"kind":"Argument","name":{"kind":"Name","value":"maxActivities"},"value":{"kind":"Variable","name":{"kind":"Name","value":"maxActivities"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activities_created"}},{"kind":"Field","name":{"kind":"Name","value":"activities_updated"}},{"kind":"Field","name":{"kind":"Name","value":"sleep_created"}},{"kind":"Field","name":{"kind":"Name","value":"sleep_updated"}},{"kind":"Field","name":{"kind":"Name","value":"streams_written"}},{"kind":"Field","name":{"kind":"Name","value":"activities_failed"}},{"kind":"Field","name":{"kind":"Name","value":"errors"}}]}}]}}]} as unknown as DocumentNode<SyncActivitiesMutation, SyncActivitiesMutationVariables>;

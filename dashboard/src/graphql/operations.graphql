@@ -16,3 +16,15 @@ query FoodOptions {
     value
   }
 }
+
+mutation SyncActivities($days: Int = 7, $maxActivities: Int = 20) {
+  syncActivities(days: $days, maxActivities: $maxActivities) {
+    activities_created
+    activities_updated
+    sleep_created
+    sleep_updated
+    streams_written
+    activities_failed
+    errors
+  }
+}

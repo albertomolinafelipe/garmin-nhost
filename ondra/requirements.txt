@@ -1,4 +1,5 @@
 fastapi==0.115.12
+strawberry-graphql[fastapi]==0.278.0
 uvicorn==0.34.2
 
 # Phase 7 must add explicit, exact pins for BOTH garminconnect and garth;
