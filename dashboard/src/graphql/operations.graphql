@@ -1,0 +1,18 @@
+query ActivitiesSmoke {
+  activities(order_by: {start_time: desc_nulls_last}, limit: 25) {
+    id
+    garmin_activity_id
+    name
+    activity_type
+    subtype
+    start_time
+    duration_s
+    distance_m
+  }
+}
+
+query FoodOptions {
+  food_options(order_by: {value: asc}) {
+    value
+  }
+}
