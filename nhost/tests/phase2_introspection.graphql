@@ -1,0 +1,11 @@
+query Phase2SchemaSnapshot {
+  __schema {
+    queryType { name }
+    mutationType { name }
+    types {
+      name
+      fields { name }
+      inputFields { name }
+    }
+  }
+}

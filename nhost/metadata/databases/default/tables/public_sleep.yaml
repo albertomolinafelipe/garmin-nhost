@@ -1,0 +1,3 @@
+table:
+  name: sleep
+  schema: public
