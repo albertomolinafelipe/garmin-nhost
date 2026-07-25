@@ -1,5 +1,7 @@
+import asyncio
 import hmac
 import os
+import threading
 from dataclasses import dataclass
 from typing import Annotated
 
@@ -21,6 +23,9 @@ class Settings:
     remote_schema_secret: str
     hasura_graphql_url: str
     hasura_admin_secret: str
+    garmin_email: str | None = None
+    garmin_password: str | None = None
+    garth_dir: str = "/data/garth"
 
     @classmethod
     def from_environment(cls) -> "Settings":
@@ -42,7 +47,12 @@ class Settings:
             raise RuntimeError(
                 f"Missing required environment variables: {missing_names}"
             )
-        return cls(**values)
+        return cls(
+            **values,
+            garmin_email=os.environ.get("GARMIN_EMAIL") or None,
+            garmin_password=os.environ.get("GARMIN_PASSWORD") or None,
+            garth_dir=os.environ.get("ONDRA_GARTH_DIR", "/data/garth"),
+        )
 
 
 @strawberry.type
@@ -64,6 +74,9 @@ class Query:
         return "ondra"
 
 
+_sync_lock = threading.Lock()
+
+
 @strawberry.type
 class Mutation:
     @strawberry.mutation(
@@ -73,27 +86,34 @@ class Mutation:
             "their documented positive bounds are rejected."
         ),
     )
-    def sync_activities(
+    async def sync_activities(
         self,
+        info: strawberry.Info,
         days: int = DEFAULT_DAYS,
         max_activities: Annotated[
             int, strawberry.argument(name="maxActivities")
         ] = DEFAULT_MAX_ACTIVITIES,
     ) -> SyncResult:
-        """Return the Phase 4 stub after validating bounded-work arguments."""
+        """Run one bounded sync in a worker thread, rejecting overlap."""
         if not 1 <= days <= MAX_DAYS:
             raise ValueError(f"days must be between 1 and {MAX_DAYS}")
         if not 1 <= max_activities <= MAX_ACTIVITIES:
             raise ValueError(f"maxActivities must be between 1 and {MAX_ACTIVITIES}")
-        return SyncResult(
-            activities_created=0,
-            activities_updated=0,
-            sleep_created=0,
-            sleep_updated=0,
-            streams_written=0,
-            activities_failed=0,
-            errors=[],
-        )
+        if not _sync_lock.acquire(blocking=False):
+            raise RuntimeError("A Garmin synchronization is already running")
+        try:
+            from .sync import sync
+
+            request = info.context["request"]
+            result = await asyncio.to_thread(
+                sync,
+                request.app.state.settings,
+                days=days,
+                max_activities=max_activities,
+            )
+            return SyncResult(**result.__dict__)
+        finally:
+            _sync_lock.release()
 
 
 schema = strawberry.Schema(
@@ -104,6 +124,7 @@ schema = strawberry.Schema(
 def create_app(settings: Settings | None = None) -> FastAPI:
     resolved_settings = settings or Settings.from_environment()
     application = FastAPI(title="ondra")
+    application.state.settings = resolved_settings
 
     @application.middleware("http")
     async def verify_remote_schema_secret(request: Request, call_next):  # type: ignore[no-untyped-def]

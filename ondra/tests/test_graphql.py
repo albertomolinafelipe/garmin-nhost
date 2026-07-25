@@ -1,5 +1,7 @@
+import pytest
 from fastapi.testclient import TestClient
 
+from app.hasura import WriterResult
 from app.main import SECRET_HEADER, Settings, create_app, schema
 
 SETTINGS = Settings(
@@ -20,6 +22,11 @@ mutation Sync($days: Int, $maxActivities: Int) {
   }
 }
 """
+@pytest.fixture(autouse=True)
+def mock_sync(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("app.sync.sync", lambda *args, **kwargs: WriterResult())
+
+
 EXPECTED_RESULT = {
     "activities_created": 0,
     "activities_updated": 0,

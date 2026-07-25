@@ -20,6 +20,18 @@ value = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 name = 'HASURA_GRAPHQL_URL'
 value = 'https://gveadpbyligtshgtemcl.hasura.eu-central-1.staging.nhost.run/v1/graphql'
 
+[[environment]]
+name = 'GARMIN_EMAIL'
+value = '{{ secrets.GARMIN_EMAIL }}'
+
+[[environment]]
+name = 'GARMIN_PASSWORD'
+value = '{{ secrets.GARMIN_PASSWORD }}'
+
+[[environment]]
+name = 'ONDRA_GARTH_DIR'
+value = '/data/garth'
+
 [[ports]]
 port = 8000
 type = 'http'
@@ -27,6 +39,11 @@ publish = true
 
 [resources]
 replicas = 1
+
+[[resources.storage]]
+name = 'garth-cache'
+path = '/data'
+capacity = 1
 
 [resources.compute]
 cpu = 125

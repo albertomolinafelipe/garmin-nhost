@@ -38,6 +38,12 @@ Hasura forwards `X-Ondra-Secret` from `ONDRA_REMOTE_SCHEMA_SECRET`, and ondra re
 
 HR and elevation are independently bucket-averaged to at most 400 points each, preserving their own first and last samples and using each bucket's middle timestamp. Track is independently thinned at uniform indexes to at most 800 points, preserving its first and last fix. The channels are intentionally not index-aligned; consumers must use each time series' own timestamps. Input is raw bytes only: Garmin ORIGINAL ZIP downloads are unwrapped in memory (preferring a `.fit` member, otherwise the first file), while bare FIT bytes are accepted. Malformed, empty, or unreadable input logs a warning and yields empty arrays/`None` start location; FIT processing performs no filesystem I/O.
 
+## Garmin synchronization
+
+`syncActivities` is a synchronous, bounded manual unit: it paginates at most the requested activities, downloads each ORIGINAL FIT into memory, parses streams and the start location, writes through the column-family-safe Hasura writer, and discards the bytes. It also looks back at most 31 sleep days. A full backfill is the dashboard repeatedly invoking bounded calls; ondra does not stream progress and has no scheduler.
+
+Only garth authentication tokens persist, under `/data/garth` on the ondra volume (directory mode 0700). Production keeps `replicas = 1`; an in-process non-blocking lock rejects overlapping syncs with a clear GraphQL error. This lock is intentionally sufficient only while the single-replica invariant holds. Missing/expired cache tokens trigger credential login (and may require Garmin MFA), then replacement tokens are persisted.
+
 ## Exercise names
 
 Exercise `name` is required and unique case-insensitively via a unique index on `lower(name)`. Original casing is preserved for display. `categories` is a non-null text array and defaults to an empty array.
