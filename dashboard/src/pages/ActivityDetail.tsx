@@ -9,7 +9,10 @@ import {
 	Mountain,
 	Route,
 } from "lucide-react";
+import type { LatLngBoundsExpression, LatLngExpression } from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { Link, useParams } from "react-router-dom";
+import { MapContainer, Polyline, TileLayer } from "react-leaflet";
 import {
 	Area,
 	CartesianGrid,
@@ -132,47 +135,47 @@ function Metrics({ activity }: { activity: Activity }) {
 	);
 }
 
-function RouteSketch({ track }: { track: { lat: number; lng: number }[] }) {
-	const points = useMemo(() => {
-		if (track.length < 2) return "";
-		const lats = track.map((point) => point.lat);
-		const lngs = track.map((point) => point.lng);
-		const minLat = Math.min(...lats);
-		const maxLat = Math.max(...lats);
-		const minLng = Math.min(...lngs);
-		const maxLng = Math.max(...lngs);
-		const latRange = maxLat - minLat || 1;
-		const lngRange = maxLng - minLng || 1;
-		return track
-			.map((point) => {
-				const x = 16 + ((point.lng - minLng) / lngRange) * 368;
-				const y = 16 + (1 - (point.lat - minLat) / latRange) * 218;
-				return `${x.toFixed(1)},${y.toFixed(1)}`;
-			})
-			.join(" ");
-	}, [track]);
+function RouteMap({ track }: { track: { lat: number; lng: number }[] }) {
+	const positions: LatLngExpression[] = track.map((point) => [
+		point.lat,
+		point.lng,
+	]);
+	const bounds = positions as LatLngBoundsExpression;
 
 	return (
-		<Card className="gap-3 py-4">
+		<Card className="gap-3 overflow-hidden py-4">
 			<CardHeader className="px-4">
 				<CardTitle className="text-sm">Route</CardTitle>
 			</CardHeader>
 			<CardContent className="px-4">
-				<svg
-					viewBox="0 0 400 250"
-					className="bg-muted/30 h-[280px] w-full rounded-lg"
-					role="img"
-					aria-label="Activity route"
-				>
-					<polyline
-						points={points}
-						fill="none"
-						stroke="#7FB4CA"
-						strokeWidth="4"
-						strokeLinecap="round"
-						strokeLinejoin="round"
-					/>
-				</svg>
+				<div className="overflow-hidden rounded-lg border">
+					<MapContainer
+						bounds={bounds}
+						boundsOptions={{ padding: [20, 20] }}
+						scrollWheelZoom={false}
+						attributionControl={false}
+						className="route-map"
+						style={{ height: 280, width: "100%" }}
+					>
+						<TileLayer
+							url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+							subdomains="abcd"
+							className="route-map-basemap"
+							opacity={0.68}
+							zIndex={1}
+						/>
+						<TileLayer
+							url="https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}"
+							className="route-map-hillshade"
+							opacity={0.28}
+							zIndex={2}
+						/>
+						<Polyline
+							positions={positions}
+							pathOptions={{ color: "#7FB4CA", weight: 4, opacity: 0.9 }}
+						/>
+					</MapContainer>
+				</div>
 			</CardContent>
 		</Card>
 	);
@@ -394,7 +397,7 @@ export function ActivityDetail() {
 			</Button>
 			<div className="grid gap-4 lg:grid-cols-3">
 				<Card
-					className="gap-3 border-l-4 py-4 lg:col-span-1"
+					className="justify-center gap-3 border-l-4 py-4 lg:col-span-1"
 					style={{ borderLeftColor: categoryColor[category] }}
 				>
 					<CardHeader className="px-4">
@@ -411,15 +414,15 @@ export function ActivityDetail() {
 						</Badge>
 					</CardContent>
 				</Card>
-				<Card className="py-4 lg:col-span-2">
-					<CardContent className="flex h-full items-center px-4">
+				<Card className="justify-center py-4 lg:col-span-2">
+					<CardContent className="flex items-center px-4">
 						<Metrics activity={activity} />
 					</CardContent>
 				</Card>
 			</div>
 			{(track.length > 1 || hasChart) && (
 				<div className="grid gap-4 lg:grid-cols-2">
-					{track.length > 1 && <RouteSketch track={track} />}
+					{track.length > 1 && <RouteMap track={track} />}
 					{hasChart && <StreamChart hr={hr} elevation={elevation} />}
 				</div>
 			)}
