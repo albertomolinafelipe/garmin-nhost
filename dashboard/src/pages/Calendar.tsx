@@ -79,16 +79,16 @@ function DayEvent({ a }: { a: CalendarActivity }) {
 	return (
 		<Link
 			to={`/activities/${a.id}`}
-			className="bg-accent/40 hover:bg-accent focus-visible:ring-ring rounded-sm border-l-2 px-1.5 py-0.5 leading-tight transition-colors focus-visible:ring-2 focus-visible:outline-none"
+			className="bg-accent/40 hover:bg-accent focus-visible:ring-ring rounded-sm border-l-2 px-1.5 py-1.5 leading-tight transition-colors focus-visible:ring-2 focus-visible:outline-none md:py-0.5"
 			style={{ borderLeftColor: color }}
 		>
-			<div className="flex items-center gap-1">
+			<div className="flex items-center justify-center gap-1 md:justify-start">
 				<Icon size={12} className="shrink-0" />
-				<span className="truncate text-xs font-medium">
+				<span className="hidden truncate text-xs font-medium md:inline">
 					{a.name ?? a.activity_type ?? "Activity"}
 				</span>
 			</div>
-			<div className="text-muted-foreground truncate text-[11px]">
+			<div className="text-muted-foreground hidden truncate text-[11px] md:block">
 				{eventInfo(a)}
 			</div>
 		</Link>
@@ -166,10 +166,10 @@ export function Calendar() {
 	});
 
 	return (
-		<div className="flex h-full flex-col gap-4 p-4">
+		<div className="flex h-full min-h-[520px] flex-col gap-4 p-4">
 			{/* Toolbar */}
-			<div className="relative flex items-center justify-between">
-				<div className="flex items-center gap-4">
+			<div className="relative flex flex-wrap items-center justify-between gap-3">
+				<div className="flex flex-wrap items-center gap-4">
 					<div className="flex items-center gap-1">
 						<Button
 							variant="outline"
@@ -228,7 +228,7 @@ export function Calendar() {
 						})}
 					</div>
 				</div>
-				<div className="absolute left-1/2 -translate-x-1/2 text-sm font-semibold">
+				<div className="order-first w-full text-center text-sm font-semibold sm:order-none sm:w-auto md:absolute md:left-1/2 md:-translate-x-1/2">
 					{month}
 				</div>
 			</div>
@@ -288,7 +288,7 @@ export function Calendar() {
 				</div>
 
 				{/* Week totals */}
-				<div className="bg-muted/30 flex w-44 flex-col border-l">
+				<div className="bg-muted/30 hidden w-44 flex-col border-l md:flex">
 					<div className="text-muted-foreground flex h-9 items-center justify-center border-b text-[11px] font-semibold tracking-wide uppercase">
 						Week totals
 					</div>

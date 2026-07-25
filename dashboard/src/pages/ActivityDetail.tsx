@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import {
-	ArrowLeft,
 	Bolt,
 	Clock3,
 	Flame,
@@ -389,12 +388,6 @@ export function ActivityDetail() {
 
 	return (
 		<div className="space-y-4 p-4">
-			<Button variant="ghost" size="sm" asChild className="-ml-2">
-				<Link to="/activities">
-					<ArrowLeft className="size-4" />
-					Activities
-				</Link>
-			</Button>
 			<div className="grid gap-4 lg:grid-cols-3">
 				<Card
 					className="justify-center gap-3 border-l-4 py-4 lg:col-span-1"

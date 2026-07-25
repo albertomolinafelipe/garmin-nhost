@@ -1,6 +1,13 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Activity, CalendarDays, LayoutDashboard, LogOut } from "lucide-react";
+import {
+	Activity,
+	CalendarDays,
+	LayoutDashboard,
+	LogOut,
+	Menu,
+	X,
+} from "lucide-react";
 
 import { NhostLogo } from "@/components/nhost-logo";
 import { SyncButton } from "@/components/sync-button";
@@ -14,6 +21,58 @@ const NAV = [
 	{ to: "/activities", label: "Activities", icon: Activity },
 ];
 
+function SidebarContent({
+	onForget,
+	onNavigate,
+}: {
+	onForget: () => void;
+	onNavigate?: () => void;
+}) {
+	return (
+		<>
+			<div className="flex h-14 items-center gap-2 px-4 font-semibold">
+				<div className="bg-sidebar-primary text-sidebar-primary-foreground flex size-7 items-center justify-center rounded-md">
+					<NhostLogo className="size-4" />
+				</div>
+				garmin-nhost
+			</div>
+
+			<nav className="flex flex-1 flex-col gap-1 p-2">
+				{NAV.map(({ to, label, icon: Icon }) => (
+					<NavLink
+						key={to}
+						to={to}
+						onClick={onNavigate}
+						className={({ isActive }) =>
+							cn(
+								"flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+								"hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+								isActive && "bg-sidebar-accent text-sidebar-accent-foreground",
+							)
+						}
+					>
+						<Icon className="size-4" />
+						{label}
+					</NavLink>
+				))}
+			</nav>
+
+			<div className="border-sidebar-border flex flex-col gap-1 border-t p-2">
+				<SyncButton />
+				<ThemeToggle />
+				<Button
+					variant="ghost"
+					className="w-full justify-start"
+					onClick={onForget}
+				>
+					<LogOut className="size-4" />
+					Forget secret
+				</Button>
+			</div>
+		</>
+	);
+}
+
 export function AppShell({
 	children,
 	onForget,
@@ -21,49 +80,61 @@ export function AppShell({
 	children: ReactNode;
 	onForget: () => void;
 }) {
+	const [mobileOpen, setMobileOpen] = useState(false);
+
 	return (
-		<div className="flex h-svh">
-			<aside className="bg-sidebar text-sidebar-foreground border-sidebar-border flex w-60 shrink-0 flex-col border-r">
-				<div className="flex h-14 items-center gap-2 px-4 font-semibold">
-					<div className="bg-sidebar-primary text-sidebar-primary-foreground flex size-7 items-center justify-center rounded-md">
-						<NhostLogo className="size-4" />
-					</div>
-					garmin-nhost
+		<div className="flex h-svh flex-col md:flex-row">
+			{/* Mobile top bar */}
+			<header className="bg-sidebar text-sidebar-foreground border-sidebar-border flex h-14 shrink-0 items-center gap-2 border-b px-4 md:hidden">
+				<Button
+					variant="ghost"
+					size="icon"
+					aria-label="Open menu"
+					onClick={() => setMobileOpen(true)}
+				>
+					<Menu className="size-5" />
+				</Button>
+				<div className="bg-sidebar-primary text-sidebar-primary-foreground flex size-7 items-center justify-center rounded-md">
+					<NhostLogo className="size-4" />
 				</div>
+				<span className="font-semibold">garmin-nhost</span>
+			</header>
 
-				<nav className="flex flex-1 flex-col gap-1 p-2">
-					{NAV.map(({ to, label, icon: Icon }) => (
-						<NavLink
-							key={to}
-							to={to}
-							className={({ isActive }) =>
-								cn(
-									"flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-									"hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-									isActive &&
-										"bg-sidebar-accent text-sidebar-accent-foreground",
-								)
-							}
-						>
-							<Icon className="size-4" />
-							{label}
-						</NavLink>
-					))}
-				</nav>
-
-				<div className="border-sidebar-border flex flex-col gap-1 border-t p-2">
-					<SyncButton />
-					<ThemeToggle />
-					<Button
-						variant="ghost"
-						className="w-full justify-start"
-						onClick={onForget}
-					>
-						<LogOut className="size-4" />
-						Forget secret
-					</Button>
-				</div>
+			{/* Desktop sidebar */}
+			<aside className="bg-sidebar text-sidebar-foreground border-sidebar-border hidden w-60 shrink-0 flex-col border-r md:flex">
+				<SidebarContent onForget={onForget} />
 			</aside>
+
+			{/* Mobile drawer */}
+			{mobileOpen && (
+				<div className="fixed inset-0 z-50 md:hidden">
+					<button
+						type="button"
+						aria-label="Close menu"
+						className="absolute inset-0 bg-black/50"
+						onClick={() => setMobileOpen(false)}
+					/>
+					<div className="bg-sidebar text-sidebar-foreground border-sidebar-border absolute inset-y-0 left-0 flex w-64 max-w-[80%] flex-col border-r shadow-xl">
+						<div className="flex justify-end p-2">
+							<Button
+								variant="ghost"
+								size="icon"
+								aria-label="Close menu"
+								onClick={() => setMobileOpen(false)}
+							>
+								<X className="size-5" />
+							</Button>
+						</div>
+						<SidebarContent
+							onForget={() => {
+								setMobileOpen(false);
+								onForget();
+							}}
+							onNavigate={() => setMobileOpen(false)}
+						/>
+					</div>
+				</div>
+			)}
 
 			<main className="min-w-0 flex-1 overflow-auto">{children}</main>
 		</div>

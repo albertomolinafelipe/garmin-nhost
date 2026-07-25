@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { categoryColor, categoryOf, typeLabel } from "@/lib/activity-types";
-import { fmtDate, fmtDistance, fmtDuration } from "@/lib/format";
+import { fmtDay, fmtDistance, fmtDuration } from "@/lib/format";
 import { num, useActivities } from "@/lib/queries";
 
 export function Activities() {
@@ -56,16 +56,24 @@ export function Activities() {
 
 			<Card className="min-h-0 flex-1 gap-0 overflow-hidden py-0">
 				<CardContent className="h-full overflow-auto px-0">
-					<table className="w-full min-w-[760px] text-sm">
+					<table className="w-full text-sm">
 						<thead className="bg-card sticky top-0 z-10 border-b">
 							<tr className="text-muted-foreground text-left">
 								<th className="w-3 py-3" aria-label="Category" />
 								<th className="px-4 py-3 font-medium">Date</th>
 								<th className="px-4 py-3 font-medium">Name</th>
-								<th className="px-4 py-3 font-medium">Type</th>
-								<th className="px-4 py-3 text-right font-medium">Distance</th>
-								<th className="px-4 py-3 text-right font-medium">Duration</th>
-								<th className="px-4 py-3 text-right font-medium">Elevation</th>
+								<th className="hidden px-4 py-3 font-medium md:table-cell">
+									Type
+								</th>
+								<th className="hidden px-4 py-3 text-right font-medium md:table-cell">
+									Distance
+								</th>
+								<th className="hidden px-4 py-3 text-right font-medium md:table-cell">
+									Duration
+								</th>
+								<th className="hidden px-4 py-3 text-right font-medium md:table-cell">
+									Elevation
+								</th>
 							</tr>
 						</thead>
 						<tbody className="divide-y">
@@ -93,21 +101,21 @@ export function Activities() {
 											/>
 										</td>
 										<td className="text-muted-foreground whitespace-nowrap px-4 py-3">
-											{fmtDate(activity.start_time)}
+											{fmtDay(activity.start_time)}
 										</td>
-										<td className="max-w-72 truncate px-4 py-3 font-medium">
+										<td className="max-w-[60vw] truncate px-4 py-3 font-medium md:max-w-72">
 											{activity.name ?? "—"}
 										</td>
-										<td className="px-4 py-3">
+										<td className="hidden px-4 py-3 md:table-cell">
 											{typeLabel(activity.activity_type, activity.subtype)}
 										</td>
-										<td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+										<td className="hidden whitespace-nowrap px-4 py-3 text-right tabular-nums md:table-cell">
 											{fmtDistance(num(activity.distance_m))}
 										</td>
-										<td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+										<td className="hidden whitespace-nowrap px-4 py-3 text-right tabular-nums md:table-cell">
 											{fmtDuration(num(activity.duration_s))}
 										</td>
-										<td className="whitespace-nowrap px-4 py-3 text-right tabular-nums">
+										<td className="hidden whitespace-nowrap px-4 py-3 text-right tabular-nums md:table-cell">
 											{num(activity.elevation_gain_m)
 												? `${Math.round(num(activity.elevation_gain_m))} m`
 												: "—"}

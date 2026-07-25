@@ -356,7 +356,11 @@ function SleepPanel() {
 	);
 
 	return (
-		<Panel title="Sleep" action={legend} className="flex-1">
+		<Panel
+			title="Sleep"
+			action={legend}
+			className="h-[280px] md:h-auto md:min-h-0 md:flex-1"
+		>
 			<PanelBody
 				isPending={isPending}
 				isEmpty={rows.length === 0}
@@ -449,20 +453,20 @@ function SleepPanel() {
 
 export function Overview() {
 	return (
-		<div className="flex h-full flex-col gap-4 p-4">
-			<div className="flex min-h-0 flex-1 flex-col gap-4 md:flex-row">
+		<div className="flex flex-col gap-4 p-4 md:h-full">
+			<div className="flex flex-col gap-4 md:min-h-0 md:flex-1 md:flex-row">
 				<LoadPanel
 					title="Running load"
 					series={RUNNING_SERIES}
-					className="flex-[2]"
+					className="h-[280px] md:h-auto md:min-h-0 md:flex-[2]"
 				/>
 				<LoadPanel
 					title="Climbing & weights load"
 					series={EFFORT_SERIES}
-					className="flex-1"
+					className="h-[280px] md:h-auto md:min-h-0 md:flex-1"
 				/>
 			</div>
-			<div className="flex min-h-0 flex-1 flex-col gap-4 md:flex-row">
+			<div className="flex flex-col gap-4 md:min-h-0 md:flex-1 md:flex-row">
 				<SleepPanel />
 			</div>
 		</div>
