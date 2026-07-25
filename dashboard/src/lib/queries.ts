@@ -41,3 +41,40 @@ export function useActivities() {
 
 export const num = (v: number | string | null | undefined): number =>
 	v == null ? 0 : Number(v);
+
+export interface SleepNight {
+	calendar_date: string;
+	total_sleep_s: number | string | null;
+	deep_sleep_s: number | string | null;
+	light_sleep_s: number | string | null;
+	rem_sleep_s: number | string | null;
+	awake_s: number | string | null;
+	sleep_score: number | string | null;
+	resting_hr: number | string | null;
+	avg_hrv: number | string | null;
+}
+
+const SLEEP_NIGHTS = /* GraphQL */ `
+	query SleepNights($limit: Int = 14) {
+		sleep(order_by: { calendar_date: desc }, limit: $limit) {
+			calendar_date
+			total_sleep_s
+			deep_sleep_s
+			light_sleep_s
+			rem_sleep_s
+			awake_s
+			sleep_score
+			resting_hr
+			avg_hrv
+		}
+	}
+`;
+
+export function useSleep(limit = 14) {
+	return useQuery({
+		queryKey: ["sleep", limit],
+		queryFn: () =>
+			graphQLClient.request<{ sleep: SleepNight[] }>(SLEEP_NIGHTS, { limit }),
+	});
+}
+
