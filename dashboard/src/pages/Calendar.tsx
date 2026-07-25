@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -76,8 +77,9 @@ function DayEvent({ a }: { a: CalendarActivity }) {
 	const Icon = categoryIcon[category];
 	const color = categoryColor[category];
 	return (
-		<div
-			className="bg-accent/40 rounded-sm border-l-2 px-1.5 py-0.5 leading-tight"
+		<Link
+			to={`/activities/${a.id}`}
+			className="bg-accent/40 hover:bg-accent focus-visible:ring-ring rounded-sm border-l-2 px-1.5 py-0.5 leading-tight transition-colors focus-visible:ring-2 focus-visible:outline-none"
 			style={{ borderLeftColor: color }}
 		>
 			<div className="flex items-center gap-1">
@@ -89,7 +91,7 @@ function DayEvent({ a }: { a: CalendarActivity }) {
 			<div className="text-muted-foreground truncate text-[11px]">
 				{eventInfo(a)}
 			</div>
-		</div>
+		</Link>
 	);
 }
 

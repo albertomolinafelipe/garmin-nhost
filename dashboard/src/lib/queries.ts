@@ -78,3 +78,85 @@ export function useSleep(limit = 14) {
 	});
 }
 
+export interface StreamSample {
+	t: number;
+	v: number;
+}
+
+export interface TrackPoint {
+	lat: number;
+	lng: number;
+}
+
+export interface ActivityStreamPayload {
+	hr?: StreamSample[];
+	elevation?: StreamSample[];
+	track?: TrackPoint[];
+}
+
+export interface ActivityDetail extends CalendarActivity {
+	garmin_activity_id: number | string;
+	avg_hr: number | null;
+	max_hr: number | null;
+	calories: number | null;
+	avg_speed_mps: number | string | null;
+	avg_power_w: number | string | null;
+	feeling: number | null;
+	effort: number | null;
+	food_during: string[] | null;
+	food_after: string[] | null;
+	caffeine: string | null;
+	weather: string | null;
+	notes: string | null;
+	focus: string | null;
+	hard_tries: number | null;
+	strength_exercises: unknown;
+	activity_streams: { payload: ActivityStreamPayload }[];
+}
+
+const ACTIVITY_DETAIL = /* GraphQL */ `
+	query ActivityDetail($id: bigint!) {
+		activities_by_pk(id: $id) {
+			id
+			garmin_activity_id
+			name
+			activity_type
+			subtype
+			start_time
+			duration_s
+			distance_m
+			elevation_gain_m
+			avg_hr
+			max_hr
+			calories
+			avg_speed_mps
+			avg_power_w
+			feeling
+			effort
+			food_during
+			food_after
+			caffeine
+			weather
+			notes
+			focus
+			hard_tries
+			strength_exercises
+			activity_streams {
+				payload
+			}
+		}
+	}
+`;
+
+export function useActivity(id: string | undefined) {
+	return useQuery({
+		queryKey: ["activity", id],
+		enabled: Boolean(id),
+		queryFn: () =>
+			graphQLClient.request<{ activities_by_pk: ActivityDetail | null }>(
+				ACTIVITY_DETAIL,
+				{ id },
+			),
+		select: (data) => data.activities_by_pk,
+	});
+}

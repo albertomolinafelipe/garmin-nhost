@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { clearAdminSecret, getAdminSecret } from "@/adminSecret";
 import { AppShell } from "@/components/app-shell";
 import { Activities } from "@/pages/Activities";
+import { ActivityDetail } from "@/pages/ActivityDetail";
 import { Calendar } from "@/pages/Calendar";
 import { Login } from "@/pages/Login";
 import { Overview } from "@/pages/Overview";
@@ -35,6 +36,7 @@ export default function App() {
 				<Route path="/overview" element={<Overview />} />
 				<Route path="/calendar" element={<Calendar />} />
 				<Route path="/activities" element={<Activities />} />
+				<Route path="/activities/:id" element={<ActivityDetail />} />
 				<Route path="*" element={<Navigate to="/overview" replace />} />
 			</Routes>
 		</AppShell>

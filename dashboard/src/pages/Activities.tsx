@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,7 @@ import { fmtDate, fmtDistance, fmtDuration } from "@/lib/format";
 import { num, useActivities } from "@/lib/queries";
 
 export function Activities() {
+	const navigate = useNavigate();
 	const { data, isPending } = useActivities();
 	const [search, setSearch] = useState("");
 	const activities = data?.activities ?? [];
@@ -75,7 +77,14 @@ export function Activities() {
 								return (
 									<tr
 										key={activity.id}
-										className="hover:bg-muted/50 transition-colors"
+										className="hover:bg-muted/50 cursor-pointer transition-colors"
+										tabIndex={0}
+										onClick={() => navigate(`/activities/${activity.id}`)}
+										onKeyDown={(event) => {
+											if (event.key === "Enter" || event.key === " ") {
+												navigate(`/activities/${activity.id}`);
+											}
+										}}
 									>
 										<td className="py-3">
 											<div
