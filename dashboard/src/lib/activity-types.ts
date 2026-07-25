@@ -1,0 +1,126 @@
+import type { ComponentType, CSSProperties } from "react";
+import {
+	Activity,
+	Bike,
+	Dumbbell,
+	Footprints,
+	Mountain,
+	TreePine,
+	Waves,
+} from "lucide-react";
+
+// Presentation-layer taxonomy that abstracts Garmin's many raw activity types
+// into a handful of categories, plus optional subtypes. Ported from garmin-dash.
+
+export type IconComponent = ComponentType<{
+	className?: string;
+	size?: number;
+	style?: CSSProperties;
+}>;
+
+export type Category =
+	| "running"
+	| "climbing"
+	| "strength"
+	| "hiking"
+	| "swimming"
+	| "cycling"
+	| "other";
+
+// Canonical order for filters / legends.
+export const CATEGORY_ORDER: Category[] = [
+	"running",
+	"climbing",
+	"strength",
+	"hiking",
+	"swimming",
+	"cycling",
+	"other",
+];
+
+export const RUNNING_SUBTYPES = [
+	"road",
+	"treadmill",
+	"trail",
+	"mountain",
+] as const;
+export const CLIMBING_SUBTYPES = ["boulder", "route", "board", "mix"] as const;
+
+const CLIMBING_GARMIN = new Set([
+	"rock_climbing",
+	"bouldering",
+	"indoor_climbing",
+	"climbing",
+]);
+
+const isClimbingSubtype = (s: string | null): boolean =>
+	!!s && (CLIMBING_SUBTYPES as readonly string[]).includes(s);
+
+export function categoryOf(
+	activityType: string | null,
+	subtype: string | null,
+): Category {
+	if (isClimbingSubtype(subtype)) return "climbing";
+	const at = (activityType ?? "").toLowerCase();
+	if (CLIMBING_GARMIN.has(at)) return "climbing";
+	if (at.includes("running")) return "running";
+	if (at.includes("swimming")) return "swimming";
+	if (at.includes("cycling") || at.includes("biking")) return "cycling";
+	if (["hiking", "mountaineering", "walking"].includes(at)) return "hiking";
+	if (at.includes("strength")) return "strength";
+	return "other";
+}
+
+function defaultRunningSubtype(activityType: string | null): string | null {
+	const at = (activityType ?? "").toLowerCase();
+	if (at.includes("trail")) return "trail";
+	if (at.includes("treadmill") || at.includes("indoor")) return "treadmill";
+	if (at.includes("running")) return "road";
+	return null;
+}
+
+// The subtype to display: the user's value if set, else a sensible default.
+export function effectiveSubtype(
+	activityType: string | null,
+	subtype: string | null,
+): string | null {
+	if (subtype) return subtype;
+	if (categoryOf(activityType, subtype) === "running") {
+		return defaultRunningSubtype(activityType);
+	}
+	return null;
+}
+
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// Human label, e.g. "Running · Trail" or "Climbing".
+export function typeLabel(
+	activityType: string | null,
+	subtype: string | null,
+): string {
+	const category = categoryOf(activityType, subtype);
+	const sub = effectiveSubtype(activityType, subtype);
+	return sub ? `${cap(category)} · ${cap(sub)}` : cap(category);
+}
+
+export const categoryIcon: Record<Category, IconComponent> = {
+	running: Footprints,
+	climbing: Mountain,
+	strength: Dumbbell,
+	hiking: TreePine,
+	swimming: Waves,
+	cycling: Bike,
+	other: Activity,
+};
+
+// Category accent colors (Kanagawa "autumn" tones). One place to tweak per-category
+// colors used by the calendar chips + week totals + charts.
+export const categoryColor: Record<Category, string> = {
+	running: "#658594", // dragonBlue
+	climbing: "#DCA561", // autumnYellow
+	strength: "#C34043", // autumnRed
+	hiking: "#76946A", // autumnGreen
+	swimming: "#7AA89F", // waveAqua2
+	cycling: "#957FB8", // oniViolet
+	other: "#727169", // fujiGray
+};
