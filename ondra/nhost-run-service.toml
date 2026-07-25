@@ -18,7 +18,7 @@ value = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 # ondra -> staging Hasura (public URL + admin secret).
 [[environment]]
 name = 'HASURA_GRAPHQL_URL'
-value = 'https://gveadpbyligtshgtemcl.hasura.eu-central-1.nhost.run/v1/graphql'
+value = 'https://gveadpbyligtshgtemcl.hasura.eu-central-1.staging.nhost.run/v1/graphql'
 
 [[ports]]
 port = 8000
