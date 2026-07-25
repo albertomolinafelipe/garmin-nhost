@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.venv/
+venv/
+.git/
+.gitignore
+.env
+.env.*
+*.log
+coverage/
+.vite/

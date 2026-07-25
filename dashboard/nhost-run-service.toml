@@ -1,0 +1,20 @@
+name = 'dashboard'
+
+# Public multi-architecture image built by dashboard-image.yml.
+[image]
+image = 'ghcr.io/albertomolinafelipe/garmin-dashboard:latest'
+
+[[ports]]
+port = 8080
+type = 'http'
+publish = true
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 125
+memory = 256
+
+[healthCheck]
+port = 8080
