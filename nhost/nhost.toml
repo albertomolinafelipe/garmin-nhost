@@ -5,6 +5,12 @@
 name = 'ONDRA_GRAPHQL_URL'
 value = 'https://dpsficofnmnlflnenukw-8000.svc.eu-central-1.staging.nhost.run/graphql'
 
+# Shared secret Hasura forwards to ondra (remote schema header value_from_env).
+# Exposed as a real env var so value_from_env resolves; same value ondra reads.
+[[global.environment]]
+name = 'ONDRA_REMOTE_SCHEMA_SECRET'
+value = '{{ secrets.ONDRA_REMOTE_SCHEMA_SECRET }}'
+
 [hasura]
 version = 'v2.48.5-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
