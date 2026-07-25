@@ -127,9 +127,7 @@ def test_bad_bytes_return_empty_payload_and_location(data: bytes) -> None:
     assert fit.start_location(data) is None
 
 
-def test_processing_never_opens_a_file_for_writing(
-    monkeypatch, tmp_path: Path
-) -> None:
+def test_processing_never_opens_a_file_for_writing(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.chdir(tmp_path)
     real_open = builtins.open
 
