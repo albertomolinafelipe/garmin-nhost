@@ -1,5 +1,10 @@
 [global]
 
+# ondra Run service URL; consumed by the ondra remote schema (url_from_env).
+[[global.environment]]
+name = 'ONDRA_GRAPHQL_URL'
+value = 'https://dpsficofnmnlflnenukw-8000.svc.eu-central-1.staging.nhost.run/graphql'
+
 [hasura]
 version = 'v2.48.5-ce'
 adminSecret = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
