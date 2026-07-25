@@ -1,5 +1,6 @@
 import asyncio
 import hmac
+import logging
 import os
 import threading
 from dataclasses import dataclass
@@ -10,6 +11,11 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from strawberry.fastapi import GraphQLRouter
 from strawberry.schema.config import StrawberryConfig
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
 
 DEFAULT_DAYS = 7
 MAX_DAYS = 31

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Protocol, cast
 
@@ -12,6 +13,8 @@ from .garmin_client import get_client
 from .hasura import HasuraClient, WriterResult, write_sync_data
 from .main import Settings
 from .process import ActivityDTO, SleepDTO, normalize_activity, normalize_sleep
+
+log = logging.getLogger(__name__)
 
 
 class GarminClient(Protocol):
@@ -29,6 +32,12 @@ def sync(settings: Settings, *, days: int, max_activities: int) -> WriterResult:
     client = get_client(settings)
     activities, errors, failed = _pull_activities(client, max_activities)
     sleeps, sleep_errors = _pull_sleep(client, days)
+    log.info(
+        "sync pulled %d activities (%d failed), %d sleep nights",
+        len(activities),
+        failed,
+        len(sleeps),
+    )
     with HasuraClient(settings) as hasura:
         result = write_sync_data(hasura, activities, sleeps)
     result.activities_failed += failed
@@ -52,6 +61,7 @@ def _pull_activities(
         except Exception as exc:  # noqa: BLE001 -- third-party API exceptions vary
             errors.append(f"get_activities({start}, {want}) failed: {exc}")
             break
+        log.info("get_activities(%d, %d) returned %d items", start, want, len(page))
         if not page:
             break
         bounded_page = page[:want]
