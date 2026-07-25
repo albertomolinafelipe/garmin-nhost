@@ -1,0 +1,96 @@
+from datetime import date, datetime, timezone
+
+import pytest
+
+from app.process import normalize_activity, normalize_sleep, seed_subtype
+
+
+@pytest.mark.parametrize(
+    ("activity_type", "expected"),
+    [
+        ("running", "road"),
+        ("treadmill_running", "treadmill"),
+        ("indoor_running", "treadmill"),
+        ("trail_running", None),
+        ("other", None),
+        (None, None),
+    ],
+)
+def test_seed_subtype(activity_type: str | None, expected: str | None) -> None:
+    assert seed_subtype(activity_type) == expected
+
+
+def test_normalize_activity_maps_exact_summary_units() -> None:
+    now = datetime(2026, 7, 25, tzinfo=timezone.utc)
+    dto = normalize_activity(
+        {
+            "activityId": 9_007_199_254_740_993,
+            "activityType": {"typeKey": "running"},
+            "activityName": "Morning Run",
+            "startTimeLocal": "2026-07-24 06:30:00",
+            "duration": 3661.5,
+            "distance": 12345.6,
+            "averageHR": 151,
+            "maxHR": 181,
+            "elevationGain": 234.5,
+            "calories": 765,
+            "averageSpeed": 3.371,
+            "avgPower": 287.2,
+        },
+        start_location=(46.1234567, 7.7654321),
+        synced_at=now,
+    )
+
+    assert dto.garmin_activity_id == 9_007_199_254_740_993
+    assert dto.activity_type == "running"
+    assert dto.start_time == datetime(2026, 7, 24, 6, 30)
+    assert dto.duration_s == 3661.5
+    assert dto.distance_m == 12345.6
+    assert dto.avg_hr == 151
+    assert dto.max_hr == 181
+    assert dto.elevation_gain_m == 234.5
+    assert dto.calories == 765
+    assert dto.avg_speed_mps == 3.371
+    assert dto.avg_power_w == 287.2
+    assert dto.start_lat == 46.1234567
+    assert dto.start_lng == 7.7654321
+    assert dto.synced_at == now
+    assert dto.name == "Morning Run"
+    assert dto.subtype == "road"
+
+
+def test_normalize_sleep_maps_nested_summary_and_epoch_milliseconds() -> None:
+    now = datetime(2026, 7, 25, tzinfo=timezone.utc)
+    dto = normalize_sleep(
+        {
+            "dailySleepDTO": {
+                "calendarDate": "2026-07-24",
+                "sleepStartTimestampGMT": 1_753_315_200_000,
+                "sleepEndTimestampGMT": 1_753_344_000_000,
+                "sleepTimeSeconds": 27_000,
+                "deepSleepSeconds": 4_000,
+                "lightSleepSeconds": 15_000,
+                "remSleepSeconds": 6_000,
+                "awakeSleepSeconds": 2_000,
+                "sleepScores": {"overall": {"value": 88}},
+            },
+            "avgOvernightHrv": 53.5,
+            "restingHeartRate": 44,
+        },
+        synced_at=now,
+    )
+
+    assert dto.calendar_date == date(2026, 7, 24)
+    assert dto.start_time == datetime.fromtimestamp(
+        1_753_315_200, tz=timezone.utc
+    )
+    assert dto.end_time == datetime.fromtimestamp(1_753_344_000, tz=timezone.utc)
+    assert dto.total_sleep_s == 27_000
+    assert dto.deep_sleep_s == 4_000
+    assert dto.light_sleep_s == 15_000
+    assert dto.rem_sleep_s == 6_000
+    assert dto.awake_s == 2_000
+    assert dto.avg_hrv == 53.5
+    assert dto.resting_hr == 44
+    assert dto.sleep_score == 88
+    assert dto.synced_at == now

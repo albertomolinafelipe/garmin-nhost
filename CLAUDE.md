@@ -34,7 +34,9 @@ Hasura forwards `X-Ondra-Secret` from `ONDRA_REMOTE_SCHEMA_SECRET`, and ondra re
 
 ## Stream payload
 
-`activity_streams.payload` is a JSON document. Its exact keys, units, ordering, malformed-point behavior, and downsampling budget are placeholders in this phase and will be frozen in Phase 5. Do not infer or independently extend that contract before then.
+`activity_streams.payload` is exactly `{ "hr": [{"t": <int>, "v": <int>}], "track": [{"lat": <float>, "lng": <float>}], "elevation": [{"t": <int>, "v": <int>}] }`; all three keys are always present and arrays are empty when their FIT channel is unavailable. `t` is whole elapsed seconds from the first timestamped FIT record, HR `v` is integer beats per minute, elevation `v` is rounded integer metres, and track coordinates are semicircles converted to degrees and rounded to 6 decimal places. Points remain in FIT-record/time order. Records missing a timestamp or requested value are omitted from that time series; a GPS point requires both finite coordinates; non-numeric and non-finite values are omitted. Elevation prefers `enhanced_altitude` per record and falls back to `altitude`.
+
+HR and elevation are independently bucket-averaged to at most 400 points each, preserving their own first and last samples and using each bucket's middle timestamp. Track is independently thinned at uniform indexes to at most 800 points, preserving its first and last fix. The channels are intentionally not index-aligned; consumers must use each time series' own timestamps. Input is raw bytes only: Garmin ORIGINAL ZIP downloads are unwrapped in memory (preferring a `.fit` member, otherwise the first file), while bare FIT bytes are accepted. Malformed, empty, or unreadable input logs a warning and yields empty arrays/`None` start location; FIT processing performs no filesystem I/O.
 
 ## Exercise names
 
