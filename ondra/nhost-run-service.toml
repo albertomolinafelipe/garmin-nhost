@@ -30,7 +30,13 @@ value = '{{ secrets.GARMIN_PASSWORD }}'
 
 [[environment]]
 name = 'ONDRA_GARTH_DIR'
-value = '/data/garth'
+value = '/tmp/garth'
+
+# Seed tokens from a local login (base64 JSON of the garth token files) so ondra
+# resumes a pre-authenticated session — no headless MFA/device-verification.
+[[environment]]
+name = 'GARTH_TOKENS_B64'
+value = '{{ secrets.GARTH_TOKENS_B64 }}'
 
 [[ports]]
 port = 8000
@@ -39,11 +45,6 @@ publish = true
 
 [resources]
 replicas = 1
-
-[[resources.storage]]
-name = 'garth-cache'
-path = '/data'
-capacity = 1
 
 [resources.compute]
 cpu = 125

@@ -31,7 +31,8 @@ class Settings:
     hasura_admin_secret: str
     garmin_email: str | None = None
     garmin_password: str | None = None
-    garth_dir: str = "/data/garth"
+    garth_dir: str = "/tmp/garth"
+    garth_tokens_b64: str | None = None
 
     @classmethod
     def from_environment(cls) -> "Settings":
@@ -57,7 +58,8 @@ class Settings:
             **values,
             garmin_email=os.environ.get("GARMIN_EMAIL") or None,
             garmin_password=os.environ.get("GARMIN_PASSWORD") or None,
-            garth_dir=os.environ.get("ONDRA_GARTH_DIR", "/data/garth"),
+            garth_dir=os.environ.get("ONDRA_GARTH_DIR", "/tmp/garth"),
+            garth_tokens_b64=os.environ.get("GARTH_TOKENS_B64") or None,
         )
 
 

@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import base64
+import binascii
+import json
 import logging
 from pathlib import Path
 
@@ -17,6 +20,28 @@ class GarminAuthError(RuntimeError):
     """Garmin authentication could not be established."""
 
 
+def _materialize_tokens(token_dir: Path, tokens_b64: str | None) -> None:
+    """Seed the garth token cache from a base64 secret produced by a local login.
+
+    The secret is base64(json({"oauth1_token.json": ..., "oauth2_token.json": ...})).
+    Only writes when the cache is empty so a live session refreshed by garth is not
+    overwritten. Lets ondra resume a pre-authenticated session without an interactive
+    Garmin MFA/device-verification step at runtime.
+    """
+    if not tokens_b64:
+        return
+    if (token_dir / "oauth2_token.json").exists():
+        return
+    try:
+        payload = json.loads(base64.b64decode(tokens_b64))
+    except (binascii.Error, ValueError) as exc:
+        raise GarminAuthError("GARTH_TOKENS_B64 is not valid base64 JSON") from exc
+    for name, content in payload.items():
+        # Guard against path traversal from the secret's keys.
+        (token_dir / Path(name).name).write_text(content)
+    log.info("Seeded garth token cache from GARTH_TOKENS_B64")
+
+
 def get_client(settings: Settings) -> Garmin:
     """Return a process-cached, logged-in Garmin client."""
     global _client
@@ -26,6 +51,8 @@ def get_client(settings: Settings) -> Garmin:
     token_dir = Path(settings.garth_dir)
     token_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
     token_dir.chmod(0o700)
+    _materialize_tokens(token_dir, settings.garth_tokens_b64)
+
     client = Garmin()
     try:
         client.login(str(token_dir))
