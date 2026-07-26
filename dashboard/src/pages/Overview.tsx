@@ -1,4 +1,11 @@
-import { type ReactNode, useMemo } from "react";
+import {
+	createContext,
+	type ReactNode,
+	useContext,
+	useMemo,
+	useState,
+} from "react";
+import { ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react";
 import {
 	Area,
 	Bar,
@@ -10,6 +17,7 @@ import {
 } from "recharts";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardAction,
@@ -37,14 +45,111 @@ import { cn } from "@/lib/utils";
 
 const WINDOW_DAYS = 7; // trailing window each daily point aggregates
 const SPAN_DAYS = 30; // how many days to plot
+const HISTORY_DAYS = 400; // rows fetched per daily domain so the window can scrub back
+const STEP_DAYS = 1; // one back/forward click moves the window this far
+
+// Shared, page-wide window navigation: every panel plots the same SPAN_DAYS
+// window ending `end`, and the WindowNav control shifts `end` back/forward.
+interface WindowNav {
+	end: Date;
+	startKey: string;
+	endKey: string;
+	canForward: boolean;
+	back: () => void;
+	forward: () => void;
+	latest: () => void;
+}
+
+function computeWindow(offsetDays: number): {
+	end: Date;
+	startKey: string;
+	endKey: string;
+} {
+	const end = new Date();
+	end.setHours(0, 0, 0, 0);
+	end.setDate(end.getDate() - offsetDays);
+	const start = new Date(end);
+	start.setDate(end.getDate() - (SPAN_DAYS - 1));
+	return { end, startKey: dayKey(start), endKey: dayKey(end) };
+}
+
+const defaultWindow = computeWindow(0);
+const WindowNavContext = createContext<WindowNav>({
+	...defaultWindow,
+	canForward: false,
+	back: () => {},
+	forward: () => {},
+	latest: () => {},
+});
+
+function useWindowNav(): WindowNav {
+	return useContext(WindowNavContext);
+}
+
+function WindowNavProvider({ children }: { children: ReactNode }) {
+	const [offsetDays, setOffsetDays] = useState(0);
+	const value = useMemo<WindowNav>(
+		() => ({
+			...computeWindow(offsetDays),
+			canForward: offsetDays > 0,
+			back: () => setOffsetDays((o) => o + STEP_DAYS),
+			forward: () => setOffsetDays((o) => Math.max(0, o - STEP_DAYS)),
+			latest: () => setOffsetDays(0),
+		}),
+		[offsetDays],
+	);
+	return (
+		<WindowNavContext.Provider value={value}>
+			{children}
+		</WindowNavContext.Provider>
+	);
+}
+
+function WindowNav() {
+	const { back, forward, latest, canForward } = useWindowNav();
+	return (
+		<div className="text-muted-foreground flex items-center gap-1 text-xs">
+			<Button
+				variant="ghost"
+				size="icon"
+				className="size-6"
+				onClick={back}
+				aria-label="Go back one day"
+			>
+				<ChevronLeft className="size-4" />
+			</Button>
+			<Button
+				variant="ghost"
+				size="icon"
+				className="size-6"
+				onClick={forward}
+				disabled={!canForward}
+				aria-label="Go forward one day"
+			>
+				<ChevronRight className="size-4" />
+			</Button>
+			<Button
+				variant="ghost"
+				size="icon"
+				className="size-6"
+				onClick={latest}
+				disabled={!canForward}
+				aria-label="Jump to latest"
+			>
+				<ChevronsRight className="size-4" />
+			</Button>
+		</div>
+	);
+}
+
+function inWindow(dateKey: string, w: WindowNav): boolean {
+	return dateKey >= w.startKey && dateKey <= w.endKey;
+}
 
 const READINESS_COLORS = {
 	score: "#76946A",
 	acuteLoad: "#C34043",
-	sleep: "#7E9CD8",
 	recovery: "#7AA89F",
-	hrv: "#957FB8",
-	acwr: "#DCA561",
 	stress: "#D27E99",
 	sleepHistory: "#6A9589",
 };
@@ -69,6 +174,7 @@ function rolling(
 	activities: CalendarActivity[],
 	contribution: (a: CalendarActivity) => number | null,
 	windowDays: number,
+	end: Date,
 ): number[] {
 	const perDay = new Map<string, number>();
 	for (const a of activities) {
@@ -78,11 +184,10 @@ function rolling(
 		const key = a.start_time.slice(0, 10);
 		perDay.set(key, (perDay.get(key) ?? 0) + v);
 	}
-	const today = new Date();
 	const out: number[] = [];
 	for (let i = SPAN_DAYS - 1; i >= 0; i--) {
-		const day = new Date(today);
-		day.setDate(today.getDate() - i);
+		const day = new Date(end);
+		day.setDate(end.getDate() - i);
 		let sum = 0;
 		for (let w = 0; w < windowDays; w++) {
 			const d = new Date(day);
@@ -94,12 +199,11 @@ function rolling(
 	return out;
 }
 
-function dayLabels(): string[] {
-	const today = new Date();
+function dayLabels(end: Date): string[] {
 	const labels: string[] = [];
 	for (let i = SPAN_DAYS - 1; i >= 0; i--) {
-		const day = new Date(today);
-		day.setDate(today.getDate() - i);
+		const day = new Date(end);
+		day.setDate(end.getDate() - i);
 		labels.push(dayKey(day).slice(5));
 	}
 	return labels;
@@ -120,7 +224,12 @@ function Panel({
 		<Card className={cn("min-h-0 gap-2 py-3", className)}>
 			<CardHeader className="px-4">
 				<CardTitle className="text-sm font-medium">{title}</CardTitle>
-				{action ? <CardAction>{action}</CardAction> : null}
+				<CardAction>
+					<div className="flex items-center gap-3">
+						{action}
+						<WindowNav />
+					</div>
+				</CardAction>
 			</CardHeader>
 			<CardContent className="min-h-0 flex-1 px-4 pb-1">{children}</CardContent>
 		</Card>
@@ -202,11 +311,12 @@ function LoadPanel({
 }) {
 	const { data, isPending } = useActivities();
 	const activities = data?.activities ?? [];
+	const { end } = useWindowNav();
 
 	const rows = useMemo(() => {
-		const labels = dayLabels();
+		const labels = dayLabels(end);
 		const cols = series.map((s) =>
-			rolling(activities, s.contribution, windowDays),
+			rolling(activities, s.contribution, windowDays, end),
 		);
 		return labels.map((date, i) => {
 			const row: Record<string, string | number> = { date };
@@ -215,7 +325,7 @@ function LoadPanel({
 			});
 			return row;
 		});
-	}, [activities, series, windowDays]);
+	}, [activities, series, windowDays, end]);
 
 	const config = useMemo(
 		() =>
@@ -301,6 +411,7 @@ function LoadPanel({
 									fill={`url(#fill-${s.key})`}
 									stroke={s.color}
 									radius={[2, 2, 0, 0]}
+									isAnimationActive={false}
 								/>
 							) : (
 								<Area
@@ -313,6 +424,7 @@ function LoadPanel({
 									fill={`url(#fill-${s.key})`}
 									dot={false}
 									activeDot={{ r: 3 }}
+									isAnimationActive={false}
 								/>
 							),
 						)}
@@ -385,19 +497,23 @@ const sleepConfig = {
 const STAGE_ORDER = ["awake", "light", "rem", "deep"] as const;
 
 function SleepPanel() {
-	const { data, isPending } = useSleep(SPAN_DAYS);
+	const { data, isPending } = useSleep(HISTORY_DAYS);
+	const win = useWindowNav();
 	const rows = useMemo(
 		() =>
-			[...(data?.sleep ?? [])].reverse().map((n) => ({
-				date: n.calendar_date.slice(5),
-				fullDate: n.calendar_date,
-				awake: +(num(n.awake_s) / 3600).toFixed(2),
-				light: +(num(n.light_sleep_s) / 3600).toFixed(2),
-				rem: +(num(n.rem_sleep_s) / 3600).toFixed(2),
-				deep: +(num(n.deep_sleep_s) / 3600).toFixed(2),
-				score: n.sleep_score == null ? null : num(n.sleep_score),
-			})),
-		[data],
+			[...(data?.sleep ?? [])]
+				.filter((n) => inWindow(n.calendar_date, win))
+				.reverse()
+				.map((n) => ({
+					date: n.calendar_date.slice(5),
+					fullDate: n.calendar_date,
+					awake: +(num(n.awake_s) / 3600).toFixed(2),
+					light: +(num(n.light_sleep_s) / 3600).toFixed(2),
+					rem: +(num(n.rem_sleep_s) / 3600).toFixed(2),
+					deep: +(num(n.deep_sleep_s) / 3600).toFixed(2),
+					score: n.sleep_score == null ? null : num(n.sleep_score),
+				})),
+		[data, win],
 	);
 
 	const legend = (
@@ -509,6 +625,7 @@ function SleepPanel() {
 								fill={`url(#fill-sleep-${k})`}
 								dot={false}
 								activeDot={{ r: 2 }}
+								isAnimationActive={false}
 							/>
 						))}
 						<Line
@@ -519,6 +636,7 @@ function SleepPanel() {
 							strokeWidth={2}
 							dot={{ r: 2 }}
 							connectNulls
+							isAnimationActive={false}
 						/>
 					</ComposedChart>
 				</ChartContainer>
@@ -534,20 +652,24 @@ const hrvConfig = {
 } satisfies ChartConfig;
 
 function HrvPanel() {
-	const { data, isPending } = useHrv(SPAN_DAYS);
+	const { data, isPending } = useHrv(HISTORY_DAYS);
+	const win = useWindowNav();
 	const rows = useMemo(
 		() =>
-			[...(data?.daily_hrv ?? [])].reverse().map((d) => ({
-				date: d.calendar_date.slice(5),
-				fullDate: d.calendar_date,
-				lastNight: d.last_night_avg == null ? null : num(d.last_night_avg),
-				weekly: d.weekly_avg == null ? null : num(d.weekly_avg),
-				baseline:
-					d.baseline_balanced_low == null || d.baseline_balanced_upper == null
-						? null
-						: [num(d.baseline_balanced_low), num(d.baseline_balanced_upper)],
-			})),
-		[data],
+			[...(data?.daily_hrv ?? [])]
+				.filter((d) => inWindow(d.calendar_date, win))
+				.reverse()
+				.map((d) => ({
+					date: d.calendar_date.slice(5),
+					fullDate: d.calendar_date,
+					lastNight: d.last_night_avg == null ? null : num(d.last_night_avg),
+					weekly: d.weekly_avg == null ? null : num(d.weekly_avg),
+					baseline:
+						d.baseline_balanced_low == null || d.baseline_balanced_upper == null
+							? null
+							: [num(d.baseline_balanced_low), num(d.baseline_balanced_upper)],
+				})),
+		[data, win],
 	);
 
 	const legend = (
@@ -653,6 +775,7 @@ function HrvPanel() {
 							connectNulls
 							dot={false}
 							activeDot={false}
+							isAnimationActive={false}
 						/>
 						<Line
 							type="monotone"
@@ -662,6 +785,7 @@ function HrvPanel() {
 							strokeDasharray="4 3"
 							dot={false}
 							connectNulls
+							isAnimationActive={false}
 						/>
 						<Line
 							type="monotone"
@@ -670,6 +794,7 @@ function HrvPanel() {
 							strokeWidth={2}
 							dot={{ r: 2 }}
 							connectNulls
+							isAnimationActive={false}
 						/>
 					</ComposedChart>
 				</ChartContainer>
@@ -681,35 +806,26 @@ function HrvPanel() {
 const readinessConfig = {
 	score: { label: "Readiness", color: READINESS_COLORS.score },
 	acuteLoad: { label: "Acute load", color: READINESS_COLORS.acuteLoad },
-	sleep: { label: "Sleep", color: READINESS_COLORS.sleep },
 	recovery: { label: "Recovery", color: READINESS_COLORS.recovery },
-	hrv: { label: "HRV", color: READINESS_COLORS.hrv },
-	acwr: { label: "ACWR", color: READINESS_COLORS.acwr },
 	stress: { label: "Stress hist.", color: READINESS_COLORS.stress },
 	sleepHistory: { label: "Sleep hist.", color: READINESS_COLORS.sleepHistory },
 } satisfies ChartConfig;
 
 // Score is the headline; the rest are 0-100 factor percentages except acute
 // load, which rides its own right axis.
-const READINESS_FACTORS = [
-	"sleep",
-	"recovery",
-	"hrv",
-	"acwr",
-	"stress",
-	"sleepHistory",
-] as const;
+const READINESS_FACTORS = ["recovery", "stress", "sleepHistory"] as const;
 const READINESS_LEGEND = ["score", "acuteLoad", ...READINESS_FACTORS] as const;
 
 function ReadinessPanel() {
-	const { data, isPending } = useReadiness(SPAN_DAYS);
+	const { data, isPending } = useReadiness(HISTORY_DAYS);
+	const win = useWindowNav();
 	const rows = useMemo(() => {
 		const seen = new Set<string>();
 		const daily = [];
 		for (const r of data?.training_readiness ?? []) {
 			if (seen.has(r.calendar_date)) continue;
 			seen.add(r.calendar_date);
-			daily.push(r);
+			if (inWindow(r.calendar_date, win)) daily.push(r);
 		}
 		return daily.reverse().map((r) => ({
 			date: r.calendar_date.slice(5),
@@ -717,16 +833,10 @@ function ReadinessPanel() {
 			level: r.level,
 			score: r.score == null ? null : num(r.score),
 			acuteLoad: r.acute_load == null ? null : num(r.acute_load),
-			sleep:
-				r.sleep_score_factor_percent == null
-					? null
-					: num(r.sleep_score_factor_percent),
 			recovery:
 				r.recovery_time_factor_percent == null
 					? null
 					: num(r.recovery_time_factor_percent),
-			hrv: r.hrv_factor_percent == null ? null : num(r.hrv_factor_percent),
-			acwr: r.acwr_factor_percent == null ? null : num(r.acwr_factor_percent),
 			stress:
 				r.stress_history_factor_percent == null
 					? null
@@ -736,7 +846,7 @@ function ReadinessPanel() {
 					? null
 					: num(r.sleep_history_factor_percent),
 		}));
-	}, [data]);
+	}, [data, win]);
 
 	const legend = (
 		<div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
@@ -823,6 +933,7 @@ function ReadinessPanel() {
 								strokeOpacity={0.7}
 								dot={false}
 								connectNulls
+								isAnimationActive={false}
 							/>
 						))}
 						<Line
@@ -834,6 +945,7 @@ function ReadinessPanel() {
 							strokeDasharray="4 3"
 							dot={false}
 							connectNulls
+							isAnimationActive={false}
 						/>
 						<Line
 							yAxisId="pct"
@@ -843,6 +955,7 @@ function ReadinessPanel() {
 							strokeWidth={2.5}
 							dot={{ r: 2 }}
 							connectNulls
+							isAnimationActive={false}
 						/>
 					</ComposedChart>
 				</ChartContainer>
@@ -856,6 +969,14 @@ function ReadinessPanel() {
 const ROW = "md:h-[calc((100svh-4rem)/3)] md:min-h-[260px]";
 
 export function Overview() {
+	return (
+		<WindowNavProvider>
+			<OverviewPanels />
+		</WindowNavProvider>
+	);
+}
+
+function OverviewPanels() {
 	return (
 		<div className="flex flex-col gap-4 p-4">
 			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
