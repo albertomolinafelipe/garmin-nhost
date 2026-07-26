@@ -114,17 +114,6 @@ describe("ActivityDetail annotations integration", () => {
 		expect(save).toHaveBeenCalledTimes(2);
 	});
 
-	it("switches strength locally to climbing without writing and can cancel", async () => {
-		const user = userEvent.setup();
-		renderPage();
-		expect(screen.getByText(/Strength editor:.*Squat/)).toBeInTheDocument();
-		await user.click(screen.getByRole("button", { name: "Log as climbing" }));
-		expect(screen.getByText("Climbing editor")).toBeInTheDocument();
-		expect(save).not.toHaveBeenCalled();
-		await user.click(screen.getByRole("button", { name: "Cancel climbing" }));
-		expect(screen.getByText(/Strength editor:.*Squat/)).toBeInTheDocument();
-	});
-
 	it("shows the needs annotation badge for an incomplete activity", () => {
 		renderPage();
 		expect(screen.getByText("needs annotation")).toBeInTheDocument();

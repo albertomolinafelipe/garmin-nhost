@@ -1,6 +1,7 @@
 import type { ComponentProps } from "react";
 
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface NumberInputProps
 	extends Omit<
@@ -18,6 +19,7 @@ function NumberInput({
 	onChange,
 	integer = false,
 	nonNegative = false,
+	className,
 	...props
 }: NumberInputProps) {
 	return (
@@ -26,6 +28,10 @@ function NumberInput({
 			value={value ?? ""}
 			min={nonNegative ? 0 : undefined}
 			step={integer ? 1 : "any"}
+			className={cn(
+				"[-moz-appearance:textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none",
+				className,
+			)}
 			onChange={(event) => {
 				if (event.target.value === "") {
 					onChange(null);

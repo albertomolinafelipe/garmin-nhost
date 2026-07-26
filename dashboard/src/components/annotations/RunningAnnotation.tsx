@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
 	CAFFEINE_OPTIONS,
 	SCALE_OPTIONS,
@@ -9,7 +9,7 @@ import {
 import type { AnnotationInput } from "@/lib/annotations";
 import { TagsInput } from "@/components/ui/tags-input";
 import { Textarea } from "@/components/ui/textarea";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Field, SegmentedField, cap } from "./fields";
 
 export interface RunningActivity {
 	id: unknown;
@@ -29,13 +29,6 @@ interface Props {
 	foodOptions?: string[];
 }
 
-const Field = ({ label, children }: { label: string; children: ReactNode }) => (
-	<div className="space-y-2">
-		<div className="text-sm font-medium">{label}</div>
-		{children}
-	</div>
-);
-
 export function RunningAnnotation({
 	activity,
 	onSave,
@@ -46,121 +39,103 @@ export function RunningAnnotation({
 	useEffect(() => {
 		if (!dirty.current) setNotes(activity.notes ?? "");
 	}, [activity.id, activity.notes]);
+
 	const scale = (
 		label: string,
 		field: "feeling" | "effort",
 		value: number | null,
 	) => (
-		<Field label={label}>
-			<ToggleGroup
-				type="single"
-				value={value?.toString() ?? ""}
-				onValueChange={(next) => {
-					if (next) void onSave({ [field]: Number(next) });
-				}}
-			>
-				{SCALE_OPTIONS.map((option) => (
-					<ToggleGroupItem
-						key={option.value}
-						value={option.value}
-						aria-label={`${label} ${option.label}`}
-					>
-						{option.label}
-					</ToggleGroupItem>
-				))}
-			</ToggleGroup>
-		</Field>
+		<SegmentedField
+			label={label}
+			value={value?.toString() ?? ""}
+			onChange={(next) => {
+				if (next) void onSave({ [field]: Number(next) });
+			}}
+			options={SCALE_OPTIONS.map((option) => ({
+				value: option.value,
+				label: option.label,
+				ariaLabel: `${label} ${option.label}`,
+			}))}
+		/>
 	);
+
 	return (
-		<div className="space-y-5">
-			<div className="grid gap-4 sm:grid-cols-2">
+		<div className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+			<div className="space-y-3">
 				{scale("Feel", "feeling", activity.feeling)}
 				{scale("Intensity", "effort", activity.effort)}
-			</div>
-			<Field label="Terrain">
-				<ToggleGroup
-					type="single"
+				<SegmentedField
+					label="Terrain"
 					value={activity.subtype ?? ""}
-					onValueChange={(value) => {
+					onChange={(value) => {
 						if (value) void onSave({ subtype: value });
 					}}
-				>
-					{terrainOptions(activity.activity_type).map((option) => (
-						<ToggleGroupItem
-							key={option.value}
-							value={option.value}
-							disabled={option.disabled}
-						>
-							{option.label}
-						</ToggleGroupItem>
-					))}
-				</ToggleGroup>
-				{needsSubtype(activity.activity_type, activity.subtype) && (
-					<p className="text-sm text-destructive">Choose a valid terrain.</p>
-				)}
-			</Field>
-			<Field label="Caffeine">
-				<ToggleGroup
-					type="single"
+					options={terrainOptions(activity.activity_type).map((option) => ({
+						value: option.value,
+						label: option.label,
+						disabled: option.disabled,
+					}))}
+					error={
+						needsSubtype(activity.activity_type, activity.subtype)
+							? "Choose a valid terrain."
+							: undefined
+					}
+				/>
+				<SegmentedField
+					label="Caffeine"
 					value={activity.caffeine ?? ""}
-					onValueChange={(value) => {
+					onChange={(value) => {
 						if (value) void onSave({ caffeine: value });
 					}}
-				>
-					{CAFFEINE_OPTIONS.map((value) => (
-						<ToggleGroupItem key={value} value={value}>
-							{value}
-						</ToggleGroupItem>
-					))}
-				</ToggleGroup>
-			</Field>
-			<Field label="Weather">
-				<ToggleGroup
-					type="single"
+					options={CAFFEINE_OPTIONS.map((value) => ({
+						value,
+						label: cap(value),
+					}))}
+				/>
+				<SegmentedField
+					label="Weather"
 					value={activity.weather ?? ""}
-					onValueChange={(value) => void onSave({ weather: value || null })}
-				>
-					{WEATHER_OPTIONS.map(({ value, label, icon: Icon }) => (
-						<ToggleGroupItem key={value} value={value} aria-label={label}>
-							<Icon className="size-4" />
-							{label}
-						</ToggleGroupItem>
-					))}
-				</ToggleGroup>
-				<p className="text-xs text-muted-foreground">
-					No selection means normal conditions.
-				</p>
-			</Field>
-			<Field label="Food during">
-				<TagsInput
-					aria-label="Add food during"
-					value={activity.food_during ?? []}
-					suggestions={foodOptions}
-					onChange={(value) => void onSave({ food_during: value })}
+					onChange={(value) => void onSave({ weather: value || null })}
+					options={WEATHER_OPTIONS.map(({ value, label, icon }) => ({
+						value,
+						ariaLabel: label,
+						icon,
+					}))}
 				/>
-			</Field>
-			<Field label="Food after">
-				<TagsInput
-					aria-label="Add food after"
-					value={activity.food_after ?? []}
-					suggestions={foodOptions}
-					onChange={(value) => void onSave({ food_after: value })}
-				/>
-			</Field>
-			<Field label="Notes">
-				<Textarea
-					value={notes}
-					onChange={(event) => {
-						dirty.current = true;
-						setNotes(event.target.value);
-					}}
-					onBlur={async () => {
-						if (!dirty.current) return;
-						const ok = await onSave({ notes: notes || null });
-						if (ok !== false) dirty.current = false;
-					}}
-				/>
-			</Field>
+			</div>
+			<div className="space-y-3">
+				<Field label="Food during" inline>
+					<TagsInput
+						aria-label="Add food during"
+						value={activity.food_during ?? []}
+						suggestions={foodOptions}
+						onChange={(value) => void onSave({ food_during: value })}
+					/>
+				</Field>
+				<Field label="Food after" inline>
+					<TagsInput
+						aria-label="Add food after"
+						value={activity.food_after ?? []}
+						suggestions={foodOptions}
+						onChange={(value) => void onSave({ food_after: value })}
+					/>
+				</Field>
+				<Field label="Notes">
+					<Textarea
+						placeholder="How did it go? Anything worth remembering…"
+						value={notes}
+						onChange={(event) => {
+							dirty.current = true;
+							setNotes(event.target.value);
+						}}
+						onBlur={async () => {
+							if (!dirty.current) return;
+							const ok = await onSave({ notes: notes || null });
+							if (ok !== false) dirty.current = false;
+						}}
+					/>
+				</Field>
+			</div>
 		</div>
 	);
 }

@@ -44,6 +44,7 @@ import {
 	typeLabel,
 } from "@/lib/activity-types";
 import { fmtDate, fmtDistance, fmtDuration } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import {
 	type ActivityDetail as Activity,
 	type StreamSample,
@@ -389,9 +390,10 @@ function EditableName({
 		<div className="flex min-w-0 items-center gap-2">
 			<Input
 				aria-label="Activity name"
-				className="h-auto border-0 px-0 text-xl font-semibold shadow-none focus-visible:ring-0 md:text-xl"
+				className="border-muted-foreground/40 hover:border-muted-foreground/70 focus-visible:border-primary h-auto rounded-none border-0 border-b border-dashed px-0 text-xl font-semibold shadow-none focus-visible:ring-0 md:text-xl"
 				value={name}
 				placeholder="Activity name"
+				title="Click to edit name"
 				onChange={(event) => {
 					dirty.current = true;
 					setName(event.target.value);
@@ -403,10 +405,11 @@ function EditableName({
 			{isDirty && (
 				<Button
 					type="button"
-					variant="ghost"
+					variant="outline"
 					size="icon"
 					aria-label="Confirm name"
 					onClick={() => void confirm()}
+					className="shrink-0 border-green-600/30 text-green-600 hover:bg-green-600/10 hover:text-green-600"
 				>
 					<Check />
 				</Button>
@@ -424,9 +427,6 @@ export function ActivityDetail() {
 		) ?? [];
 	const save = useAnnotationSave(id ?? "");
 	const [hoverT, setHoverT] = useState<number | null>(null);
-	const [asClimbing, setAsClimbing] = useState(false);
-
-	useEffect(() => setAsClimbing(false), [id]);
 
 	if (isPending)
 		return (
@@ -499,38 +499,23 @@ export function ActivityDetail() {
 				</Card>
 			</div>
 			{(track.length > 1 || hasChart) && (
-				<div className="grid gap-4 lg:grid-cols-2">
+				<div
+					className={cn(
+						"grid gap-4",
+						track.length > 1 && hasChart && "lg:grid-cols-2",
+					)}
+				>
 					{track.length > 1 && <RouteMap track={track} marker={hoverMarker} />}
 					{hasChart && (
 						<StreamChart hr={hr} elevation={elevation} onHover={setHoverT} />
 					)}
 				</div>
 			)}
-			<Card className="gap-4 py-4">
-				<CardHeader className="flex-row items-center justify-between px-4">
+			<Card className="gap-4 py-4 lg:w-1/2">
+				<CardHeader className="px-6">
 					<CardTitle className="text-sm">Notes & annotations</CardTitle>
-					{category === "strength" && !asClimbing && (
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={() => setAsClimbing(true)}
-						>
-							Log as climbing
-						</Button>
-					)}
-					{category === "strength" && asClimbing && (
-						<Button
-							type="button"
-							variant="ghost"
-							size="sm"
-							onClick={() => setAsClimbing(false)}
-						>
-							Cancel climbing
-						</Button>
-					)}
 				</CardHeader>
-				<CardContent className="px-4">
+				<CardContent className="px-6">
 					{(() => {
 						if (category === "running") {
 							return (
@@ -541,7 +526,7 @@ export function ActivityDetail() {
 								/>
 							);
 						}
-						if (category === "climbing" || asClimbing) {
+						if (category === "climbing") {
 							return <ClimbingAnnotation activity={activity} onSave={save} />;
 						}
 						if (category === "strength") {
