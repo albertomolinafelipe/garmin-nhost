@@ -5,6 +5,9 @@ import {
 	Dumbbell,
 	Footprints,
 	Mountain,
+	Snowflake,
+	Sun,
+	CloudLightning,
 	TreePine,
 	Waves,
 } from "lucide-react";
@@ -45,6 +48,32 @@ export const RUNNING_SUBTYPES = [
 	"mountain",
 ] as const;
 export const CLIMBING_SUBTYPES = ["boulder", "route", "board", "mix"] as const;
+
+export const CLIMBING_FOCUS = [
+	{ value: "general-strength", label: "General strength" },
+	{ value: "specific-strength", label: "Specific strength" },
+	{ value: "power", label: "Power" },
+	{ value: "endurance", label: "Endurance" },
+	{ value: "power-endurance", label: "Power-endurance" },
+	{ value: "mix", label: "Mix" },
+];
+
+export const SCALE_OPTIONS = ["I", "II", "III", "IV", "V"].map(
+	(label, index) => ({ value: String(index + 1), label }),
+);
+
+export const CAFFEINE_OPTIONS = ["no", "residual", "yes"] as const;
+
+// Empty weather means normal conditions.
+export const WEATHER_OPTIONS: {
+	value: string;
+	icon: IconComponent;
+	label: string;
+}[] = [
+	{ value: "cold", icon: Snowflake, label: "Exceptionally cold" },
+	{ value: "hot", icon: Sun, label: "Hot" },
+	{ value: "bad", icon: CloudLightning, label: "Bad conditions" },
+];
 
 const CLIMBING_GARMIN = new Set([
 	"rock_climbing",
@@ -89,6 +118,66 @@ export function effectiveSubtype(
 		return defaultRunningSubtype(activityType);
 	}
 	return null;
+}
+
+export function terrainOptions(
+	activityType: string | null,
+): { value: string; label: string; disabled: boolean }[] {
+	const at = (activityType ?? "").toLowerCase();
+	let enabled: readonly string[];
+	if (at.includes("trail")) enabled = ["trail", "mountain"];
+	else if (at.includes("treadmill") || at.includes("indoor")) {
+		enabled = ["treadmill"];
+	} else enabled = ["road", "trail", "mountain"];
+
+	return RUNNING_SUBTYPES.map((subtype) => ({
+		value: subtype,
+		label: subtype[0].toUpperCase() + subtype.slice(1),
+		disabled: !enabled.includes(subtype),
+	}));
+}
+
+export function needsSubtype(
+	activityType: string | null,
+	subtype: string | null,
+): boolean {
+	const at = (activityType ?? "").toLowerCase();
+	if (categoryOf(activityType, subtype) === "climbing" && !subtype) return true;
+	return at.includes("trail") && subtype !== "trail" && subtype !== "mountain";
+}
+
+export const ANNOTATED_CUTOFF = "2026-07-13";
+
+type AnnotationCompletenessActivity = {
+	start_time: string | null;
+	activity_type: string | null;
+	subtype: string | null;
+	feeling: number | null;
+	effort: number | null;
+	caffeine: string | null;
+	focus: string | null;
+};
+
+export function needsAnnotation(a: AnnotationCompletenessActivity): boolean {
+	if (a.start_time && a.start_time.slice(0, 10) < ANNOTATED_CUTOFF) {
+		return false;
+	}
+	const category = categoryOf(a.activity_type, a.subtype);
+	if (category === "running") {
+		return (
+			needsSubtype(a.activity_type, a.subtype) ||
+			a.feeling == null ||
+			a.effort == null ||
+			!a.caffeine
+		);
+	}
+	if (category === "climbing") {
+		return !a.subtype || !a.focus || a.feeling == null || a.effort == null;
+	}
+	if (category === "strength") {
+		return a.feeling == null || a.effort == null;
+	}
+	return false;
 }
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
