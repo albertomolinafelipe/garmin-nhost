@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -61,9 +62,9 @@ vi.mock("@/lib/queries", async (importOriginal) => {
 	};
 });
 
+import { AppShell } from "@/components/app-shell";
 import { needsAnnotation } from "@/lib/activity-types";
 import { Activities } from "./Activities";
-import { Overview } from "./Overview";
 
 afterEach(cleanup);
 
@@ -83,17 +84,24 @@ describe("needs-annotation surfaces", () => {
 		expect(screen.getByText("Needs annotation")).toBeVisible();
 	});
 
-	it("lists and counts the same incomplete fixtures on Overview", () => {
+	it("lists the same incomplete fixtures in the sidebar", () => {
 		render(
-			<MemoryRouter>
-				<Overview />
-			</MemoryRouter>,
+			<QueryClientProvider client={new QueryClient()}>
+				<MemoryRouter>
+					<AppShell
+						secret="admin"
+						onAuthenticated={() => {}}
+						onForget={() => {}}
+					>
+						<div />
+					</AppShell>
+				</MemoryRouter>
+			</QueryClientProvider>,
 		);
 
 		const expected = fixtures.filter(needsAnnotation);
-		expect(
-			screen.getByText(`${expected.length} in loaded activities`),
-		).toBeInTheDocument();
+		expect(screen.getByText("Needs annotation")).toBeInTheDocument();
+		expect(screen.getByText(String(expected.length))).toBeInTheDocument();
 		expect(
 			screen.getByRole("link", { name: /Unfocused climb/ }),
 		).toHaveAttribute("href", "/activities/2");

@@ -1,12 +1,14 @@
 import {
 	Activity,
 	CalendarDays,
+	ChevronDown,
 	LayoutDashboard,
 	LogIn,
 	LogOut,
+	Megaphone,
 	Settings,
 } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
 
 import { LoginDialog } from "@/components/login-dialog";
@@ -14,6 +16,11 @@ import { NhostLogo } from "@/components/nhost-logo";
 import { SyncButton } from "@/components/sync-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
 	Sidebar,
 	SidebarContent,
@@ -24,10 +31,16 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem,
 	SidebarProvider,
 	SidebarTrigger,
 	useSidebar,
 } from "@/components/ui/sidebar";
+import { needsAnnotation, typeLabel } from "@/lib/activity-types";
+import { fmtDay } from "@/lib/format";
+import { useActivities } from "@/lib/queries";
 
 const NAV = [
 	{ to: "/overview", label: "Overview", icon: LayoutDashboard },
@@ -35,6 +48,69 @@ const NAV = [
 	{ to: "/activities", label: "Activities", icon: Activity },
 	{ to: "/settings", label: "Settings", icon: Settings },
 ];
+
+function NeedsAnnotationGroup({ onNavigate }: { onNavigate: () => void }) {
+	const { data } = useActivities();
+	const incomplete = useMemo(
+		() =>
+			(data?.activities ?? [])
+				.filter(needsAnnotation)
+				.sort((a, b) => (b.start_time ?? "").localeCompare(a.start_time ?? "")),
+		[data?.activities],
+	);
+
+	if (incomplete.length === 0) return null;
+
+	return (
+		<SidebarGroup>
+			<SidebarMenu>
+				<Collapsible defaultOpen className="group/annotate">
+					<SidebarMenuItem>
+						<CollapsibleTrigger asChild>
+							<SidebarMenuButton>
+								<Megaphone className="size-4" />
+								Needs annotation
+								<span className="bg-sidebar-accent text-sidebar-accent-foreground ml-auto rounded-full px-1.5 text-xs">
+									{incomplete.length}
+								</span>
+								<ChevronDown className="size-4 transition-transform group-data-[state=open]/annotate:rotate-180" />
+							</SidebarMenuButton>
+						</CollapsibleTrigger>
+						<CollapsibleContent>
+							<SidebarMenuSub>
+								{incomplete.map((activity) => (
+									<SidebarMenuSubItem key={activity.id}>
+										<NavLink
+											to={`/activities/${activity.id}`}
+											onClick={onNavigate}
+										>
+											{({ isActive }) => (
+												<SidebarMenuSubButton asChild isActive={isActive}>
+													<span>
+														<span className="min-w-0 truncate">
+															{activity.name ??
+																typeLabel(
+																	activity.activity_type,
+																	activity.subtype,
+																)}
+														</span>
+														<span className="text-muted-foreground ml-auto shrink-0 text-xs">
+															{fmtDay(activity.start_time)}
+														</span>
+													</span>
+												</SidebarMenuSubButton>
+											)}
+										</NavLink>
+									</SidebarMenuSubItem>
+								))}
+							</SidebarMenuSub>
+						</CollapsibleContent>
+					</SidebarMenuItem>
+				</Collapsible>
+			</SidebarMenu>
+		</SidebarGroup>
+	);
+}
 
 function AppSidebar({
 	secret,
@@ -73,6 +149,9 @@ function AppSidebar({
 						))}
 					</SidebarMenu>
 				</SidebarGroup>
+				{secret ? (
+					<NeedsAnnotationGroup onNavigate={() => setOpenMobile(false)} />
+				) : null}
 			</SidebarContent>
 			<SidebarFooter>
 				<SyncButton />
