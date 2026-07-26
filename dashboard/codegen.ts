@@ -18,7 +18,16 @@ const config: CodegenConfig = {
 	documents: "src/graphql/operations.graphql",
 	generates: {
 		"src/graphql/generated.ts": {
-			plugins: ["typescript", "typescript-operations", "typed-document-node"],
+			plugins: [
+				"typescript",
+				{
+					"typescript-operations": {
+						preResolveTypes: false,
+						typesPrefix: "Generated",
+					},
+				},
+				{ "typed-document-node": { typesPrefix: "Generated" } },
+			],
 		},
 	},
 };

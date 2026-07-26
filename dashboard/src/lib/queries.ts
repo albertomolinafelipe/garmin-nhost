@@ -1,6 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 
 import { graphQLClient } from "@/graphql/client";
+import {
+	useActivityDetailQuery,
+	useCalendarActivitiesQuery,
+} from "@/graphql/hooks";
 
 export interface CalendarActivity {
 	id: string;
@@ -14,29 +18,14 @@ export interface CalendarActivity {
 	elevation_gain_m: number | string | null;
 }
 
-const CALENDAR_ACTIVITIES = /* GraphQL */ `
-	query CalendarActivities {
-		activities(order_by: { start_time: desc_nulls_last }, limit: 1000) {
-			id
-			name
-			activity_type
-			subtype
-			start_time
-			duration_s
-			distance_m
-			elevation_gain_m
-		}
-	}
-`;
-
-export function useActivities() {
-	return useQuery({
-		queryKey: ["activities"],
-		queryFn: () =>
-			graphQLClient.request<{ activities: CalendarActivity[] }>(
-				CALENDAR_ACTIVITIES,
-			),
-	});
+export function useActivities(): UseQueryResult<
+	{ activities: CalendarActivity[] },
+	Error
+> {
+	return useCalendarActivitiesQuery() as unknown as UseQueryResult<
+		{ activities: CalendarActivity[] },
+		Error
+	>;
 }
 
 export const num = (v: number | string | null | undefined): number =>
@@ -114,49 +103,11 @@ export interface ActivityDetail extends CalendarActivity {
 	activity_streams: { payload: ActivityStreamPayload }[];
 }
 
-const ACTIVITY_DETAIL = /* GraphQL */ `
-	query ActivityDetail($id: bigint!) {
-		activities_by_pk(id: $id) {
-			id
-			garmin_activity_id
-			name
-			activity_type
-			subtype
-			start_time
-			duration_s
-			distance_m
-			elevation_gain_m
-			avg_hr
-			max_hr
-			calories
-			avg_speed_mps
-			avg_power_w
-			feeling
-			effort
-			food_during
-			food_after
-			caffeine
-			weather
-			notes
-			focus
-			hard_tries
-			strength_exercises
-			activity_streams {
-				payload
-			}
-		}
-	}
-`;
-
-export function useActivity(id: string | undefined) {
-	return useQuery({
-		queryKey: ["activity", id],
-		enabled: Boolean(id),
-		queryFn: () =>
-			graphQLClient.request<{ activities_by_pk: ActivityDetail | null }>(
-				ACTIVITY_DETAIL,
-				{ id },
-			),
-		select: (data) => data.activities_by_pk,
-	});
+export function useActivity(
+	id: string | undefined,
+): UseQueryResult<ActivityDetail | null, Error> {
+	return useActivityDetailQuery(id) as unknown as UseQueryResult<
+		ActivityDetail | null,
+		Error
+	>;
 }

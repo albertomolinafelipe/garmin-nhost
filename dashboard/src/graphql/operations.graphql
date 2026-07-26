@@ -11,9 +11,106 @@ query ActivitiesSmoke {
   }
 }
 
+query CalendarActivities {
+  activities(order_by: {start_time: desc_nulls_last}, limit: 1000) {
+    id
+    name
+    activity_type
+    subtype
+    start_time
+    duration_s
+    distance_m
+    elevation_gain_m
+    feeling
+    effort
+    caffeine
+    focus
+  }
+}
+
+query ActivityDetail($id: bigint!) {
+  activities_by_pk(id: $id) {
+    id
+    garmin_activity_id
+    name
+    activity_type
+    subtype
+    start_time
+    duration_s
+    distance_m
+    elevation_gain_m
+    avg_hr
+    max_hr
+    calories
+    avg_speed_mps
+    avg_power_w
+    feeling
+    effort
+    food_during
+    food_after
+    caffeine
+    weather
+    notes
+    focus
+    hard_tries
+    strength_exercises
+    activity_streams {
+      payload
+    }
+  }
+}
+
+mutation UpdateActivity($id: bigint!, $set: activities_set_input!) {
+  update_activities_by_pk(pk_columns: {id: $id}, _set: $set) {
+    id
+    name
+    subtype
+    feeling
+    effort
+    food_during
+    food_after
+    caffeine
+    weather
+    notes
+    focus
+    hard_tries
+    strength_exercises
+  }
+}
+
 query FoodOptions {
   food_options(order_by: {value: asc}) {
     value
+  }
+}
+
+query Exercises {
+  exercises(order_by: {name: asc}) {
+    id
+    name
+    categories
+  }
+}
+
+mutation InsertExercise($name: String!, $categories: [String!]!) {
+  insert_exercises_one(object: {name: $name, categories: $categories}) {
+    id
+    name
+    categories
+  }
+}
+
+mutation UpdateExercise($id: bigint!, $set: exercises_set_input!) {
+  update_exercises_by_pk(pk_columns: {id: $id}, _set: $set) {
+    id
+    name
+    categories
+  }
+}
+
+mutation DeleteExercise($id: bigint!) {
+  delete_exercises_by_pk(id: $id) {
+    id
   }
 }
 
