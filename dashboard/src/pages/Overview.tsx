@@ -2,6 +2,7 @@ import {
 	createContext,
 	type ReactNode,
 	useContext,
+	useEffect,
 	useMemo,
 	useState,
 } from "react";
@@ -31,7 +32,14 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@/components/ui/chart";
-import { categoryColor, categoryOf } from "@/lib/activity-types";
+import {
+	addDays,
+	computeWeekTotals,
+	startOfWeek,
+	TotalRow,
+	WeekStrip,
+} from "@/components/calendar-week";
+import { categoryColor, categoryIcon, categoryOf } from "@/lib/activity-types";
 import { dayKey, fmtDuration } from "@/lib/format";
 import {
 	type CalendarActivity,
@@ -146,6 +154,18 @@ function inWindow(dateKey: string, w: WindowNav): boolean {
 	return dateKey >= w.startKey && dateKey <= w.endKey;
 }
 
+// Animate the chart's initial draw once data first arrives, then stay static so
+// scrubbing the window back/forth doesn't re-animate every panel.
+function useInitialAnimation(ready: boolean): boolean {
+	const [done, setDone] = useState(false);
+	useEffect(() => {
+		if (!ready || done) return;
+		const t = setTimeout(() => setDone(true), 1600);
+		return () => clearTimeout(t);
+	}, [ready, done]);
+	return ready && !done;
+}
+
 const READINESS_COLORS = {
 	score: "#76946A",
 	acuteLoad: "#C34043",
@@ -212,11 +232,13 @@ function dayLabels(end: Date): string[] {
 function Panel({
 	title,
 	action,
+	showNav = true,
 	className,
 	children,
 }: {
 	title: string;
 	action?: ReactNode;
+	showNav?: boolean;
 	className?: string;
 	children: ReactNode;
 }) {
@@ -227,7 +249,7 @@ function Panel({
 				<CardAction>
 					<div className="flex items-center gap-3">
 						{action}
-						<WindowNav />
+						{showNav && <WindowNav />}
 					</div>
 				</CardAction>
 			</CardHeader>
@@ -337,6 +359,7 @@ function LoadPanel({
 
 	const usesRight = series.some((s) => s.axis === "right");
 	const hasData = rows.some((r) => series.some((s) => Number(r[s.key]) > 0));
+	const animate = useInitialAnimation(hasData);
 	const current = (s: LoadSeries) =>
 		rows.length ? rows[rows.length - 1][s.key] : null;
 
@@ -411,7 +434,7 @@ function LoadPanel({
 									fill={`url(#fill-${s.key})`}
 									stroke={s.color}
 									radius={[2, 2, 0, 0]}
-									isAnimationActive={false}
+									isAnimationActive={animate}
 								/>
 							) : (
 								<Area
@@ -424,7 +447,7 @@ function LoadPanel({
 									fill={`url(#fill-${s.key})`}
 									dot={false}
 									activeDot={{ r: 3 }}
-									isAnimationActive={false}
+									isAnimationActive={animate}
 								/>
 							),
 						)}
@@ -515,6 +538,7 @@ function SleepPanel() {
 				})),
 		[data, win],
 	);
+	const animate = useInitialAnimation(rows.length > 0);
 
 	const legend = (
 		<div className="text-muted-foreground flex items-center gap-3 text-xs">
@@ -625,7 +649,7 @@ function SleepPanel() {
 								fill={`url(#fill-sleep-${k})`}
 								dot={false}
 								activeDot={{ r: 2 }}
-								isAnimationActive={false}
+								isAnimationActive={animate}
 							/>
 						))}
 						<Line
@@ -636,7 +660,7 @@ function SleepPanel() {
 							strokeWidth={2}
 							dot={{ r: 2 }}
 							connectNulls
-							isAnimationActive={false}
+							isAnimationActive={animate}
 						/>
 					</ComposedChart>
 				</ChartContainer>
@@ -671,6 +695,7 @@ function HrvPanel() {
 				})),
 		[data, win],
 	);
+	const animate = useInitialAnimation(rows.length > 0);
 
 	const legend = (
 		<div className="text-muted-foreground flex items-center gap-3 text-xs">
@@ -775,7 +800,7 @@ function HrvPanel() {
 							connectNulls
 							dot={false}
 							activeDot={false}
-							isAnimationActive={false}
+							isAnimationActive={animate}
 						/>
 						<Line
 							type="monotone"
@@ -785,7 +810,7 @@ function HrvPanel() {
 							strokeDasharray="4 3"
 							dot={false}
 							connectNulls
-							isAnimationActive={false}
+							isAnimationActive={animate}
 						/>
 						<Line
 							type="monotone"
@@ -794,7 +819,7 @@ function HrvPanel() {
 							strokeWidth={2}
 							dot={{ r: 2 }}
 							connectNulls
-							isAnimationActive={false}
+							isAnimationActive={animate}
 						/>
 					</ComposedChart>
 				</ChartContainer>
@@ -847,6 +872,7 @@ function ReadinessPanel() {
 					: num(r.sleep_history_factor_percent),
 		}));
 	}, [data, win]);
+	const animate = useInitialAnimation(rows.length > 0);
 
 	const legend = (
 		<div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
@@ -933,7 +959,7 @@ function ReadinessPanel() {
 								strokeOpacity={0.7}
 								dot={false}
 								connectNulls
-								isAnimationActive={false}
+								isAnimationActive={animate}
 							/>
 						))}
 						<Line
@@ -945,7 +971,7 @@ function ReadinessPanel() {
 							strokeDasharray="4 3"
 							dot={false}
 							connectNulls
-							isAnimationActive={false}
+							isAnimationActive={animate}
 						/>
 						<Line
 							yAxisId="pct"
@@ -955,10 +981,83 @@ function ReadinessPanel() {
 							strokeWidth={2.5}
 							dot={{ r: 2 }}
 							connectNulls
-							isAnimationActive={false}
+							isAnimationActive={animate}
 						/>
 					</ComposedChart>
 				</ChartContainer>
+			</PanelBody>
+		</Panel>
+	);
+}
+
+// A slice of the calendar page pinned to the real current week (Mon–Sun).
+// Deliberately ignores WindowNav: this is a fixed "this week" snapshot.
+function WeekPanel({ className }: { className?: string }) {
+	const { data, isPending } = useActivities();
+	const activities = data?.activities ?? [];
+	const weekStart = useMemo(() => startOfWeek(new Date()), []);
+
+	const byDay = useMemo(() => {
+		const map = new Map<string, CalendarActivity[]>();
+		const startKey = dayKey(weekStart);
+		const endKey = dayKey(addDays(weekStart, 6));
+		for (const a of activities) {
+			if (!a.start_time) continue;
+			const key = dayKey(new Date(a.start_time));
+			if (key < startKey || key > endKey) continue;
+			(map.get(key) ?? map.set(key, []).get(key))?.push(a);
+		}
+		return map;
+	}, [activities, weekStart]);
+
+	const totals = useMemo(
+		() => computeWeekTotals(activities).get(dayKey(weekStart)),
+		[activities, weekStart],
+	);
+
+	const summary = (
+		<div className="flex items-center gap-3">
+			<div className="flex items-center gap-1.5">
+				<categoryIcon.running
+					size={12}
+					className="shrink-0"
+					style={{ color: categoryColor.running }}
+				/>
+				<span
+					className={cn(
+						"text-xs font-semibold",
+						!totals?.runKm && "text-muted-foreground font-normal",
+					)}
+				>
+					{(totals?.runKm ?? 0).toFixed(1)} km
+				</span>
+			</div>
+			<TotalRow
+				category="climbing"
+				value={`${(totals?.climbH ?? 0).toFixed(1)} h`}
+				zero={!totals?.climbH}
+			/>
+			<TotalRow
+				category="strength"
+				value={`${(totals?.weightsH ?? 0).toFixed(1)} h`}
+				zero={!totals?.weightsH}
+			/>
+		</div>
+	);
+
+	return (
+		<Panel
+			title="This week"
+			action={summary}
+			showNav={false}
+			className={className}
+		>
+			<PanelBody
+				isPending={isPending}
+				isEmpty={false}
+				emptyText="Nothing this week."
+			>
+				<WeekStrip weekStart={weekStart} byDay={byDay} />
 			</PanelBody>
 		</Panel>
 	);
@@ -979,6 +1078,9 @@ export function Overview() {
 function OverviewPanels() {
 	return (
 		<div className="flex flex-col gap-4 p-4">
+			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
+				<WeekPanel className="h-[280px] md:h-full md:flex-1" />
+			</div>
 			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
 				<LoadPanel
 					title="Running load"
