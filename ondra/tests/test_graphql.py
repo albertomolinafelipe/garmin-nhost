@@ -16,12 +16,16 @@ mutation Sync($days: Int, $maxActivities: Int) {
     activities_updated
     sleep_created
     sleep_updated
+    hrv_created
+    hrv_updated
     streams_written
     activities_failed
     errors
   }
 }
 """
+
+
 @pytest.fixture(autouse=True)
 def mock_sync(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.sync.sync", lambda *args, **kwargs: WriterResult())
@@ -32,6 +36,8 @@ EXPECTED_RESULT = {
     "activities_updated": 0,
     "sleep_created": 0,
     "sleep_updated": 0,
+    "hrv_created": 0,
+    "hrv_updated": 0,
     "streams_written": 0,
     "activities_failed": 0,
     "errors": [],

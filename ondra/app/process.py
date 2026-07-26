@@ -53,6 +53,62 @@ class SleepDTO:
     synced_at: datetime
 
 
+@dataclass(frozen=True)
+class HrvDTO:
+    calendar_date: date
+    weekly_avg: int | None
+    last_night_avg: int | None
+    last_night_5min_high: int | None
+    baseline_low_upper: int | None
+    baseline_balanced_low: int | None
+    baseline_balanced_upper: int | None
+    baseline_marker_value: float | None
+    status: str | None
+    feedback_phrase: str | None
+    start_time: datetime | None
+    end_time: datetime | None
+    readings: list[dict[str, Any]]
+    synced_at: datetime
+
+
+def normalize_hrv(
+    response: dict[str, Any], *, synced_at: datetime | None = None
+) -> HrvDTO:
+    """Map a Garmin get_hrv_data response to the daily HRV summary family."""
+    summary_value = response.get("hrvSummary")
+    summary = summary_value if isinstance(summary_value, dict) else {}
+    baseline_value = summary.get("baseline")
+    baseline = baseline_value if isinstance(baseline_value, dict) else {}
+    try:
+        calendar_date = date.fromisoformat(str(summary.get("calendarDate")))
+    except (TypeError, ValueError) as exc:
+        raise ValueError("hrvSummary.calendarDate must be an ISO date") from exc
+    readings_value = response.get("hrvReadings")
+    readings = [
+        {"t": t, "v": v}
+        for reading in (readings_value if isinstance(readings_value, list) else [])
+        if isinstance(reading, dict)
+        and (t := _string(reading.get("readingTimeGMT"))) is not None
+        and (v := _int(reading.get("hrvValue"))) is not None
+    ]
+    return HrvDTO(
+        calendar_date=calendar_date,
+        weekly_avg=_int(summary.get("weeklyAvg")),
+        last_night_avg=_int(summary.get("lastNightAvg")),
+        last_night_5min_high=_int(summary.get("lastNight5MinHigh")),
+        baseline_low_upper=_int(baseline.get("lowUpper")),
+        baseline_balanced_low=_int(baseline.get("balancedLow")),
+        baseline_balanced_upper=_int(baseline.get("balancedUpper")),
+        baseline_marker_value=_float(baseline.get("markerValue")),
+        status=_string(summary.get("status")),
+        feedback_phrase=_string(summary.get("feedbackPhrase")),
+        start_time=_utc(_parse_dt(response.get("sleepStartTimestampGMT"))),
+        end_time=_utc(_parse_dt(response.get("sleepEndTimestampGMT"))),
+        readings=readings,
+        synced_at=synced_at or datetime.now(timezone.utc),
+    )
+
+
 def normalize_activity(
     summary: dict[str, Any],
     *,
@@ -119,6 +175,10 @@ def normalize_sleep(
         sleep_score=_int(overall.get("value")),
         synced_at=synced_at or datetime.now(timezone.utc),
     )
+
+
+def _utc(value: datetime | None) -> datetime | None:
+    return value.replace(tzinfo=timezone.utc) if value is not None else None
 
 
 def _parse_dt(value: object) -> datetime | None:

@@ -12,7 +12,14 @@ from .fit import parse_streams, start_location
 from .garmin_client import get_client
 from .hasura import HasuraClient, WriterResult, write_sync_data
 from .main import Settings
-from .process import ActivityDTO, SleepDTO, normalize_activity, normalize_sleep
+from .process import (
+    ActivityDTO,
+    HrvDTO,
+    SleepDTO,
+    normalize_activity,
+    normalize_hrv,
+    normalize_sleep,
+)
 
 log = logging.getLogger(__name__)
 
@@ -26,22 +33,26 @@ class GarminClient(Protocol):
 
     def get_sleep_data(self, cdate: str) -> dict[str, Any]: ...
 
+    def get_hrv_data(self, cdate: str) -> dict[str, Any] | None: ...
+
 
 def sync(settings: Settings, *, days: int, max_activities: int) -> WriterResult:
     """Execute one bounded, tolerant synchronization unit."""
     client = get_client(settings)
     activities, errors, failed = _pull_activities(client, max_activities)
     sleeps, sleep_errors = _pull_sleep(client, days)
+    hrvs, hrv_errors = _pull_hrv(client, days)
     log.info(
-        "sync pulled %d activities (%d failed), %d sleep nights",
+        "sync pulled %d activities (%d failed), %d sleep nights, %d hrv days",
         len(activities),
         failed,
         len(sleeps),
+        len(hrvs),
     )
     with HasuraClient(settings) as hasura:
-        result = write_sync_data(hasura, activities, sleeps)
+        result = write_sync_data(hasura, activities, sleeps, hrvs)
     result.activities_failed += failed
-    result.errors = [*errors, *sleep_errors, *result.errors]
+    result.errors = [*errors, *sleep_errors, *hrv_errors, *result.errors]
     return result
 
 
@@ -105,3 +116,19 @@ def _pull_sleep(client: GarminClient, days: int) -> tuple[list[SleepDTO], list[s
         except Exception as exc:  # noqa: BLE001 -- tolerate each Garmin day
             errors.append(f"get_sleep_data({day}) failed: {exc}")
     return sleeps, errors
+
+
+def _pull_hrv(client: GarminClient, days: int) -> tuple[list[HrvDTO], list[str]]:
+    hrvs: list[HrvDTO] = []
+    errors: list[str] = []
+    today = datetime.now().date()
+    for offset in range(days):
+        day = (today - timedelta(days=offset)).isoformat()
+        try:
+            data = client.get_hrv_data(day)
+            if not data or not (data.get("hrvSummary") or {}).get("calendarDate"):
+                continue
+            hrvs.append(normalize_hrv(data, synced_at=datetime.now(timezone.utc)))
+        except Exception as exc:  # noqa: BLE001 -- tolerate each Garmin day
+            errors.append(f"get_hrv_data({day}) failed: {exc}")
+    return hrvs, errors

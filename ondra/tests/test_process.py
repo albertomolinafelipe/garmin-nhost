@@ -2,7 +2,12 @@ from datetime import date, datetime, timezone
 
 import pytest
 
-from app.process import normalize_activity, normalize_sleep, seed_subtype
+from app.process import (
+    normalize_activity,
+    normalize_hrv,
+    normalize_sleep,
+    seed_subtype,
+)
 
 
 @pytest.mark.parametrize(
@@ -59,6 +64,59 @@ def test_normalize_activity_maps_exact_summary_units() -> None:
     assert dto.subtype == "road"
 
 
+def test_normalize_hrv_maps_summary_baseline_and_readings() -> None:
+    now = datetime(2026, 7, 25, tzinfo=timezone.utc)
+    dto = normalize_hrv(
+        {
+            "hrvSummary": {
+                "calendarDate": "2026-07-24",
+                "weeklyAvg": 104,
+                "lastNightAvg": 117,
+                "lastNight5MinHigh": 166,
+                "baseline": {
+                    "lowUpper": 100,
+                    "balancedLow": 105,
+                    "balancedUpper": 129,
+                    "markerValue": 0.23561096,
+                },
+                "status": "UNBALANCED",
+                "feedbackPhrase": "HRV_UNBALANCED_11",
+            },
+            "hrvReadings": [
+                {"hrvValue": 71, "readingTimeGMT": "2026-07-23T20:09:23.0"},
+                {"readingTimeGMT": "2026-07-23T20:14:23.0"},
+                {"hrvValue": 75, "readingTimeGMT": "2026-07-23T20:19:23.0"},
+            ],
+            "sleepStartTimestampGMT": "2026-07-23T20:05:37.0",
+            "sleepEndTimestampGMT": "2026-07-24T04:46:37.0",
+        },
+        synced_at=now,
+    )
+
+    assert dto.calendar_date == date(2026, 7, 24)
+    assert dto.weekly_avg == 104
+    assert dto.last_night_avg == 117
+    assert dto.last_night_5min_high == 166
+    assert dto.baseline_low_upper == 100
+    assert dto.baseline_balanced_low == 105
+    assert dto.baseline_balanced_upper == 129
+    assert dto.baseline_marker_value == 0.23561096
+    assert dto.status == "UNBALANCED"
+    assert dto.feedback_phrase == "HRV_UNBALANCED_11"
+    assert dto.start_time == datetime(2026, 7, 23, 20, 5, 37, tzinfo=timezone.utc)
+    assert dto.end_time == datetime(2026, 7, 24, 4, 46, 37, tzinfo=timezone.utc)
+    assert dto.readings == [
+        {"t": "2026-07-23T20:09:23.0", "v": 71},
+        {"t": "2026-07-23T20:19:23.0", "v": 75},
+    ]
+    assert dto.synced_at == now
+
+
+def test_normalize_hrv_rejects_missing_calendar_date() -> None:
+    with pytest.raises(ValueError):
+        normalize_hrv({"hrvSummary": {}})
+
+
 def test_normalize_sleep_maps_nested_summary_and_epoch_milliseconds() -> None:
     now = datetime(2026, 7, 25, tzinfo=timezone.utc)
     dto = normalize_sleep(
@@ -81,9 +139,7 @@ def test_normalize_sleep_maps_nested_summary_and_epoch_milliseconds() -> None:
     )
 
     assert dto.calendar_date == date(2026, 7, 24)
-    assert dto.start_time == datetime.fromtimestamp(
-        1_753_315_200, tz=timezone.utc
-    )
+    assert dto.start_time == datetime.fromtimestamp(1_753_315_200, tz=timezone.utc)
     assert dto.end_time == datetime.fromtimestamp(1_753_344_000, tz=timezone.utc)
     assert dto.total_sleep_s == 27_000
     assert dto.deep_sleep_s == 4_000

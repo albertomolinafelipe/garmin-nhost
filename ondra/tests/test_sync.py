@@ -46,6 +46,9 @@ class FakeGarmin:
             }
         }
 
+    def get_hrv_data(self, cdate: str) -> dict[str, Any] | None:
+        return {"hrvSummary": {"calendarDate": cdate, "lastNightAvg": 100}}
+
 
 def test_pull_is_bounded_tolerant_and_never_writes_fit(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -107,8 +110,10 @@ def test_sync_calls_writer_with_normalized_values(
         def __exit__(self, *args: object) -> None:
             pass
 
-    def writer(client: object, activities: object, sleeps: object) -> WriterResult:
-        captured.update(activities=activities, sleeps=sleeps)
+    def writer(
+        client: object, activities: object, sleeps: object, hrvs: object = ()
+    ) -> WriterResult:
+        captured.update(activities=activities, sleeps=sleeps, hrvs=hrvs)
         return WriterResult(activities_created=2, streams_written=2)
 
     monkeypatch.setattr("app.sync.get_client", lambda settings: client)

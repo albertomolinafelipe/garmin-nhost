@@ -11,7 +11,7 @@ from typing import Any
 import httpx
 
 from .main import Settings
-from .process import ActivityDTO, SleepDTO
+from .process import ActivityDTO, HrvDTO, SleepDTO
 
 ACTIVITY_SYNCED_COLUMNS = (
     "activity_type",
@@ -42,6 +42,22 @@ SLEEP_SYNCED_COLUMNS = (
     "synced_at",
 )
 
+HRV_SYNCED_COLUMNS = (
+    "weekly_avg",
+    "last_night_avg",
+    "last_night_5min_high",
+    "baseline_low_upper",
+    "baseline_balanced_low",
+    "baseline_balanced_upper",
+    "baseline_marker_value",
+    "status",
+    "feedback_phrase",
+    "start_time",
+    "end_time",
+    "readings",
+    "synced_at",
+)
+
 
 def _columns(columns: Sequence[str]) -> str:
     return ", ".join(columns)
@@ -63,6 +79,14 @@ mutation UpsertSleep($objects: [sleep_insert_input!]!) {{
   }}) {{ returning {{ calendar_date }} }}
 }}
 """
+HRV_MUTATION = f"""
+mutation UpsertDailyHrv($objects: [daily_hrv_insert_input!]!) {{
+  insert_daily_hrv(objects: $objects, on_conflict: {{
+    constraint: daily_hrv_calendar_date_key
+    update_columns: [{_columns(HRV_SYNCED_COLUMNS)}]
+  }}) {{ returning {{ calendar_date }} }}
+}}
+"""
 STREAM_MUTATION = """
 mutation UpsertActivityStream($activityId: bigint!, $payload: jsonb!) {
   insert_activity_streams_one(object: {activity_id: $activityId, payload: $payload},
@@ -79,6 +103,11 @@ query ExistingActivities($ids: [bigint!]!) {
 EXISTING_SLEEP_QUERY = """
 query ExistingSleep($dates: [date!]!) {
   sleep(where: {calendar_date: {_in: $dates}}) { calendar_date }
+}
+"""
+EXISTING_HRV_QUERY = """
+query ExistingHrv($dates: [date!]!) {
+  daily_hrv(where: {calendar_date: {_in: $dates}}) { calendar_date }
 }
 """
 
@@ -166,6 +195,10 @@ def serialize_sleep(dto: SleepDTO) -> dict[str, Any]:
     return _serialize(asdict(dto))
 
 
+def serialize_hrv(dto: HrvDTO) -> dict[str, Any]:
+    return _serialize(asdict(dto))
+
+
 def upsert_activities(
     client: HasuraClient, dtos: Sequence[ActivityDTO]
 ) -> dict[int, int]:
@@ -200,12 +233,23 @@ def upsert_sleep(client: HasuraClient, dtos: Sequence[SleepDTO]) -> None:
         )
 
 
+def upsert_hrv(client: HasuraClient, dtos: Sequence[HrvDTO]) -> None:
+    if dtos:
+        unique_dtos = {dto.calendar_date: dto for dto in dtos}
+        client.execute_graphql(
+            HRV_MUTATION,
+            {"objects": [serialize_hrv(dto) for dto in unique_dtos.values()]},
+        )
+
+
 @dataclass
 class WriterResult:
     activities_created: int = 0
     activities_updated: int = 0
     sleep_created: int = 0
     sleep_updated: int = 0
+    hrv_created: int = 0
+    hrv_updated: int = 0
     streams_written: int = 0
     activities_failed: int = 0
     errors: list[str] = field(default_factory=list)
@@ -220,6 +264,7 @@ def write_sync_data(
     client: HasuraClient,
     activities: Sequence[tuple[ActivityDTO, dict[str, Any] | None]],
     sleep: Sequence[SleepDTO],
+    hrv: Sequence[HrvDTO] = (),
     *,
     batch_size: int = 50,
 ) -> WriterResult:
@@ -288,5 +333,27 @@ def write_sync_data(
         )
         result.sleep_created += sum(
             dto.calendar_date.isoformat() not in existing_dates for dto in batch
+        )
+
+    hrv_by_date = {dto.calendar_date: dto for dto in hrv}
+    unique_hrv = list(hrv_by_date.values())
+    hrv_dates = [day.isoformat() for day in hrv_by_date]
+    existing_hrv_rows = (
+        client.execute_graphql(EXISTING_HRV_QUERY, {"dates": hrv_dates})["daily_hrv"]
+        if hrv_dates
+        else []
+    )
+    existing_hrv_dates = {str(row["calendar_date"]) for row in existing_hrv_rows}
+    for batch in _batches(unique_hrv, batch_size):
+        try:
+            upsert_hrv(client, batch)
+        except HasuraError as exc:
+            result.errors.append(str(exc))
+            continue
+        result.hrv_updated += sum(
+            dto.calendar_date.isoformat() in existing_hrv_dates for dto in batch
+        )
+        result.hrv_created += sum(
+            dto.calendar_date.isoformat() not in existing_hrv_dates for dto in batch
         )
     return result
