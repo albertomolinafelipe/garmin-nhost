@@ -29,12 +29,19 @@ import {
 	type CalendarActivity,
 	num,
 	useActivities,
+	useHrv,
 	useSleep,
 } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 const WINDOW_DAYS = 7; // trailing window each daily point aggregates
 const SPAN_DAYS = 30; // how many days to plot
+
+const HRV_COLORS = {
+	lastNight: "#7E9CD8",
+	weekly: "#DCA561",
+	baseline: "#957FB8",
+};
 
 const SLEEP_COLORS = {
 	awake: "#54546D",
@@ -130,6 +137,33 @@ function PanelBody({
 	if (isPending) return <Empty>Loading…</Empty>;
 	if (isEmpty) return <Empty>{emptyText}</Empty>;
 	return <>{children}</>;
+}
+
+// A custom tooltip `formatter` replaces the entire row, so it must re-render
+// the color swatch itself or the legend indicator disappears.
+function TooltipItem({
+	color,
+	label,
+	value,
+}: {
+	color?: string;
+	label: ReactNode;
+	value: string;
+}) {
+	return (
+		<>
+			<span
+				className="size-2.5 shrink-0 rounded-[2px]"
+				style={{ backgroundColor: color }}
+			/>
+			<div className="flex flex-1 items-center justify-between gap-2 leading-none">
+				<span className="text-muted-foreground">{label}</span>
+				<span className="text-foreground font-mono font-medium tabular-nums">
+					{value}
+				</span>
+			</div>
+		</>
+	);
 }
 
 interface LoadSeries {
@@ -433,11 +467,21 @@ function SleepPanel() {
 						<ChartTooltip
 							content={
 								<ChartTooltipContent
-									formatter={(value, name) =>
-										name === "Score" || name === "score"
-											? [String(value), " Score"]
-											: [fmtDuration(Number(value) * 3600), ` ${String(name)}`]
-									}
+									formatter={(value, name) => {
+										const key = String(name);
+										const cfg = sleepConfig[key as keyof typeof sleepConfig];
+										const text =
+											key === "score"
+												? String(value)
+												: fmtDuration(Number(value) * 3600);
+										return (
+											<TooltipItem
+												color={cfg?.color}
+												label={cfg?.label ?? key}
+												value={text}
+											/>
+										);
+									}}
 								/>
 							}
 						/>
@@ -471,6 +515,157 @@ function SleepPanel() {
 	);
 }
 
+const hrvConfig = {
+	lastNight: { label: "Last night", color: HRV_COLORS.lastNight },
+	weekly: { label: "Weekly avg", color: HRV_COLORS.weekly },
+	baseline: { label: "Balanced range", color: HRV_COLORS.baseline },
+} satisfies ChartConfig;
+
+function HrvPanel() {
+	const { data, isPending } = useHrv(SPAN_DAYS);
+	const rows = useMemo(
+		() =>
+			[...(data?.daily_hrv ?? [])].reverse().map((d) => ({
+				date: d.calendar_date.slice(5),
+				fullDate: d.calendar_date,
+				lastNight: d.last_night_avg == null ? null : num(d.last_night_avg),
+				weekly: d.weekly_avg == null ? null : num(d.weekly_avg),
+				baseline:
+					d.baseline_balanced_low == null || d.baseline_balanced_upper == null
+						? null
+						: [num(d.baseline_balanced_low), num(d.baseline_balanced_upper)],
+			})),
+		[data],
+	);
+
+	const legend = (
+		<div className="text-muted-foreground flex items-center gap-3 text-xs">
+			<span className="flex items-center gap-1">
+				<span
+					className="size-2 rounded-[2px]"
+					style={{ backgroundColor: HRV_COLORS.baseline }}
+				/>
+				Balanced range
+			</span>
+			<span className="flex items-center gap-1">
+				<span
+					className="size-2 rounded-full"
+					style={{ backgroundColor: HRV_COLORS.lastNight }}
+				/>
+				Last night
+			</span>
+			<span className="flex items-center gap-1">
+				<span
+					className="size-2 rounded-full"
+					style={{ backgroundColor: HRV_COLORS.weekly }}
+				/>
+				Weekly avg
+			</span>
+		</div>
+	);
+
+	return (
+		<Panel
+			title="HRV"
+			action={legend}
+			className="h-[280px] md:h-full md:flex-1"
+		>
+			<PanelBody
+				isPending={isPending}
+				isEmpty={rows.length === 0}
+				emptyText="No HRV synced yet."
+			>
+				<ChartContainer
+					config={hrvConfig}
+					className="aspect-auto h-full w-full"
+				>
+					<ComposedChart data={rows} margin={{ top: 6, right: 0, left: 0 }}>
+						<defs>
+							<linearGradient
+								id="fill-hrv-baseline"
+								x1="0"
+								y1="0"
+								x2="0"
+								y2="1"
+							>
+								<stop
+									offset="0%"
+									stopColor={HRV_COLORS.baseline}
+									stopOpacity={0.3}
+								/>
+								<stop
+									offset="100%"
+									stopColor={HRV_COLORS.baseline}
+									stopOpacity={0.1}
+								/>
+							</linearGradient>
+						</defs>
+						<CartesianGrid strokeDasharray="3 3" vertical={false} />
+						<XAxis
+							dataKey="date"
+							interval={2}
+							tickLine={false}
+							axisLine={false}
+							tickMargin={6}
+						/>
+						<YAxis
+							width={40}
+							tickLine={false}
+							axisLine={false}
+							domain={["dataMin - 10", "dataMax + 10"]}
+						/>
+						<ChartTooltip
+							content={
+								<ChartTooltipContent
+									formatter={(value, name) => {
+										const cfg = hrvConfig[name as keyof typeof hrvConfig];
+										const text = Array.isArray(value)
+											? `${value[0]}\u2013${value[1]} ms`
+											: `${String(value)} ms`;
+										return (
+											<TooltipItem
+												color={cfg?.color}
+												label={cfg?.label ?? String(name)}
+												value={text}
+											/>
+										);
+									}}
+								/>
+							}
+						/>
+						<Area
+							type="monotone"
+							dataKey="baseline"
+							stroke="none"
+							fill="url(#fill-hrv-baseline)"
+							connectNulls
+							dot={false}
+							activeDot={false}
+						/>
+						<Line
+							type="monotone"
+							dataKey="weekly"
+							stroke={HRV_COLORS.weekly}
+							strokeWidth={2}
+							strokeDasharray="4 3"
+							dot={false}
+							connectNulls
+						/>
+						<Line
+							type="monotone"
+							dataKey="lastNight"
+							stroke={HRV_COLORS.lastNight}
+							strokeWidth={2}
+							dot={{ r: 2 }}
+							connectNulls
+						/>
+					</ComposedChart>
+				</ChartContainer>
+			</PanelBody>
+		</Panel>
+	);
+}
+
 // Each row is one third of the window on md+, so panels stay a uniform,
 // window-proportional height and the page simply scrolls as rows are added.
 const ROW = "md:h-[calc((100svh-4rem)/3)] md:min-h-[260px]";
@@ -492,21 +687,13 @@ export function Overview() {
 			</div>
 			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
 				<SleepPanel />
+				<HrvPanel />
 			</div>
 			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
 				<LoadPanel
 					title="Daily running"
 					series={RUNNING_SERIES}
 					windowDays={1}
-					className="h-[280px] md:h-full md:flex-1"
-				/>
-			</div>
-			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
-				<LoadPanel
-					title="Daily running (bars)"
-					series={RUNNING_SERIES}
-					windowDays={1}
-					variant="bar"
 					className="h-[280px] md:h-full md:flex-1"
 				/>
 			</div>

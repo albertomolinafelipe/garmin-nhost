@@ -71,6 +71,40 @@ export function useSleep(limit = 14) {
 	});
 }
 
+export interface HrvDay {
+	calendar_date: string;
+	weekly_avg: number | string | null;
+	last_night_avg: number | string | null;
+	last_night_5min_high: number | string | null;
+	baseline_balanced_low: number | string | null;
+	baseline_balanced_upper: number | string | null;
+	status: string | null;
+	feedback_phrase: string | null;
+}
+
+const HRV_DAYS = /* GraphQL */ `
+	query HrvDays($limit: Int = 30) {
+		daily_hrv(order_by: { calendar_date: desc }, limit: $limit) {
+			calendar_date
+			weekly_avg
+			last_night_avg
+			last_night_5min_high
+			baseline_balanced_low
+			baseline_balanced_upper
+			status
+			feedback_phrase
+		}
+	}
+`;
+
+export function useHrv(limit = 30) {
+	return useQuery({
+		queryKey: ["hrv", limit],
+		queryFn: () =>
+			graphQLClient.request<{ daily_hrv: HrvDay[] }>(HRV_DAYS, { limit }),
+	});
+}
+
 export interface StreamSample {
 	t: number;
 	v: number;
