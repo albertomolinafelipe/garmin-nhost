@@ -1,4 +1,5 @@
 import { type ReactNode, useMemo } from "react";
+import { Link } from "react-router-dom";
 import {
 	Area,
 	Bar,
@@ -23,8 +24,13 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@/components/ui/chart";
-import { categoryColor, categoryOf } from "@/lib/activity-types";
-import { dayKey, fmtDuration } from "@/lib/format";
+import {
+	categoryColor,
+	categoryOf,
+	needsAnnotation,
+	typeLabel,
+} from "@/lib/activity-types";
+import { dayKey, fmtDay, fmtDuration } from "@/lib/format";
 import {
 	type CalendarActivity,
 	num,
@@ -474,6 +480,57 @@ function SleepPanel() {
 // Each row is one third of the window on md+, so panels stay a uniform,
 // window-proportional height and the page simply scrolls as rows are added.
 const ROW = "md:h-[calc((100svh-4rem)/3)] md:min-h-[260px]";
+const INCOMPLETE_LIMIT = 8;
+
+function NeedsAnnotationPanel() {
+	const { data, isPending } = useActivities();
+	const incomplete = useMemo(
+		() =>
+			(data?.activities ?? [])
+				.filter(needsAnnotation)
+				.sort((a, b) => (b.start_time ?? "").localeCompare(a.start_time ?? "")),
+		[data?.activities],
+	);
+
+	return (
+		<Panel
+			title="Needs annotation"
+			action={
+				<Badge variant="outline">
+					{incomplete.length} in loaded activities
+				</Badge>
+			}
+			className="h-[280px] md:h-full md:flex-1"
+		>
+			<PanelBody
+				isPending={isPending}
+				isEmpty={incomplete.length === 0}
+				emptyText="All loaded activities are annotated."
+			>
+				<div className="h-full overflow-y-auto">
+					<ul className="divide-y">
+						{incomplete.slice(0, INCOMPLETE_LIMIT).map((activity) => (
+							<li key={activity.id}>
+								<Link
+									to={`/activities/${activity.id}`}
+									className="hover:bg-muted/50 flex items-center justify-between gap-3 rounded-sm px-2 py-2 transition-colors"
+								>
+									<span className="min-w-0 truncate text-sm font-medium">
+										{activity.name ??
+											typeLabel(activity.activity_type, activity.subtype)}
+									</span>
+									<span className="text-muted-foreground shrink-0 text-xs">
+										{fmtDay(activity.start_time)}
+									</span>
+								</Link>
+							</li>
+						))}
+					</ul>
+				</div>
+			</PanelBody>
+		</Panel>
+	);
+}
 
 export function Overview() {
 	return (
@@ -492,6 +549,9 @@ export function Overview() {
 			</div>
 			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
 				<SleepPanel />
+			</div>
+			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
+				<NeedsAnnotationPanel />
 			</div>
 			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
 				<LoadPanel

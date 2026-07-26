@@ -2,9 +2,15 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { categoryColor, categoryOf, typeLabel } from "@/lib/activity-types";
+import {
+	categoryColor,
+	categoryOf,
+	needsAnnotation,
+	typeLabel,
+} from "@/lib/activity-types";
 import { fmtDay, fmtDistance, fmtDuration } from "@/lib/format";
 import { num, useActivities } from "@/lib/queries";
 
@@ -103,8 +109,18 @@ export function Activities() {
 										<td className="text-muted-foreground whitespace-nowrap px-4 py-3">
 											{fmtDay(activity.start_time)}
 										</td>
-										<td className="max-w-[60vw] truncate px-4 py-3 font-medium md:max-w-72">
-											{activity.name ?? "—"}
+										<td className="max-w-[60vw] px-4 py-3 font-medium md:max-w-72">
+											<div className="flex min-w-0 items-center gap-2">
+												<span className="truncate">{activity.name ?? "—"}</span>
+												{needsAnnotation(activity) ? (
+													<Badge
+														variant="outline"
+														className="shrink-0 text-[10px]"
+													>
+														Needs annotation
+													</Badge>
+												) : null}
+											</div>
 										</td>
 										<td className="hidden px-4 py-3 md:table-cell">
 											{typeLabel(activity.activity_type, activity.subtype)}

@@ -16,6 +16,10 @@ export interface CalendarActivity {
 	duration_s: number | string | null;
 	distance_m: number | string | null;
 	elevation_gain_m: number | string | null;
+	feeling: number | null;
+	effort: number | null;
+	caffeine: string | null;
+	focus: string | null;
 }
 
 export function useActivities(): UseQueryResult<
