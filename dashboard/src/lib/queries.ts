@@ -105,6 +105,54 @@ export function useHrv(limit = 30) {
 	});
 }
 
+export interface ReadinessDay {
+	calendar_date: string;
+	timestamp: string;
+	score: number | string | null;
+	level: string | null;
+	acute_load: number | string | null;
+	acwr_factor_percent: number | string | null;
+	stress_history_factor_percent: number | string | null;
+	hrv_factor_percent: number | string | null;
+	sleep_score_factor_percent: number | string | null;
+	recovery_time_factor_percent: number | string | null;
+	sleep_history_factor_percent: number | string | null;
+}
+
+// The morning (AFTER_WAKEUP_RESET) snapshot is the headline readiness value.
+const READINESS_DAYS = /* GraphQL */ `
+	query ReadinessDays($limit: Int = 30) {
+		training_readiness(
+			where: { input_context: { _eq: "AFTER_WAKEUP_RESET" } }
+			order_by: { calendar_date: desc, timestamp: desc }
+			limit: $limit
+		) {
+			calendar_date
+			timestamp
+			score
+			level
+			acute_load
+			acwr_factor_percent
+			stress_history_factor_percent
+			hrv_factor_percent
+			sleep_score_factor_percent
+			recovery_time_factor_percent
+			sleep_history_factor_percent
+		}
+	}
+`;
+
+export function useReadiness(limit = 30) {
+	return useQuery({
+		queryKey: ["readiness", limit],
+		queryFn: () =>
+			graphQLClient.request<{ training_readiness: ReadinessDay[] }>(
+				READINESS_DAYS,
+				{ limit },
+			),
+	});
+}
+
 export interface StreamSample {
 	t: number;
 	v: number;

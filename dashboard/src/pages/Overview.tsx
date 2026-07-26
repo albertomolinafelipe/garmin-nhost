@@ -30,12 +30,24 @@ import {
 	num,
 	useActivities,
 	useHrv,
+	useReadiness,
 	useSleep,
 } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 const WINDOW_DAYS = 7; // trailing window each daily point aggregates
 const SPAN_DAYS = 30; // how many days to plot
+
+const READINESS_COLORS = {
+	score: "#76946A",
+	acuteLoad: "#C34043",
+	sleep: "#7E9CD8",
+	recovery: "#7AA89F",
+	hrv: "#957FB8",
+	acwr: "#DCA561",
+	stress: "#D27E99",
+	sleepHistory: "#6A9589",
+};
 
 const HRV_COLORS = {
 	lastNight: "#7E9CD8",
@@ -666,6 +678,179 @@ function HrvPanel() {
 	);
 }
 
+const readinessConfig = {
+	score: { label: "Readiness", color: READINESS_COLORS.score },
+	acuteLoad: { label: "Acute load", color: READINESS_COLORS.acuteLoad },
+	sleep: { label: "Sleep", color: READINESS_COLORS.sleep },
+	recovery: { label: "Recovery", color: READINESS_COLORS.recovery },
+	hrv: { label: "HRV", color: READINESS_COLORS.hrv },
+	acwr: { label: "ACWR", color: READINESS_COLORS.acwr },
+	stress: { label: "Stress hist.", color: READINESS_COLORS.stress },
+	sleepHistory: { label: "Sleep hist.", color: READINESS_COLORS.sleepHistory },
+} satisfies ChartConfig;
+
+// Score is the headline; the rest are 0-100 factor percentages except acute
+// load, which rides its own right axis.
+const READINESS_FACTORS = [
+	"sleep",
+	"recovery",
+	"hrv",
+	"acwr",
+	"stress",
+	"sleepHistory",
+] as const;
+const READINESS_LEGEND = ["score", "acuteLoad", ...READINESS_FACTORS] as const;
+
+function ReadinessPanel() {
+	const { data, isPending } = useReadiness(SPAN_DAYS);
+	const rows = useMemo(() => {
+		const seen = new Set<string>();
+		const daily = [];
+		for (const r of data?.training_readiness ?? []) {
+			if (seen.has(r.calendar_date)) continue;
+			seen.add(r.calendar_date);
+			daily.push(r);
+		}
+		return daily.reverse().map((r) => ({
+			date: r.calendar_date.slice(5),
+			fullDate: r.calendar_date,
+			level: r.level,
+			score: r.score == null ? null : num(r.score),
+			acuteLoad: r.acute_load == null ? null : num(r.acute_load),
+			sleep:
+				r.sleep_score_factor_percent == null
+					? null
+					: num(r.sleep_score_factor_percent),
+			recovery:
+				r.recovery_time_factor_percent == null
+					? null
+					: num(r.recovery_time_factor_percent),
+			hrv: r.hrv_factor_percent == null ? null : num(r.hrv_factor_percent),
+			acwr: r.acwr_factor_percent == null ? null : num(r.acwr_factor_percent),
+			stress:
+				r.stress_history_factor_percent == null
+					? null
+					: num(r.stress_history_factor_percent),
+			sleepHistory:
+				r.sleep_history_factor_percent == null
+					? null
+					: num(r.sleep_history_factor_percent),
+		}));
+	}, [data]);
+
+	const legend = (
+		<div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+			{READINESS_LEGEND.map((k) => (
+				<span key={k} className="flex items-center gap-1">
+					<span
+						className="size-2 rounded-full"
+						style={{ backgroundColor: READINESS_COLORS[k] }}
+					/>
+					{readinessConfig[k].label}
+				</span>
+			))}
+		</div>
+	);
+
+	return (
+		<Panel
+			title="Training readiness"
+			action={legend}
+			className="h-[320px] md:h-full md:flex-1"
+		>
+			<PanelBody
+				isPending={isPending}
+				isEmpty={rows.length === 0}
+				emptyText="No training readiness synced yet."
+			>
+				<ChartContainer
+					config={readinessConfig}
+					className="aspect-auto h-full w-full"
+				>
+					<ComposedChart data={rows} margin={{ top: 6, right: 0, left: 0 }}>
+						<CartesianGrid strokeDasharray="3 3" vertical={false} />
+						<XAxis
+							dataKey="date"
+							interval={2}
+							tickLine={false}
+							axisLine={false}
+							tickMargin={6}
+						/>
+						<YAxis
+							yAxisId="pct"
+							width={34}
+							tickLine={false}
+							axisLine={false}
+							domain={[0, 100]}
+						/>
+						<YAxis
+							yAxisId="load"
+							orientation="right"
+							width={34}
+							tickLine={false}
+							axisLine={false}
+						/>
+						<ChartTooltip
+							content={
+								<ChartTooltipContent
+									formatter={(value, name) => {
+										const key = String(name);
+										const cfg =
+											readinessConfig[key as keyof typeof readinessConfig];
+										const text =
+											key === "score" || key === "acuteLoad"
+												? String(value)
+												: `${String(value)}%`;
+										return (
+											<TooltipItem
+												color={cfg?.color}
+												label={cfg?.label ?? key}
+												value={text}
+											/>
+										);
+									}}
+								/>
+							}
+						/>
+						{READINESS_FACTORS.map((k) => (
+							<Line
+								key={k}
+								yAxisId="pct"
+								type="monotone"
+								dataKey={k}
+								stroke={READINESS_COLORS[k]}
+								strokeWidth={1.25}
+								strokeOpacity={0.7}
+								dot={false}
+								connectNulls
+							/>
+						))}
+						<Line
+							yAxisId="load"
+							type="monotone"
+							dataKey="acuteLoad"
+							stroke={READINESS_COLORS.acuteLoad}
+							strokeWidth={2}
+							strokeDasharray="4 3"
+							dot={false}
+							connectNulls
+						/>
+						<Line
+							yAxisId="pct"
+							type="monotone"
+							dataKey="score"
+							stroke={READINESS_COLORS.score}
+							strokeWidth={2.5}
+							dot={{ r: 2 }}
+							connectNulls
+						/>
+					</ComposedChart>
+				</ChartContainer>
+			</PanelBody>
+		</Panel>
+	);
+}
+
 // Each row is one third of the window on md+, so panels stay a uniform,
 // window-proportional height and the page simply scrolls as rows are added.
 const ROW = "md:h-[calc((100svh-4rem)/3)] md:min-h-[260px]";
@@ -688,6 +873,9 @@ export function Overview() {
 			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
 				<SleepPanel />
 				<HrvPanel />
+			</div>
+			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
+				<ReadinessPanel />
 			</div>
 			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
 				<LoadPanel
