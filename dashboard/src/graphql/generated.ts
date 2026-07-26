@@ -16,7 +16,21 @@ export type Scalars = {
   date: { input: unknown; output: unknown; }
   float8: { input: unknown; output: unknown; }
   jsonb: { input: unknown; output: unknown; }
+  numeric: { input: unknown; output: unknown; }
   timestamptz: { input: unknown; output: unknown; }
+};
+
+/** Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'. */
+export type Boolean_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars['Boolean']['input']>;
+  _gt?: InputMaybe<Scalars['Boolean']['input']>;
+  _gte?: InputMaybe<Scalars['Boolean']['input']>;
+  _in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  _is_null?: InputMaybe<Scalars['Boolean']['input']>;
+  _lt?: InputMaybe<Scalars['Boolean']['input']>;
+  _lte?: InputMaybe<Scalars['Boolean']['input']>;
+  _neq?: InputMaybe<Scalars['Boolean']['input']>;
+  _nin?: InputMaybe<Array<Scalars['Boolean']['input']>>;
 };
 
 /** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
@@ -88,6 +102,10 @@ export type SyncResult = {
   activities_failed: Scalars['Int']['output'];
   activities_updated: Scalars['Int']['output'];
   errors: Array<Scalars['String']['output']>;
+  hrv_created: Scalars['Int']['output'];
+  hrv_updated: Scalars['Int']['output'];
+  readiness_created: Scalars['Int']['output'];
+  readiness_updated: Scalars['Int']['output'];
   sleep_created: Scalars['Int']['output'];
   sleep_updated: Scalars['Int']['output'];
   streams_written: Scalars['Int']['output'];
@@ -1160,6 +1178,458 @@ export enum Cursor_Ordering {
   Desc = 'DESC'
 }
 
+/** columns and relationships of "daily_hrv" */
+export type Daily_Hrv = {
+  __typename?: 'daily_hrv';
+  baseline_balanced_low?: Maybe<Scalars['Int']['output']>;
+  baseline_balanced_upper?: Maybe<Scalars['Int']['output']>;
+  baseline_low_upper?: Maybe<Scalars['Int']['output']>;
+  baseline_marker_value?: Maybe<Scalars['float8']['output']>;
+  calendar_date: Scalars['date']['output'];
+  end_time?: Maybe<Scalars['timestamptz']['output']>;
+  feedback_phrase?: Maybe<Scalars['String']['output']>;
+  id: Scalars['bigint']['output'];
+  last_night_5min_high?: Maybe<Scalars['Int']['output']>;
+  last_night_avg?: Maybe<Scalars['Int']['output']>;
+  readings?: Maybe<Scalars['jsonb']['output']>;
+  start_time?: Maybe<Scalars['timestamptz']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+  synced_at?: Maybe<Scalars['timestamptz']['output']>;
+  weekly_avg?: Maybe<Scalars['Int']['output']>;
+};
+
+
+/** columns and relationships of "daily_hrv" */
+export type Daily_HrvReadingsArgs = {
+  path?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregated selection of "daily_hrv" */
+export type Daily_Hrv_Aggregate = {
+  __typename?: 'daily_hrv_aggregate';
+  aggregate?: Maybe<Daily_Hrv_Aggregate_Fields>;
+  nodes: Array<Daily_Hrv>;
+};
+
+/** aggregate fields of "daily_hrv" */
+export type Daily_Hrv_Aggregate_Fields = {
+  __typename?: 'daily_hrv_aggregate_fields';
+  avg?: Maybe<Daily_Hrv_Avg_Fields>;
+  count: Scalars['Int']['output'];
+  max?: Maybe<Daily_Hrv_Max_Fields>;
+  min?: Maybe<Daily_Hrv_Min_Fields>;
+  stddev?: Maybe<Daily_Hrv_Stddev_Fields>;
+  stddev_pop?: Maybe<Daily_Hrv_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Daily_Hrv_Stddev_Samp_Fields>;
+  sum?: Maybe<Daily_Hrv_Sum_Fields>;
+  var_pop?: Maybe<Daily_Hrv_Var_Pop_Fields>;
+  var_samp?: Maybe<Daily_Hrv_Var_Samp_Fields>;
+  variance?: Maybe<Daily_Hrv_Variance_Fields>;
+};
+
+
+/** aggregate fields of "daily_hrv" */
+export type Daily_Hrv_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Daily_Hrv_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type Daily_Hrv_Append_Input = {
+  readings?: InputMaybe<Scalars['jsonb']['input']>;
+};
+
+/** aggregate avg on columns */
+export type Daily_Hrv_Avg_Fields = {
+  __typename?: 'daily_hrv_avg_fields';
+  baseline_balanced_low?: Maybe<Scalars['Float']['output']>;
+  baseline_balanced_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_low_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_marker_value?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  last_night_5min_high?: Maybe<Scalars['Float']['output']>;
+  last_night_avg?: Maybe<Scalars['Float']['output']>;
+  weekly_avg?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Boolean expression to filter rows from the table "daily_hrv". All fields are combined with a logical 'AND'. */
+export type Daily_Hrv_Bool_Exp = {
+  _and?: InputMaybe<Array<Daily_Hrv_Bool_Exp>>;
+  _not?: InputMaybe<Daily_Hrv_Bool_Exp>;
+  _or?: InputMaybe<Array<Daily_Hrv_Bool_Exp>>;
+  baseline_balanced_low?: InputMaybe<Int_Comparison_Exp>;
+  baseline_balanced_upper?: InputMaybe<Int_Comparison_Exp>;
+  baseline_low_upper?: InputMaybe<Int_Comparison_Exp>;
+  baseline_marker_value?: InputMaybe<Float8_Comparison_Exp>;
+  calendar_date?: InputMaybe<Date_Comparison_Exp>;
+  end_time?: InputMaybe<Timestamptz_Comparison_Exp>;
+  feedback_phrase?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Bigint_Comparison_Exp>;
+  last_night_5min_high?: InputMaybe<Int_Comparison_Exp>;
+  last_night_avg?: InputMaybe<Int_Comparison_Exp>;
+  readings?: InputMaybe<Jsonb_Comparison_Exp>;
+  start_time?: InputMaybe<Timestamptz_Comparison_Exp>;
+  status?: InputMaybe<String_Comparison_Exp>;
+  synced_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  weekly_avg?: InputMaybe<Int_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "daily_hrv" */
+export enum Daily_Hrv_Constraint {
+  /** unique or primary key constraint on columns "calendar_date" */
+  DailyHrvCalendarDateKey = 'daily_hrv_calendar_date_key',
+  /** unique or primary key constraint on columns "id" */
+  DailyHrvPkey = 'daily_hrv_pkey'
+}
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type Daily_Hrv_Delete_At_Path_Input = {
+  readings?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type Daily_Hrv_Delete_Elem_Input = {
+  readings?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type Daily_Hrv_Delete_Key_Input = {
+  readings?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** input type for incrementing numeric columns in table "daily_hrv" */
+export type Daily_Hrv_Inc_Input = {
+  baseline_balanced_low?: InputMaybe<Scalars['Int']['input']>;
+  baseline_balanced_upper?: InputMaybe<Scalars['Int']['input']>;
+  baseline_low_upper?: InputMaybe<Scalars['Int']['input']>;
+  baseline_marker_value?: InputMaybe<Scalars['float8']['input']>;
+  last_night_5min_high?: InputMaybe<Scalars['Int']['input']>;
+  last_night_avg?: InputMaybe<Scalars['Int']['input']>;
+  weekly_avg?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** input type for inserting data into table "daily_hrv" */
+export type Daily_Hrv_Insert_Input = {
+  baseline_balanced_low?: InputMaybe<Scalars['Int']['input']>;
+  baseline_balanced_upper?: InputMaybe<Scalars['Int']['input']>;
+  baseline_low_upper?: InputMaybe<Scalars['Int']['input']>;
+  baseline_marker_value?: InputMaybe<Scalars['float8']['input']>;
+  calendar_date?: InputMaybe<Scalars['date']['input']>;
+  end_time?: InputMaybe<Scalars['timestamptz']['input']>;
+  feedback_phrase?: InputMaybe<Scalars['String']['input']>;
+  last_night_5min_high?: InputMaybe<Scalars['Int']['input']>;
+  last_night_avg?: InputMaybe<Scalars['Int']['input']>;
+  readings?: InputMaybe<Scalars['jsonb']['input']>;
+  start_time?: InputMaybe<Scalars['timestamptz']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  synced_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  weekly_avg?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** aggregate max on columns */
+export type Daily_Hrv_Max_Fields = {
+  __typename?: 'daily_hrv_max_fields';
+  baseline_balanced_low?: Maybe<Scalars['Int']['output']>;
+  baseline_balanced_upper?: Maybe<Scalars['Int']['output']>;
+  baseline_low_upper?: Maybe<Scalars['Int']['output']>;
+  baseline_marker_value?: Maybe<Scalars['float8']['output']>;
+  calendar_date?: Maybe<Scalars['date']['output']>;
+  end_time?: Maybe<Scalars['timestamptz']['output']>;
+  feedback_phrase?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  last_night_5min_high?: Maybe<Scalars['Int']['output']>;
+  last_night_avg?: Maybe<Scalars['Int']['output']>;
+  start_time?: Maybe<Scalars['timestamptz']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+  synced_at?: Maybe<Scalars['timestamptz']['output']>;
+  weekly_avg?: Maybe<Scalars['Int']['output']>;
+};
+
+/** aggregate min on columns */
+export type Daily_Hrv_Min_Fields = {
+  __typename?: 'daily_hrv_min_fields';
+  baseline_balanced_low?: Maybe<Scalars['Int']['output']>;
+  baseline_balanced_upper?: Maybe<Scalars['Int']['output']>;
+  baseline_low_upper?: Maybe<Scalars['Int']['output']>;
+  baseline_marker_value?: Maybe<Scalars['float8']['output']>;
+  calendar_date?: Maybe<Scalars['date']['output']>;
+  end_time?: Maybe<Scalars['timestamptz']['output']>;
+  feedback_phrase?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  last_night_5min_high?: Maybe<Scalars['Int']['output']>;
+  last_night_avg?: Maybe<Scalars['Int']['output']>;
+  start_time?: Maybe<Scalars['timestamptz']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+  synced_at?: Maybe<Scalars['timestamptz']['output']>;
+  weekly_avg?: Maybe<Scalars['Int']['output']>;
+};
+
+/** response of any mutation on the table "daily_hrv" */
+export type Daily_Hrv_Mutation_Response = {
+  __typename?: 'daily_hrv_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int']['output'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Daily_Hrv>;
+};
+
+/** on_conflict condition type for table "daily_hrv" */
+export type Daily_Hrv_On_Conflict = {
+  constraint: Daily_Hrv_Constraint;
+  update_columns?: Array<Daily_Hrv_Update_Column>;
+  where?: InputMaybe<Daily_Hrv_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "daily_hrv". */
+export type Daily_Hrv_Order_By = {
+  baseline_balanced_low?: InputMaybe<Order_By>;
+  baseline_balanced_upper?: InputMaybe<Order_By>;
+  baseline_low_upper?: InputMaybe<Order_By>;
+  baseline_marker_value?: InputMaybe<Order_By>;
+  calendar_date?: InputMaybe<Order_By>;
+  end_time?: InputMaybe<Order_By>;
+  feedback_phrase?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  last_night_5min_high?: InputMaybe<Order_By>;
+  last_night_avg?: InputMaybe<Order_By>;
+  readings?: InputMaybe<Order_By>;
+  start_time?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+  synced_at?: InputMaybe<Order_By>;
+  weekly_avg?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: daily_hrv */
+export type Daily_Hrv_Pk_Columns_Input = {
+  id: Scalars['bigint']['input'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type Daily_Hrv_Prepend_Input = {
+  readings?: InputMaybe<Scalars['jsonb']['input']>;
+};
+
+/** select columns of table "daily_hrv" */
+export enum Daily_Hrv_Select_Column {
+  /** column name */
+  BaselineBalancedLow = 'baseline_balanced_low',
+  /** column name */
+  BaselineBalancedUpper = 'baseline_balanced_upper',
+  /** column name */
+  BaselineLowUpper = 'baseline_low_upper',
+  /** column name */
+  BaselineMarkerValue = 'baseline_marker_value',
+  /** column name */
+  CalendarDate = 'calendar_date',
+  /** column name */
+  EndTime = 'end_time',
+  /** column name */
+  FeedbackPhrase = 'feedback_phrase',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  LastNight_5minHigh = 'last_night_5min_high',
+  /** column name */
+  LastNightAvg = 'last_night_avg',
+  /** column name */
+  Readings = 'readings',
+  /** column name */
+  StartTime = 'start_time',
+  /** column name */
+  Status = 'status',
+  /** column name */
+  SyncedAt = 'synced_at',
+  /** column name */
+  WeeklyAvg = 'weekly_avg'
+}
+
+/** input type for updating data in table "daily_hrv" */
+export type Daily_Hrv_Set_Input = {
+  baseline_balanced_low?: InputMaybe<Scalars['Int']['input']>;
+  baseline_balanced_upper?: InputMaybe<Scalars['Int']['input']>;
+  baseline_low_upper?: InputMaybe<Scalars['Int']['input']>;
+  baseline_marker_value?: InputMaybe<Scalars['float8']['input']>;
+  calendar_date?: InputMaybe<Scalars['date']['input']>;
+  end_time?: InputMaybe<Scalars['timestamptz']['input']>;
+  feedback_phrase?: InputMaybe<Scalars['String']['input']>;
+  last_night_5min_high?: InputMaybe<Scalars['Int']['input']>;
+  last_night_avg?: InputMaybe<Scalars['Int']['input']>;
+  readings?: InputMaybe<Scalars['jsonb']['input']>;
+  start_time?: InputMaybe<Scalars['timestamptz']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  synced_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  weekly_avg?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** aggregate stddev on columns */
+export type Daily_Hrv_Stddev_Fields = {
+  __typename?: 'daily_hrv_stddev_fields';
+  baseline_balanced_low?: Maybe<Scalars['Float']['output']>;
+  baseline_balanced_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_low_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_marker_value?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  last_night_5min_high?: Maybe<Scalars['Float']['output']>;
+  last_night_avg?: Maybe<Scalars['Float']['output']>;
+  weekly_avg?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Daily_Hrv_Stddev_Pop_Fields = {
+  __typename?: 'daily_hrv_stddev_pop_fields';
+  baseline_balanced_low?: Maybe<Scalars['Float']['output']>;
+  baseline_balanced_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_low_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_marker_value?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  last_night_5min_high?: Maybe<Scalars['Float']['output']>;
+  last_night_avg?: Maybe<Scalars['Float']['output']>;
+  weekly_avg?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Daily_Hrv_Stddev_Samp_Fields = {
+  __typename?: 'daily_hrv_stddev_samp_fields';
+  baseline_balanced_low?: Maybe<Scalars['Float']['output']>;
+  baseline_balanced_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_low_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_marker_value?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  last_night_5min_high?: Maybe<Scalars['Float']['output']>;
+  last_night_avg?: Maybe<Scalars['Float']['output']>;
+  weekly_avg?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Streaming cursor of the table "daily_hrv" */
+export type Daily_Hrv_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Daily_Hrv_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Daily_Hrv_Stream_Cursor_Value_Input = {
+  baseline_balanced_low?: InputMaybe<Scalars['Int']['input']>;
+  baseline_balanced_upper?: InputMaybe<Scalars['Int']['input']>;
+  baseline_low_upper?: InputMaybe<Scalars['Int']['input']>;
+  baseline_marker_value?: InputMaybe<Scalars['float8']['input']>;
+  calendar_date?: InputMaybe<Scalars['date']['input']>;
+  end_time?: InputMaybe<Scalars['timestamptz']['input']>;
+  feedback_phrase?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['bigint']['input']>;
+  last_night_5min_high?: InputMaybe<Scalars['Int']['input']>;
+  last_night_avg?: InputMaybe<Scalars['Int']['input']>;
+  readings?: InputMaybe<Scalars['jsonb']['input']>;
+  start_time?: InputMaybe<Scalars['timestamptz']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+  synced_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  weekly_avg?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Daily_Hrv_Sum_Fields = {
+  __typename?: 'daily_hrv_sum_fields';
+  baseline_balanced_low?: Maybe<Scalars['Int']['output']>;
+  baseline_balanced_upper?: Maybe<Scalars['Int']['output']>;
+  baseline_low_upper?: Maybe<Scalars['Int']['output']>;
+  baseline_marker_value?: Maybe<Scalars['float8']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  last_night_5min_high?: Maybe<Scalars['Int']['output']>;
+  last_night_avg?: Maybe<Scalars['Int']['output']>;
+  weekly_avg?: Maybe<Scalars['Int']['output']>;
+};
+
+/** update columns of table "daily_hrv" */
+export enum Daily_Hrv_Update_Column {
+  /** column name */
+  BaselineBalancedLow = 'baseline_balanced_low',
+  /** column name */
+  BaselineBalancedUpper = 'baseline_balanced_upper',
+  /** column name */
+  BaselineLowUpper = 'baseline_low_upper',
+  /** column name */
+  BaselineMarkerValue = 'baseline_marker_value',
+  /** column name */
+  CalendarDate = 'calendar_date',
+  /** column name */
+  EndTime = 'end_time',
+  /** column name */
+  FeedbackPhrase = 'feedback_phrase',
+  /** column name */
+  LastNight_5minHigh = 'last_night_5min_high',
+  /** column name */
+  LastNightAvg = 'last_night_avg',
+  /** column name */
+  Readings = 'readings',
+  /** column name */
+  StartTime = 'start_time',
+  /** column name */
+  Status = 'status',
+  /** column name */
+  SyncedAt = 'synced_at',
+  /** column name */
+  WeeklyAvg = 'weekly_avg'
+}
+
+export type Daily_Hrv_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<Daily_Hrv_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<Daily_Hrv_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<Daily_Hrv_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<Daily_Hrv_Delete_Key_Input>;
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Daily_Hrv_Inc_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<Daily_Hrv_Prepend_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Daily_Hrv_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Daily_Hrv_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Daily_Hrv_Var_Pop_Fields = {
+  __typename?: 'daily_hrv_var_pop_fields';
+  baseline_balanced_low?: Maybe<Scalars['Float']['output']>;
+  baseline_balanced_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_low_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_marker_value?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  last_night_5min_high?: Maybe<Scalars['Float']['output']>;
+  last_night_avg?: Maybe<Scalars['Float']['output']>;
+  weekly_avg?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Daily_Hrv_Var_Samp_Fields = {
+  __typename?: 'daily_hrv_var_samp_fields';
+  baseline_balanced_low?: Maybe<Scalars['Float']['output']>;
+  baseline_balanced_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_low_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_marker_value?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  last_night_5min_high?: Maybe<Scalars['Float']['output']>;
+  last_night_avg?: Maybe<Scalars['Float']['output']>;
+  weekly_avg?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Daily_Hrv_Variance_Fields = {
+  __typename?: 'daily_hrv_variance_fields';
+  baseline_balanced_low?: Maybe<Scalars['Float']['output']>;
+  baseline_balanced_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_low_upper?: Maybe<Scalars['Float']['output']>;
+  baseline_marker_value?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  last_night_5min_high?: Maybe<Scalars['Float']['output']>;
+  last_night_avg?: Maybe<Scalars['Float']['output']>;
+  weekly_avg?: Maybe<Scalars['Float']['output']>;
+};
+
 /** Boolean expression to compare columns of type "date". All fields are combined with logical 'AND'. */
 export type Date_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['date']['input']>;
@@ -1497,14 +1967,34 @@ export type Mutation_Root = {
   delete_activity_streams?: Maybe<Activity_Streams_Mutation_Response>;
   /** delete single row from the table: "activity_streams" */
   delete_activity_streams_by_pk?: Maybe<Activity_Streams>;
+  /** delete data from the table: "daily_hrv" */
+  delete_daily_hrv?: Maybe<Daily_Hrv_Mutation_Response>;
+  /** delete single row from the table: "daily_hrv" */
+  delete_daily_hrv_by_pk?: Maybe<Daily_Hrv>;
   /** delete data from the table: "exercises" */
   delete_exercises?: Maybe<Exercises_Mutation_Response>;
   /** delete single row from the table: "exercises" */
   delete_exercises_by_pk?: Maybe<Exercises>;
+  /** delete data from the table: "plan_requirements" */
+  delete_plan_requirements?: Maybe<Plan_Requirements_Mutation_Response>;
+  /** delete single row from the table: "plan_requirements" */
+  delete_plan_requirements_by_pk?: Maybe<Plan_Requirements>;
+  /** delete data from the table: "plan_workouts" */
+  delete_plan_workouts?: Maybe<Plan_Workouts_Mutation_Response>;
+  /** delete single row from the table: "plan_workouts" */
+  delete_plan_workouts_by_pk?: Maybe<Plan_Workouts>;
+  /** delete data from the table: "plans" */
+  delete_plans?: Maybe<Plans_Mutation_Response>;
+  /** delete single row from the table: "plans" */
+  delete_plans_by_pk?: Maybe<Plans>;
   /** delete data from the table: "sleep" */
   delete_sleep?: Maybe<Sleep_Mutation_Response>;
   /** delete single row from the table: "sleep" */
   delete_sleep_by_pk?: Maybe<Sleep>;
+  /** delete data from the table: "training_readiness" */
+  delete_training_readiness?: Maybe<Training_Readiness_Mutation_Response>;
+  /** delete single row from the table: "training_readiness" */
+  delete_training_readiness_by_pk?: Maybe<Training_Readiness>;
   /** insert data into the table: "activities" */
   insert_activities?: Maybe<Activities_Mutation_Response>;
   /** insert a single row into the table: "activities" */
@@ -1513,14 +2003,34 @@ export type Mutation_Root = {
   insert_activity_streams?: Maybe<Activity_Streams_Mutation_Response>;
   /** insert a single row into the table: "activity_streams" */
   insert_activity_streams_one?: Maybe<Activity_Streams>;
+  /** insert data into the table: "daily_hrv" */
+  insert_daily_hrv?: Maybe<Daily_Hrv_Mutation_Response>;
+  /** insert a single row into the table: "daily_hrv" */
+  insert_daily_hrv_one?: Maybe<Daily_Hrv>;
   /** insert data into the table: "exercises" */
   insert_exercises?: Maybe<Exercises_Mutation_Response>;
   /** insert a single row into the table: "exercises" */
   insert_exercises_one?: Maybe<Exercises>;
+  /** insert data into the table: "plan_requirements" */
+  insert_plan_requirements?: Maybe<Plan_Requirements_Mutation_Response>;
+  /** insert a single row into the table: "plan_requirements" */
+  insert_plan_requirements_one?: Maybe<Plan_Requirements>;
+  /** insert data into the table: "plan_workouts" */
+  insert_plan_workouts?: Maybe<Plan_Workouts_Mutation_Response>;
+  /** insert a single row into the table: "plan_workouts" */
+  insert_plan_workouts_one?: Maybe<Plan_Workouts>;
+  /** insert data into the table: "plans" */
+  insert_plans?: Maybe<Plans_Mutation_Response>;
+  /** insert a single row into the table: "plans" */
+  insert_plans_one?: Maybe<Plans>;
   /** insert data into the table: "sleep" */
   insert_sleep?: Maybe<Sleep_Mutation_Response>;
   /** insert a single row into the table: "sleep" */
   insert_sleep_one?: Maybe<Sleep>;
+  /** insert data into the table: "training_readiness" */
+  insert_training_readiness?: Maybe<Training_Readiness_Mutation_Response>;
+  /** insert a single row into the table: "training_readiness" */
+  insert_training_readiness_one?: Maybe<Training_Readiness>;
   /** Run one bounded sync. Omitted arguments use small defaults; values outside their documented positive bounds are rejected. */
   syncActivities: SyncResult;
   /** update data of the table: "activities" */
@@ -1535,18 +2045,48 @@ export type Mutation_Root = {
   update_activity_streams_by_pk?: Maybe<Activity_Streams>;
   /** update multiples rows of table: "activity_streams" */
   update_activity_streams_many?: Maybe<Array<Maybe<Activity_Streams_Mutation_Response>>>;
+  /** update data of the table: "daily_hrv" */
+  update_daily_hrv?: Maybe<Daily_Hrv_Mutation_Response>;
+  /** update single row of the table: "daily_hrv" */
+  update_daily_hrv_by_pk?: Maybe<Daily_Hrv>;
+  /** update multiples rows of table: "daily_hrv" */
+  update_daily_hrv_many?: Maybe<Array<Maybe<Daily_Hrv_Mutation_Response>>>;
   /** update data of the table: "exercises" */
   update_exercises?: Maybe<Exercises_Mutation_Response>;
   /** update single row of the table: "exercises" */
   update_exercises_by_pk?: Maybe<Exercises>;
   /** update multiples rows of table: "exercises" */
   update_exercises_many?: Maybe<Array<Maybe<Exercises_Mutation_Response>>>;
+  /** update data of the table: "plan_requirements" */
+  update_plan_requirements?: Maybe<Plan_Requirements_Mutation_Response>;
+  /** update single row of the table: "plan_requirements" */
+  update_plan_requirements_by_pk?: Maybe<Plan_Requirements>;
+  /** update multiples rows of table: "plan_requirements" */
+  update_plan_requirements_many?: Maybe<Array<Maybe<Plan_Requirements_Mutation_Response>>>;
+  /** update data of the table: "plan_workouts" */
+  update_plan_workouts?: Maybe<Plan_Workouts_Mutation_Response>;
+  /** update single row of the table: "plan_workouts" */
+  update_plan_workouts_by_pk?: Maybe<Plan_Workouts>;
+  /** update multiples rows of table: "plan_workouts" */
+  update_plan_workouts_many?: Maybe<Array<Maybe<Plan_Workouts_Mutation_Response>>>;
+  /** update data of the table: "plans" */
+  update_plans?: Maybe<Plans_Mutation_Response>;
+  /** update single row of the table: "plans" */
+  update_plans_by_pk?: Maybe<Plans>;
+  /** update multiples rows of table: "plans" */
+  update_plans_many?: Maybe<Array<Maybe<Plans_Mutation_Response>>>;
   /** update data of the table: "sleep" */
   update_sleep?: Maybe<Sleep_Mutation_Response>;
   /** update single row of the table: "sleep" */
   update_sleep_by_pk?: Maybe<Sleep>;
   /** update multiples rows of table: "sleep" */
   update_sleep_many?: Maybe<Array<Maybe<Sleep_Mutation_Response>>>;
+  /** update data of the table: "training_readiness" */
+  update_training_readiness?: Maybe<Training_Readiness_Mutation_Response>;
+  /** update single row of the table: "training_readiness" */
+  update_training_readiness_by_pk?: Maybe<Training_Readiness>;
+  /** update multiples rows of table: "training_readiness" */
+  update_training_readiness_many?: Maybe<Array<Maybe<Training_Readiness_Mutation_Response>>>;
 };
 
 
@@ -1575,6 +2115,18 @@ export type Mutation_RootDelete_Activity_Streams_By_PkArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDelete_Daily_HrvArgs = {
+  where: Daily_Hrv_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Daily_Hrv_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+/** mutation root */
 export type Mutation_RootDelete_ExercisesArgs = {
   where: Exercises_Bool_Exp;
 };
@@ -1587,6 +2139,42 @@ export type Mutation_RootDelete_Exercises_By_PkArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDelete_Plan_RequirementsArgs = {
+  where: Plan_Requirements_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Plan_Requirements_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Plan_WorkoutsArgs = {
+  where: Plan_Workouts_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Plan_Workouts_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_PlansArgs = {
+  where: Plans_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Plans_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+/** mutation root */
 export type Mutation_RootDelete_SleepArgs = {
   where: Sleep_Bool_Exp;
 };
@@ -1594,6 +2182,18 @@ export type Mutation_RootDelete_SleepArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_Sleep_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Training_ReadinessArgs = {
+  where: Training_Readiness_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Training_Readiness_By_PkArgs = {
   id: Scalars['bigint']['input'];
 };
 
@@ -1627,6 +2227,20 @@ export type Mutation_RootInsert_Activity_Streams_OneArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsert_Daily_HrvArgs = {
+  objects: Array<Daily_Hrv_Insert_Input>;
+  on_conflict?: InputMaybe<Daily_Hrv_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Daily_Hrv_OneArgs = {
+  object: Daily_Hrv_Insert_Input;
+  on_conflict?: InputMaybe<Daily_Hrv_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsert_ExercisesArgs = {
   objects: Array<Exercises_Insert_Input>;
   on_conflict?: InputMaybe<Exercises_On_Conflict>;
@@ -1641,6 +2255,48 @@ export type Mutation_RootInsert_Exercises_OneArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsert_Plan_RequirementsArgs = {
+  objects: Array<Plan_Requirements_Insert_Input>;
+  on_conflict?: InputMaybe<Plan_Requirements_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Plan_Requirements_OneArgs = {
+  object: Plan_Requirements_Insert_Input;
+  on_conflict?: InputMaybe<Plan_Requirements_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Plan_WorkoutsArgs = {
+  objects: Array<Plan_Workouts_Insert_Input>;
+  on_conflict?: InputMaybe<Plan_Workouts_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Plan_Workouts_OneArgs = {
+  object: Plan_Workouts_Insert_Input;
+  on_conflict?: InputMaybe<Plan_Workouts_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_PlansArgs = {
+  objects: Array<Plans_Insert_Input>;
+  on_conflict?: InputMaybe<Plans_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Plans_OneArgs = {
+  object: Plans_Insert_Input;
+  on_conflict?: InputMaybe<Plans_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsert_SleepArgs = {
   objects: Array<Sleep_Insert_Input>;
   on_conflict?: InputMaybe<Sleep_On_Conflict>;
@@ -1651,6 +2307,20 @@ export type Mutation_RootInsert_SleepArgs = {
 export type Mutation_RootInsert_Sleep_OneArgs = {
   object: Sleep_Insert_Input;
   on_conflict?: InputMaybe<Sleep_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Training_ReadinessArgs = {
+  objects: Array<Training_Readiness_Insert_Input>;
+  on_conflict?: InputMaybe<Training_Readiness_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Training_Readiness_OneArgs = {
+  object: Training_Readiness_Insert_Input;
+  on_conflict?: InputMaybe<Training_Readiness_On_Conflict>;
 };
 
 
@@ -1726,6 +2396,38 @@ export type Mutation_RootUpdate_Activity_Streams_ManyArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdate_Daily_HrvArgs = {
+  _append?: InputMaybe<Daily_Hrv_Append_Input>;
+  _delete_at_path?: InputMaybe<Daily_Hrv_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Daily_Hrv_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Daily_Hrv_Delete_Key_Input>;
+  _inc?: InputMaybe<Daily_Hrv_Inc_Input>;
+  _prepend?: InputMaybe<Daily_Hrv_Prepend_Input>;
+  _set?: InputMaybe<Daily_Hrv_Set_Input>;
+  where: Daily_Hrv_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Daily_Hrv_By_PkArgs = {
+  _append?: InputMaybe<Daily_Hrv_Append_Input>;
+  _delete_at_path?: InputMaybe<Daily_Hrv_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Daily_Hrv_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Daily_Hrv_Delete_Key_Input>;
+  _inc?: InputMaybe<Daily_Hrv_Inc_Input>;
+  _prepend?: InputMaybe<Daily_Hrv_Prepend_Input>;
+  _set?: InputMaybe<Daily_Hrv_Set_Input>;
+  pk_columns: Daily_Hrv_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Daily_Hrv_ManyArgs = {
+  updates: Array<Daily_Hrv_Updates>;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdate_ExercisesArgs = {
   _set?: InputMaybe<Exercises_Set_Input>;
   where: Exercises_Bool_Exp;
@@ -1742,6 +2444,70 @@ export type Mutation_RootUpdate_Exercises_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Exercises_ManyArgs = {
   updates: Array<Exercises_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Plan_RequirementsArgs = {
+  _inc?: InputMaybe<Plan_Requirements_Inc_Input>;
+  _set?: InputMaybe<Plan_Requirements_Set_Input>;
+  where: Plan_Requirements_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Plan_Requirements_By_PkArgs = {
+  _inc?: InputMaybe<Plan_Requirements_Inc_Input>;
+  _set?: InputMaybe<Plan_Requirements_Set_Input>;
+  pk_columns: Plan_Requirements_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Plan_Requirements_ManyArgs = {
+  updates: Array<Plan_Requirements_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Plan_WorkoutsArgs = {
+  _inc?: InputMaybe<Plan_Workouts_Inc_Input>;
+  _set?: InputMaybe<Plan_Workouts_Set_Input>;
+  where: Plan_Workouts_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Plan_Workouts_By_PkArgs = {
+  _inc?: InputMaybe<Plan_Workouts_Inc_Input>;
+  _set?: InputMaybe<Plan_Workouts_Set_Input>;
+  pk_columns: Plan_Workouts_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Plan_Workouts_ManyArgs = {
+  updates: Array<Plan_Workouts_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_PlansArgs = {
+  _set?: InputMaybe<Plans_Set_Input>;
+  where: Plans_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Plans_By_PkArgs = {
+  _set?: InputMaybe<Plans_Set_Input>;
+  pk_columns: Plans_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Plans_ManyArgs = {
+  updates: Array<Plans_Updates>;
 };
 
 
@@ -1766,6 +2532,41 @@ export type Mutation_RootUpdate_Sleep_ManyArgs = {
   updates: Array<Sleep_Updates>;
 };
 
+
+/** mutation root */
+export type Mutation_RootUpdate_Training_ReadinessArgs = {
+  _inc?: InputMaybe<Training_Readiness_Inc_Input>;
+  _set?: InputMaybe<Training_Readiness_Set_Input>;
+  where: Training_Readiness_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Training_Readiness_By_PkArgs = {
+  _inc?: InputMaybe<Training_Readiness_Inc_Input>;
+  _set?: InputMaybe<Training_Readiness_Set_Input>;
+  pk_columns: Training_Readiness_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Training_Readiness_ManyArgs = {
+  updates: Array<Training_Readiness_Updates>;
+};
+
+/** Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'. */
+export type Numeric_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars['numeric']['input']>;
+  _gt?: InputMaybe<Scalars['numeric']['input']>;
+  _gte?: InputMaybe<Scalars['numeric']['input']>;
+  _in?: InputMaybe<Array<Scalars['numeric']['input']>>;
+  _is_null?: InputMaybe<Scalars['Boolean']['input']>;
+  _lt?: InputMaybe<Scalars['numeric']['input']>;
+  _lte?: InputMaybe<Scalars['numeric']['input']>;
+  _neq?: InputMaybe<Scalars['numeric']['input']>;
+  _nin?: InputMaybe<Array<Scalars['numeric']['input']>>;
+};
+
 /** column ordering options */
 export enum Order_By {
   /** in ascending order, nulls last */
@@ -1782,6 +2583,1046 @@ export enum Order_By {
   DescNullsLast = 'desc_nulls_last'
 }
 
+/** columns and relationships of "plan_requirements" */
+export type Plan_Requirements = {
+  __typename?: 'plan_requirements';
+  id: Scalars['bigint']['output'];
+  metric: Scalars['String']['output'];
+  notes?: Maybe<Scalars['String']['output']>;
+  /** An object relationship */
+  plan: Plans;
+  plan_id: Scalars['bigint']['output'];
+  sport?: Maybe<Scalars['String']['output']>;
+  target: Scalars['numeric']['output'];
+  week: Scalars['String']['output'];
+};
+
+/** aggregated selection of "plan_requirements" */
+export type Plan_Requirements_Aggregate = {
+  __typename?: 'plan_requirements_aggregate';
+  aggregate?: Maybe<Plan_Requirements_Aggregate_Fields>;
+  nodes: Array<Plan_Requirements>;
+};
+
+export type Plan_Requirements_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Plan_Requirements_Aggregate_Bool_Exp_Count>;
+};
+
+export type Plan_Requirements_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Plan_Requirements_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+  filter?: InputMaybe<Plan_Requirements_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "plan_requirements" */
+export type Plan_Requirements_Aggregate_Fields = {
+  __typename?: 'plan_requirements_aggregate_fields';
+  avg?: Maybe<Plan_Requirements_Avg_Fields>;
+  count: Scalars['Int']['output'];
+  max?: Maybe<Plan_Requirements_Max_Fields>;
+  min?: Maybe<Plan_Requirements_Min_Fields>;
+  stddev?: Maybe<Plan_Requirements_Stddev_Fields>;
+  stddev_pop?: Maybe<Plan_Requirements_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Plan_Requirements_Stddev_Samp_Fields>;
+  sum?: Maybe<Plan_Requirements_Sum_Fields>;
+  var_pop?: Maybe<Plan_Requirements_Var_Pop_Fields>;
+  var_samp?: Maybe<Plan_Requirements_Var_Samp_Fields>;
+  variance?: Maybe<Plan_Requirements_Variance_Fields>;
+};
+
+
+/** aggregate fields of "plan_requirements" */
+export type Plan_Requirements_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Plan_Requirements_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** order by aggregate values of table "plan_requirements" */
+export type Plan_Requirements_Aggregate_Order_By = {
+  avg?: InputMaybe<Plan_Requirements_Avg_Order_By>;
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Plan_Requirements_Max_Order_By>;
+  min?: InputMaybe<Plan_Requirements_Min_Order_By>;
+  stddev?: InputMaybe<Plan_Requirements_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Plan_Requirements_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Plan_Requirements_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Plan_Requirements_Sum_Order_By>;
+  var_pop?: InputMaybe<Plan_Requirements_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Plan_Requirements_Var_Samp_Order_By>;
+  variance?: InputMaybe<Plan_Requirements_Variance_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "plan_requirements" */
+export type Plan_Requirements_Arr_Rel_Insert_Input = {
+  data: Array<Plan_Requirements_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Plan_Requirements_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Plan_Requirements_Avg_Fields = {
+  __typename?: 'plan_requirements_avg_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+  target?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by avg() on columns of table "plan_requirements" */
+export type Plan_Requirements_Avg_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  target?: InputMaybe<Order_By>;
+};
+
+/** Boolean expression to filter rows from the table "plan_requirements". All fields are combined with a logical 'AND'. */
+export type Plan_Requirements_Bool_Exp = {
+  _and?: InputMaybe<Array<Plan_Requirements_Bool_Exp>>;
+  _not?: InputMaybe<Plan_Requirements_Bool_Exp>;
+  _or?: InputMaybe<Array<Plan_Requirements_Bool_Exp>>;
+  id?: InputMaybe<Bigint_Comparison_Exp>;
+  metric?: InputMaybe<String_Comparison_Exp>;
+  notes?: InputMaybe<String_Comparison_Exp>;
+  plan?: InputMaybe<Plans_Bool_Exp>;
+  plan_id?: InputMaybe<Bigint_Comparison_Exp>;
+  sport?: InputMaybe<String_Comparison_Exp>;
+  target?: InputMaybe<Numeric_Comparison_Exp>;
+  week?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "plan_requirements" */
+export enum Plan_Requirements_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  PlanRequirementsPkey = 'plan_requirements_pkey'
+}
+
+/** input type for incrementing numeric columns in table "plan_requirements" */
+export type Plan_Requirements_Inc_Input = {
+  plan_id?: InputMaybe<Scalars['bigint']['input']>;
+  target?: InputMaybe<Scalars['numeric']['input']>;
+};
+
+/** input type for inserting data into table "plan_requirements" */
+export type Plan_Requirements_Insert_Input = {
+  metric?: InputMaybe<Scalars['String']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  plan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
+  plan_id?: InputMaybe<Scalars['bigint']['input']>;
+  sport?: InputMaybe<Scalars['String']['input']>;
+  target?: InputMaybe<Scalars['numeric']['input']>;
+  week?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate max on columns */
+export type Plan_Requirements_Max_Fields = {
+  __typename?: 'plan_requirements_max_fields';
+  id?: Maybe<Scalars['bigint']['output']>;
+  metric?: Maybe<Scalars['String']['output']>;
+  notes?: Maybe<Scalars['String']['output']>;
+  plan_id?: Maybe<Scalars['bigint']['output']>;
+  sport?: Maybe<Scalars['String']['output']>;
+  target?: Maybe<Scalars['numeric']['output']>;
+  week?: Maybe<Scalars['String']['output']>;
+};
+
+/** order by max() on columns of table "plan_requirements" */
+export type Plan_Requirements_Max_Order_By = {
+  id?: InputMaybe<Order_By>;
+  metric?: InputMaybe<Order_By>;
+  notes?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  sport?: InputMaybe<Order_By>;
+  target?: InputMaybe<Order_By>;
+  week?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Plan_Requirements_Min_Fields = {
+  __typename?: 'plan_requirements_min_fields';
+  id?: Maybe<Scalars['bigint']['output']>;
+  metric?: Maybe<Scalars['String']['output']>;
+  notes?: Maybe<Scalars['String']['output']>;
+  plan_id?: Maybe<Scalars['bigint']['output']>;
+  sport?: Maybe<Scalars['String']['output']>;
+  target?: Maybe<Scalars['numeric']['output']>;
+  week?: Maybe<Scalars['String']['output']>;
+};
+
+/** order by min() on columns of table "plan_requirements" */
+export type Plan_Requirements_Min_Order_By = {
+  id?: InputMaybe<Order_By>;
+  metric?: InputMaybe<Order_By>;
+  notes?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  sport?: InputMaybe<Order_By>;
+  target?: InputMaybe<Order_By>;
+  week?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "plan_requirements" */
+export type Plan_Requirements_Mutation_Response = {
+  __typename?: 'plan_requirements_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int']['output'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Plan_Requirements>;
+};
+
+/** on_conflict condition type for table "plan_requirements" */
+export type Plan_Requirements_On_Conflict = {
+  constraint: Plan_Requirements_Constraint;
+  update_columns?: Array<Plan_Requirements_Update_Column>;
+  where?: InputMaybe<Plan_Requirements_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "plan_requirements". */
+export type Plan_Requirements_Order_By = {
+  id?: InputMaybe<Order_By>;
+  metric?: InputMaybe<Order_By>;
+  notes?: InputMaybe<Order_By>;
+  plan?: InputMaybe<Plans_Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  sport?: InputMaybe<Order_By>;
+  target?: InputMaybe<Order_By>;
+  week?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: plan_requirements */
+export type Plan_Requirements_Pk_Columns_Input = {
+  id: Scalars['bigint']['input'];
+};
+
+/** select columns of table "plan_requirements" */
+export enum Plan_Requirements_Select_Column {
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Metric = 'metric',
+  /** column name */
+  Notes = 'notes',
+  /** column name */
+  PlanId = 'plan_id',
+  /** column name */
+  Sport = 'sport',
+  /** column name */
+  Target = 'target',
+  /** column name */
+  Week = 'week'
+}
+
+/** input type for updating data in table "plan_requirements" */
+export type Plan_Requirements_Set_Input = {
+  metric?: InputMaybe<Scalars['String']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  plan_id?: InputMaybe<Scalars['bigint']['input']>;
+  sport?: InputMaybe<Scalars['String']['input']>;
+  target?: InputMaybe<Scalars['numeric']['input']>;
+  week?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate stddev on columns */
+export type Plan_Requirements_Stddev_Fields = {
+  __typename?: 'plan_requirements_stddev_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+  target?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev() on columns of table "plan_requirements" */
+export type Plan_Requirements_Stddev_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  target?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Plan_Requirements_Stddev_Pop_Fields = {
+  __typename?: 'plan_requirements_stddev_pop_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+  target?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_pop() on columns of table "plan_requirements" */
+export type Plan_Requirements_Stddev_Pop_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  target?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Plan_Requirements_Stddev_Samp_Fields = {
+  __typename?: 'plan_requirements_stddev_samp_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+  target?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_samp() on columns of table "plan_requirements" */
+export type Plan_Requirements_Stddev_Samp_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  target?: InputMaybe<Order_By>;
+};
+
+/** Streaming cursor of the table "plan_requirements" */
+export type Plan_Requirements_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Plan_Requirements_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Plan_Requirements_Stream_Cursor_Value_Input = {
+  id?: InputMaybe<Scalars['bigint']['input']>;
+  metric?: InputMaybe<Scalars['String']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  plan_id?: InputMaybe<Scalars['bigint']['input']>;
+  sport?: InputMaybe<Scalars['String']['input']>;
+  target?: InputMaybe<Scalars['numeric']['input']>;
+  week?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Plan_Requirements_Sum_Fields = {
+  __typename?: 'plan_requirements_sum_fields';
+  id?: Maybe<Scalars['bigint']['output']>;
+  plan_id?: Maybe<Scalars['bigint']['output']>;
+  target?: Maybe<Scalars['numeric']['output']>;
+};
+
+/** order by sum() on columns of table "plan_requirements" */
+export type Plan_Requirements_Sum_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  target?: InputMaybe<Order_By>;
+};
+
+/** update columns of table "plan_requirements" */
+export enum Plan_Requirements_Update_Column {
+  /** column name */
+  Metric = 'metric',
+  /** column name */
+  Notes = 'notes',
+  /** column name */
+  PlanId = 'plan_id',
+  /** column name */
+  Sport = 'sport',
+  /** column name */
+  Target = 'target',
+  /** column name */
+  Week = 'week'
+}
+
+export type Plan_Requirements_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Plan_Requirements_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Plan_Requirements_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Plan_Requirements_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Plan_Requirements_Var_Pop_Fields = {
+  __typename?: 'plan_requirements_var_pop_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+  target?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_pop() on columns of table "plan_requirements" */
+export type Plan_Requirements_Var_Pop_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  target?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Plan_Requirements_Var_Samp_Fields = {
+  __typename?: 'plan_requirements_var_samp_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+  target?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_samp() on columns of table "plan_requirements" */
+export type Plan_Requirements_Var_Samp_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  target?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Plan_Requirements_Variance_Fields = {
+  __typename?: 'plan_requirements_variance_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+  target?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by variance() on columns of table "plan_requirements" */
+export type Plan_Requirements_Variance_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  target?: InputMaybe<Order_By>;
+};
+
+/** columns and relationships of "plan_workouts" */
+export type Plan_Workouts = {
+  __typename?: 'plan_workouts';
+  day_of_week: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['bigint']['output'];
+  /** An object relationship */
+  plan: Plans;
+  plan_id: Scalars['bigint']['output'];
+  sport: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+  week: Scalars['String']['output'];
+};
+
+/** aggregated selection of "plan_workouts" */
+export type Plan_Workouts_Aggregate = {
+  __typename?: 'plan_workouts_aggregate';
+  aggregate?: Maybe<Plan_Workouts_Aggregate_Fields>;
+  nodes: Array<Plan_Workouts>;
+};
+
+export type Plan_Workouts_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Plan_Workouts_Aggregate_Bool_Exp_Count>;
+};
+
+export type Plan_Workouts_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Plan_Workouts_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+  filter?: InputMaybe<Plan_Workouts_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "plan_workouts" */
+export type Plan_Workouts_Aggregate_Fields = {
+  __typename?: 'plan_workouts_aggregate_fields';
+  avg?: Maybe<Plan_Workouts_Avg_Fields>;
+  count: Scalars['Int']['output'];
+  max?: Maybe<Plan_Workouts_Max_Fields>;
+  min?: Maybe<Plan_Workouts_Min_Fields>;
+  stddev?: Maybe<Plan_Workouts_Stddev_Fields>;
+  stddev_pop?: Maybe<Plan_Workouts_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Plan_Workouts_Stddev_Samp_Fields>;
+  sum?: Maybe<Plan_Workouts_Sum_Fields>;
+  var_pop?: Maybe<Plan_Workouts_Var_Pop_Fields>;
+  var_samp?: Maybe<Plan_Workouts_Var_Samp_Fields>;
+  variance?: Maybe<Plan_Workouts_Variance_Fields>;
+};
+
+
+/** aggregate fields of "plan_workouts" */
+export type Plan_Workouts_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Plan_Workouts_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** order by aggregate values of table "plan_workouts" */
+export type Plan_Workouts_Aggregate_Order_By = {
+  avg?: InputMaybe<Plan_Workouts_Avg_Order_By>;
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Plan_Workouts_Max_Order_By>;
+  min?: InputMaybe<Plan_Workouts_Min_Order_By>;
+  stddev?: InputMaybe<Plan_Workouts_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Plan_Workouts_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Plan_Workouts_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Plan_Workouts_Sum_Order_By>;
+  var_pop?: InputMaybe<Plan_Workouts_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Plan_Workouts_Var_Samp_Order_By>;
+  variance?: InputMaybe<Plan_Workouts_Variance_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "plan_workouts" */
+export type Plan_Workouts_Arr_Rel_Insert_Input = {
+  data: Array<Plan_Workouts_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Plan_Workouts_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Plan_Workouts_Avg_Fields = {
+  __typename?: 'plan_workouts_avg_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by avg() on columns of table "plan_workouts" */
+export type Plan_Workouts_Avg_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+};
+
+/** Boolean expression to filter rows from the table "plan_workouts". All fields are combined with a logical 'AND'. */
+export type Plan_Workouts_Bool_Exp = {
+  _and?: InputMaybe<Array<Plan_Workouts_Bool_Exp>>;
+  _not?: InputMaybe<Plan_Workouts_Bool_Exp>;
+  _or?: InputMaybe<Array<Plan_Workouts_Bool_Exp>>;
+  day_of_week?: InputMaybe<String_Comparison_Exp>;
+  description?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Bigint_Comparison_Exp>;
+  plan?: InputMaybe<Plans_Bool_Exp>;
+  plan_id?: InputMaybe<Bigint_Comparison_Exp>;
+  sport?: InputMaybe<String_Comparison_Exp>;
+  title?: InputMaybe<String_Comparison_Exp>;
+  week?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "plan_workouts" */
+export enum Plan_Workouts_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  PlanWorkoutsPkey = 'plan_workouts_pkey'
+}
+
+/** input type for incrementing numeric columns in table "plan_workouts" */
+export type Plan_Workouts_Inc_Input = {
+  plan_id?: InputMaybe<Scalars['bigint']['input']>;
+};
+
+/** input type for inserting data into table "plan_workouts" */
+export type Plan_Workouts_Insert_Input = {
+  day_of_week?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  plan?: InputMaybe<Plans_Obj_Rel_Insert_Input>;
+  plan_id?: InputMaybe<Scalars['bigint']['input']>;
+  sport?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  week?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate max on columns */
+export type Plan_Workouts_Max_Fields = {
+  __typename?: 'plan_workouts_max_fields';
+  day_of_week?: Maybe<Scalars['String']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  plan_id?: Maybe<Scalars['bigint']['output']>;
+  sport?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+  week?: Maybe<Scalars['String']['output']>;
+};
+
+/** order by max() on columns of table "plan_workouts" */
+export type Plan_Workouts_Max_Order_By = {
+  day_of_week?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  sport?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+  week?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Plan_Workouts_Min_Fields = {
+  __typename?: 'plan_workouts_min_fields';
+  day_of_week?: Maybe<Scalars['String']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  plan_id?: Maybe<Scalars['bigint']['output']>;
+  sport?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+  week?: Maybe<Scalars['String']['output']>;
+};
+
+/** order by min() on columns of table "plan_workouts" */
+export type Plan_Workouts_Min_Order_By = {
+  day_of_week?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  sport?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+  week?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "plan_workouts" */
+export type Plan_Workouts_Mutation_Response = {
+  __typename?: 'plan_workouts_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int']['output'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Plan_Workouts>;
+};
+
+/** on_conflict condition type for table "plan_workouts" */
+export type Plan_Workouts_On_Conflict = {
+  constraint: Plan_Workouts_Constraint;
+  update_columns?: Array<Plan_Workouts_Update_Column>;
+  where?: InputMaybe<Plan_Workouts_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "plan_workouts". */
+export type Plan_Workouts_Order_By = {
+  day_of_week?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  plan?: InputMaybe<Plans_Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+  sport?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+  week?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: plan_workouts */
+export type Plan_Workouts_Pk_Columns_Input = {
+  id: Scalars['bigint']['input'];
+};
+
+/** select columns of table "plan_workouts" */
+export enum Plan_Workouts_Select_Column {
+  /** column name */
+  DayOfWeek = 'day_of_week',
+  /** column name */
+  Description = 'description',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  PlanId = 'plan_id',
+  /** column name */
+  Sport = 'sport',
+  /** column name */
+  Title = 'title',
+  /** column name */
+  Week = 'week'
+}
+
+/** input type for updating data in table "plan_workouts" */
+export type Plan_Workouts_Set_Input = {
+  day_of_week?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  plan_id?: InputMaybe<Scalars['bigint']['input']>;
+  sport?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  week?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate stddev on columns */
+export type Plan_Workouts_Stddev_Fields = {
+  __typename?: 'plan_workouts_stddev_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev() on columns of table "plan_workouts" */
+export type Plan_Workouts_Stddev_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Plan_Workouts_Stddev_Pop_Fields = {
+  __typename?: 'plan_workouts_stddev_pop_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_pop() on columns of table "plan_workouts" */
+export type Plan_Workouts_Stddev_Pop_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Plan_Workouts_Stddev_Samp_Fields = {
+  __typename?: 'plan_workouts_stddev_samp_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by stddev_samp() on columns of table "plan_workouts" */
+export type Plan_Workouts_Stddev_Samp_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+};
+
+/** Streaming cursor of the table "plan_workouts" */
+export type Plan_Workouts_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Plan_Workouts_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Plan_Workouts_Stream_Cursor_Value_Input = {
+  day_of_week?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['bigint']['input']>;
+  plan_id?: InputMaybe<Scalars['bigint']['input']>;
+  sport?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  week?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Plan_Workouts_Sum_Fields = {
+  __typename?: 'plan_workouts_sum_fields';
+  id?: Maybe<Scalars['bigint']['output']>;
+  plan_id?: Maybe<Scalars['bigint']['output']>;
+};
+
+/** order by sum() on columns of table "plan_workouts" */
+export type Plan_Workouts_Sum_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+};
+
+/** update columns of table "plan_workouts" */
+export enum Plan_Workouts_Update_Column {
+  /** column name */
+  DayOfWeek = 'day_of_week',
+  /** column name */
+  Description = 'description',
+  /** column name */
+  PlanId = 'plan_id',
+  /** column name */
+  Sport = 'sport',
+  /** column name */
+  Title = 'title',
+  /** column name */
+  Week = 'week'
+}
+
+export type Plan_Workouts_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Plan_Workouts_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Plan_Workouts_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Plan_Workouts_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Plan_Workouts_Var_Pop_Fields = {
+  __typename?: 'plan_workouts_var_pop_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_pop() on columns of table "plan_workouts" */
+export type Plan_Workouts_Var_Pop_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Plan_Workouts_Var_Samp_Fields = {
+  __typename?: 'plan_workouts_var_samp_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by var_samp() on columns of table "plan_workouts" */
+export type Plan_Workouts_Var_Samp_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Plan_Workouts_Variance_Fields = {
+  __typename?: 'plan_workouts_variance_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+  plan_id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** order by variance() on columns of table "plan_workouts" */
+export type Plan_Workouts_Variance_Order_By = {
+  id?: InputMaybe<Order_By>;
+  plan_id?: InputMaybe<Order_By>;
+};
+
+/** columns and relationships of "plans" */
+export type Plans = {
+  __typename?: 'plans';
+  end_week: Scalars['String']['output'];
+  id: Scalars['bigint']['output'];
+  name: Scalars['String']['output'];
+  notes?: Maybe<Scalars['String']['output']>;
+  /** An array relationship */
+  requirements: Array<Plan_Requirements>;
+  /** An aggregate relationship */
+  requirements_aggregate: Plan_Requirements_Aggregate;
+  start_week: Scalars['String']['output'];
+  /** An array relationship */
+  workouts: Array<Plan_Workouts>;
+  /** An aggregate relationship */
+  workouts_aggregate: Plan_Workouts_Aggregate;
+};
+
+
+/** columns and relationships of "plans" */
+export type PlansRequirementsArgs = {
+  distinct_on?: InputMaybe<Array<Plan_Requirements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plan_Requirements_Order_By>>;
+  where?: InputMaybe<Plan_Requirements_Bool_Exp>;
+};
+
+
+/** columns and relationships of "plans" */
+export type PlansRequirements_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Plan_Requirements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plan_Requirements_Order_By>>;
+  where?: InputMaybe<Plan_Requirements_Bool_Exp>;
+};
+
+
+/** columns and relationships of "plans" */
+export type PlansWorkoutsArgs = {
+  distinct_on?: InputMaybe<Array<Plan_Workouts_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plan_Workouts_Order_By>>;
+  where?: InputMaybe<Plan_Workouts_Bool_Exp>;
+};
+
+
+/** columns and relationships of "plans" */
+export type PlansWorkouts_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Plan_Workouts_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plan_Workouts_Order_By>>;
+  where?: InputMaybe<Plan_Workouts_Bool_Exp>;
+};
+
+/** aggregated selection of "plans" */
+export type Plans_Aggregate = {
+  __typename?: 'plans_aggregate';
+  aggregate?: Maybe<Plans_Aggregate_Fields>;
+  nodes: Array<Plans>;
+};
+
+/** aggregate fields of "plans" */
+export type Plans_Aggregate_Fields = {
+  __typename?: 'plans_aggregate_fields';
+  avg?: Maybe<Plans_Avg_Fields>;
+  count: Scalars['Int']['output'];
+  max?: Maybe<Plans_Max_Fields>;
+  min?: Maybe<Plans_Min_Fields>;
+  stddev?: Maybe<Plans_Stddev_Fields>;
+  stddev_pop?: Maybe<Plans_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Plans_Stddev_Samp_Fields>;
+  sum?: Maybe<Plans_Sum_Fields>;
+  var_pop?: Maybe<Plans_Var_Pop_Fields>;
+  var_samp?: Maybe<Plans_Var_Samp_Fields>;
+  variance?: Maybe<Plans_Variance_Fields>;
+};
+
+
+/** aggregate fields of "plans" */
+export type Plans_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Plans_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** aggregate avg on columns */
+export type Plans_Avg_Fields = {
+  __typename?: 'plans_avg_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Boolean expression to filter rows from the table "plans". All fields are combined with a logical 'AND'. */
+export type Plans_Bool_Exp = {
+  _and?: InputMaybe<Array<Plans_Bool_Exp>>;
+  _not?: InputMaybe<Plans_Bool_Exp>;
+  _or?: InputMaybe<Array<Plans_Bool_Exp>>;
+  end_week?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Bigint_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  notes?: InputMaybe<String_Comparison_Exp>;
+  requirements?: InputMaybe<Plan_Requirements_Bool_Exp>;
+  requirements_aggregate?: InputMaybe<Plan_Requirements_Aggregate_Bool_Exp>;
+  start_week?: InputMaybe<String_Comparison_Exp>;
+  workouts?: InputMaybe<Plan_Workouts_Bool_Exp>;
+  workouts_aggregate?: InputMaybe<Plan_Workouts_Aggregate_Bool_Exp>;
+};
+
+/** unique or primary key constraints on table "plans" */
+export enum Plans_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  PlansPkey = 'plans_pkey'
+}
+
+/** input type for inserting data into table "plans" */
+export type Plans_Insert_Input = {
+  end_week?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  requirements?: InputMaybe<Plan_Requirements_Arr_Rel_Insert_Input>;
+  start_week?: InputMaybe<Scalars['String']['input']>;
+  workouts?: InputMaybe<Plan_Workouts_Arr_Rel_Insert_Input>;
+};
+
+/** aggregate max on columns */
+export type Plans_Max_Fields = {
+  __typename?: 'plans_max_fields';
+  end_week?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  notes?: Maybe<Scalars['String']['output']>;
+  start_week?: Maybe<Scalars['String']['output']>;
+};
+
+/** aggregate min on columns */
+export type Plans_Min_Fields = {
+  __typename?: 'plans_min_fields';
+  end_week?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  notes?: Maybe<Scalars['String']['output']>;
+  start_week?: Maybe<Scalars['String']['output']>;
+};
+
+/** response of any mutation on the table "plans" */
+export type Plans_Mutation_Response = {
+  __typename?: 'plans_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int']['output'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Plans>;
+};
+
+/** input type for inserting object relation for remote table "plans" */
+export type Plans_Obj_Rel_Insert_Input = {
+  data: Plans_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Plans_On_Conflict>;
+};
+
+/** on_conflict condition type for table "plans" */
+export type Plans_On_Conflict = {
+  constraint: Plans_Constraint;
+  update_columns?: Array<Plans_Update_Column>;
+  where?: InputMaybe<Plans_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "plans". */
+export type Plans_Order_By = {
+  end_week?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  notes?: InputMaybe<Order_By>;
+  requirements_aggregate?: InputMaybe<Plan_Requirements_Aggregate_Order_By>;
+  start_week?: InputMaybe<Order_By>;
+  workouts_aggregate?: InputMaybe<Plan_Workouts_Aggregate_Order_By>;
+};
+
+/** primary key columns input for table: plans */
+export type Plans_Pk_Columns_Input = {
+  id: Scalars['bigint']['input'];
+};
+
+/** select columns of table "plans" */
+export enum Plans_Select_Column {
+  /** column name */
+  EndWeek = 'end_week',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  Notes = 'notes',
+  /** column name */
+  StartWeek = 'start_week'
+}
+
+/** input type for updating data in table "plans" */
+export type Plans_Set_Input = {
+  end_week?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  start_week?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate stddev on columns */
+export type Plans_Stddev_Fields = {
+  __typename?: 'plans_stddev_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Plans_Stddev_Pop_Fields = {
+  __typename?: 'plans_stddev_pop_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Plans_Stddev_Samp_Fields = {
+  __typename?: 'plans_stddev_samp_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Streaming cursor of the table "plans" */
+export type Plans_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Plans_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Plans_Stream_Cursor_Value_Input = {
+  end_week?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['bigint']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  start_week?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Plans_Sum_Fields = {
+  __typename?: 'plans_sum_fields';
+  id?: Maybe<Scalars['bigint']['output']>;
+};
+
+/** update columns of table "plans" */
+export enum Plans_Update_Column {
+  /** column name */
+  EndWeek = 'end_week',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  Notes = 'notes',
+  /** column name */
+  StartWeek = 'start_week'
+}
+
+export type Plans_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Plans_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Plans_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Plans_Var_Pop_Fields = {
+  __typename?: 'plans_var_pop_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Plans_Var_Samp_Fields = {
+  __typename?: 'plans_var_samp_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Plans_Variance_Fields = {
+  __typename?: 'plans_variance_fields';
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
 export type Query_Root = {
   __typename?: 'query_root';
   /** fetch data from the table: "activities" */
@@ -1796,6 +3637,12 @@ export type Query_Root = {
   activity_streams_aggregate: Activity_Streams_Aggregate;
   /** fetch data from the table: "activity_streams" using primary key columns */
   activity_streams_by_pk?: Maybe<Activity_Streams>;
+  /** fetch data from the table: "daily_hrv" */
+  daily_hrv: Array<Daily_Hrv>;
+  /** fetch aggregated fields from the table: "daily_hrv" */
+  daily_hrv_aggregate: Daily_Hrv_Aggregate;
+  /** fetch data from the table: "daily_hrv" using primary key columns */
+  daily_hrv_by_pk?: Maybe<Daily_Hrv>;
   /** fetch data from the table: "exercises" */
   exercises: Array<Exercises>;
   /** fetch aggregated fields from the table: "exercises" */
@@ -1806,6 +3653,24 @@ export type Query_Root = {
   food_options: Array<Food_Options>;
   /** fetch aggregated fields from the table: "food_options" */
   food_options_aggregate: Food_Options_Aggregate;
+  /** fetch data from the table: "plan_requirements" */
+  plan_requirements: Array<Plan_Requirements>;
+  /** fetch aggregated fields from the table: "plan_requirements" */
+  plan_requirements_aggregate: Plan_Requirements_Aggregate;
+  /** fetch data from the table: "plan_requirements" using primary key columns */
+  plan_requirements_by_pk?: Maybe<Plan_Requirements>;
+  /** fetch data from the table: "plan_workouts" */
+  plan_workouts: Array<Plan_Workouts>;
+  /** fetch aggregated fields from the table: "plan_workouts" */
+  plan_workouts_aggregate: Plan_Workouts_Aggregate;
+  /** fetch data from the table: "plan_workouts" using primary key columns */
+  plan_workouts_by_pk?: Maybe<Plan_Workouts>;
+  /** fetch data from the table: "plans" */
+  plans: Array<Plans>;
+  /** fetch aggregated fields from the table: "plans" */
+  plans_aggregate: Plans_Aggregate;
+  /** fetch data from the table: "plans" using primary key columns */
+  plans_by_pk?: Maybe<Plans>;
   /** Service readiness marker. */
   service: Scalars['String']['output'];
   /** fetch data from the table: "sleep" */
@@ -1814,6 +3679,12 @@ export type Query_Root = {
   sleep_aggregate: Sleep_Aggregate;
   /** fetch data from the table: "sleep" using primary key columns */
   sleep_by_pk?: Maybe<Sleep>;
+  /** fetch data from the table: "training_readiness" */
+  training_readiness: Array<Training_Readiness>;
+  /** fetch aggregated fields from the table: "training_readiness" */
+  training_readiness_aggregate: Training_Readiness_Aggregate;
+  /** fetch data from the table: "training_readiness" using primary key columns */
+  training_readiness_by_pk?: Maybe<Training_Readiness>;
 };
 
 
@@ -1863,6 +3734,29 @@ export type Query_RootActivity_Streams_By_PkArgs = {
 };
 
 
+export type Query_RootDaily_HrvArgs = {
+  distinct_on?: InputMaybe<Array<Daily_Hrv_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Daily_Hrv_Order_By>>;
+  where?: InputMaybe<Daily_Hrv_Bool_Exp>;
+};
+
+
+export type Query_RootDaily_Hrv_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Daily_Hrv_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Daily_Hrv_Order_By>>;
+  where?: InputMaybe<Daily_Hrv_Bool_Exp>;
+};
+
+
+export type Query_RootDaily_Hrv_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
 export type Query_RootExercisesArgs = {
   distinct_on?: InputMaybe<Array<Exercises_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -1904,6 +3798,75 @@ export type Query_RootFood_Options_AggregateArgs = {
 };
 
 
+export type Query_RootPlan_RequirementsArgs = {
+  distinct_on?: InputMaybe<Array<Plan_Requirements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plan_Requirements_Order_By>>;
+  where?: InputMaybe<Plan_Requirements_Bool_Exp>;
+};
+
+
+export type Query_RootPlan_Requirements_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Plan_Requirements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plan_Requirements_Order_By>>;
+  where?: InputMaybe<Plan_Requirements_Bool_Exp>;
+};
+
+
+export type Query_RootPlan_Requirements_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+export type Query_RootPlan_WorkoutsArgs = {
+  distinct_on?: InputMaybe<Array<Plan_Workouts_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plan_Workouts_Order_By>>;
+  where?: InputMaybe<Plan_Workouts_Bool_Exp>;
+};
+
+
+export type Query_RootPlan_Workouts_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Plan_Workouts_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plan_Workouts_Order_By>>;
+  where?: InputMaybe<Plan_Workouts_Bool_Exp>;
+};
+
+
+export type Query_RootPlan_Workouts_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+export type Query_RootPlansArgs = {
+  distinct_on?: InputMaybe<Array<Plans_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plans_Order_By>>;
+  where?: InputMaybe<Plans_Bool_Exp>;
+};
+
+
+export type Query_RootPlans_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Plans_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plans_Order_By>>;
+  where?: InputMaybe<Plans_Bool_Exp>;
+};
+
+
+export type Query_RootPlans_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
 export type Query_RootSleepArgs = {
   distinct_on?: InputMaybe<Array<Sleep_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -1923,6 +3886,29 @@ export type Query_RootSleep_AggregateArgs = {
 
 
 export type Query_RootSleep_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+export type Query_RootTraining_ReadinessArgs = {
+  distinct_on?: InputMaybe<Array<Training_Readiness_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Training_Readiness_Order_By>>;
+  where?: InputMaybe<Training_Readiness_Bool_Exp>;
+};
+
+
+export type Query_RootTraining_Readiness_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Training_Readiness_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Training_Readiness_Order_By>>;
+  where?: InputMaybe<Training_Readiness_Bool_Exp>;
+};
+
+
+export type Query_RootTraining_Readiness_By_PkArgs = {
   id: Scalars['bigint']['input'];
 };
 
@@ -2342,6 +4328,14 @@ export type Subscription_Root = {
   activity_streams_by_pk?: Maybe<Activity_Streams>;
   /** fetch data from the table in a streaming manner: "activity_streams" */
   activity_streams_stream: Array<Activity_Streams>;
+  /** fetch data from the table: "daily_hrv" */
+  daily_hrv: Array<Daily_Hrv>;
+  /** fetch aggregated fields from the table: "daily_hrv" */
+  daily_hrv_aggregate: Daily_Hrv_Aggregate;
+  /** fetch data from the table: "daily_hrv" using primary key columns */
+  daily_hrv_by_pk?: Maybe<Daily_Hrv>;
+  /** fetch data from the table in a streaming manner: "daily_hrv" */
+  daily_hrv_stream: Array<Daily_Hrv>;
   /** fetch data from the table: "exercises" */
   exercises: Array<Exercises>;
   /** fetch aggregated fields from the table: "exercises" */
@@ -2356,6 +4350,30 @@ export type Subscription_Root = {
   food_options_aggregate: Food_Options_Aggregate;
   /** fetch data from the table in a streaming manner: "food_options" */
   food_options_stream: Array<Food_Options>;
+  /** fetch data from the table: "plan_requirements" */
+  plan_requirements: Array<Plan_Requirements>;
+  /** fetch aggregated fields from the table: "plan_requirements" */
+  plan_requirements_aggregate: Plan_Requirements_Aggregate;
+  /** fetch data from the table: "plan_requirements" using primary key columns */
+  plan_requirements_by_pk?: Maybe<Plan_Requirements>;
+  /** fetch data from the table in a streaming manner: "plan_requirements" */
+  plan_requirements_stream: Array<Plan_Requirements>;
+  /** fetch data from the table: "plan_workouts" */
+  plan_workouts: Array<Plan_Workouts>;
+  /** fetch aggregated fields from the table: "plan_workouts" */
+  plan_workouts_aggregate: Plan_Workouts_Aggregate;
+  /** fetch data from the table: "plan_workouts" using primary key columns */
+  plan_workouts_by_pk?: Maybe<Plan_Workouts>;
+  /** fetch data from the table in a streaming manner: "plan_workouts" */
+  plan_workouts_stream: Array<Plan_Workouts>;
+  /** fetch data from the table: "plans" */
+  plans: Array<Plans>;
+  /** fetch aggregated fields from the table: "plans" */
+  plans_aggregate: Plans_Aggregate;
+  /** fetch data from the table: "plans" using primary key columns */
+  plans_by_pk?: Maybe<Plans>;
+  /** fetch data from the table in a streaming manner: "plans" */
+  plans_stream: Array<Plans>;
   /** fetch data from the table: "sleep" */
   sleep: Array<Sleep>;
   /** fetch aggregated fields from the table: "sleep" */
@@ -2364,6 +4382,14 @@ export type Subscription_Root = {
   sleep_by_pk?: Maybe<Sleep>;
   /** fetch data from the table in a streaming manner: "sleep" */
   sleep_stream: Array<Sleep>;
+  /** fetch data from the table: "training_readiness" */
+  training_readiness: Array<Training_Readiness>;
+  /** fetch aggregated fields from the table: "training_readiness" */
+  training_readiness_aggregate: Training_Readiness_Aggregate;
+  /** fetch data from the table: "training_readiness" using primary key columns */
+  training_readiness_by_pk?: Maybe<Training_Readiness>;
+  /** fetch data from the table in a streaming manner: "training_readiness" */
+  training_readiness_stream: Array<Training_Readiness>;
 };
 
 
@@ -2427,6 +4453,36 @@ export type Subscription_RootActivity_Streams_StreamArgs = {
 };
 
 
+export type Subscription_RootDaily_HrvArgs = {
+  distinct_on?: InputMaybe<Array<Daily_Hrv_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Daily_Hrv_Order_By>>;
+  where?: InputMaybe<Daily_Hrv_Bool_Exp>;
+};
+
+
+export type Subscription_RootDaily_Hrv_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Daily_Hrv_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Daily_Hrv_Order_By>>;
+  where?: InputMaybe<Daily_Hrv_Bool_Exp>;
+};
+
+
+export type Subscription_RootDaily_Hrv_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+export type Subscription_RootDaily_Hrv_StreamArgs = {
+  batch_size: Scalars['Int']['input'];
+  cursor: Array<InputMaybe<Daily_Hrv_Stream_Cursor_Input>>;
+  where?: InputMaybe<Daily_Hrv_Bool_Exp>;
+};
+
+
 export type Subscription_RootExercisesArgs = {
   distinct_on?: InputMaybe<Array<Exercises_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -2482,6 +4538,96 @@ export type Subscription_RootFood_Options_StreamArgs = {
 };
 
 
+export type Subscription_RootPlan_RequirementsArgs = {
+  distinct_on?: InputMaybe<Array<Plan_Requirements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plan_Requirements_Order_By>>;
+  where?: InputMaybe<Plan_Requirements_Bool_Exp>;
+};
+
+
+export type Subscription_RootPlan_Requirements_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Plan_Requirements_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plan_Requirements_Order_By>>;
+  where?: InputMaybe<Plan_Requirements_Bool_Exp>;
+};
+
+
+export type Subscription_RootPlan_Requirements_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+export type Subscription_RootPlan_Requirements_StreamArgs = {
+  batch_size: Scalars['Int']['input'];
+  cursor: Array<InputMaybe<Plan_Requirements_Stream_Cursor_Input>>;
+  where?: InputMaybe<Plan_Requirements_Bool_Exp>;
+};
+
+
+export type Subscription_RootPlan_WorkoutsArgs = {
+  distinct_on?: InputMaybe<Array<Plan_Workouts_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plan_Workouts_Order_By>>;
+  where?: InputMaybe<Plan_Workouts_Bool_Exp>;
+};
+
+
+export type Subscription_RootPlan_Workouts_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Plan_Workouts_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plan_Workouts_Order_By>>;
+  where?: InputMaybe<Plan_Workouts_Bool_Exp>;
+};
+
+
+export type Subscription_RootPlan_Workouts_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+export type Subscription_RootPlan_Workouts_StreamArgs = {
+  batch_size: Scalars['Int']['input'];
+  cursor: Array<InputMaybe<Plan_Workouts_Stream_Cursor_Input>>;
+  where?: InputMaybe<Plan_Workouts_Bool_Exp>;
+};
+
+
+export type Subscription_RootPlansArgs = {
+  distinct_on?: InputMaybe<Array<Plans_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plans_Order_By>>;
+  where?: InputMaybe<Plans_Bool_Exp>;
+};
+
+
+export type Subscription_RootPlans_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Plans_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Plans_Order_By>>;
+  where?: InputMaybe<Plans_Bool_Exp>;
+};
+
+
+export type Subscription_RootPlans_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+export type Subscription_RootPlans_StreamArgs = {
+  batch_size: Scalars['Int']['input'];
+  cursor: Array<InputMaybe<Plans_Stream_Cursor_Input>>;
+  where?: InputMaybe<Plans_Bool_Exp>;
+};
+
+
 export type Subscription_RootSleepArgs = {
   distinct_on?: InputMaybe<Array<Sleep_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -2511,6 +4657,36 @@ export type Subscription_RootSleep_StreamArgs = {
   where?: InputMaybe<Sleep_Bool_Exp>;
 };
 
+
+export type Subscription_RootTraining_ReadinessArgs = {
+  distinct_on?: InputMaybe<Array<Training_Readiness_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Training_Readiness_Order_By>>;
+  where?: InputMaybe<Training_Readiness_Bool_Exp>;
+};
+
+
+export type Subscription_RootTraining_Readiness_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Training_Readiness_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Training_Readiness_Order_By>>;
+  where?: InputMaybe<Training_Readiness_Bool_Exp>;
+};
+
+
+export type Subscription_RootTraining_Readiness_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+export type Subscription_RootTraining_Readiness_StreamArgs = {
+  batch_size: Scalars['Int']['input'];
+  cursor: Array<InputMaybe<Training_Readiness_Stream_Cursor_Input>>;
+  where?: InputMaybe<Training_Readiness_Bool_Exp>;
+};
+
 /** Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'. */
 export type Timestamptz_Comparison_Exp = {
   _eq?: InputMaybe<Scalars['timestamptz']['input']>;
@@ -2522,6 +4698,618 @@ export type Timestamptz_Comparison_Exp = {
   _lte?: InputMaybe<Scalars['timestamptz']['input']>;
   _neq?: InputMaybe<Scalars['timestamptz']['input']>;
   _nin?: InputMaybe<Array<Scalars['timestamptz']['input']>>;
+};
+
+/** columns and relationships of "training_readiness" */
+export type Training_Readiness = {
+  __typename?: 'training_readiness';
+  acute_load?: Maybe<Scalars['Int']['output']>;
+  acwr_factor_feedback?: Maybe<Scalars['String']['output']>;
+  acwr_factor_percent?: Maybe<Scalars['Int']['output']>;
+  calendar_date: Scalars['date']['output'];
+  device_id?: Maybe<Scalars['bigint']['output']>;
+  feedback_long?: Maybe<Scalars['String']['output']>;
+  feedback_short?: Maybe<Scalars['String']['output']>;
+  hrv_factor_feedback?: Maybe<Scalars['String']['output']>;
+  hrv_factor_percent?: Maybe<Scalars['Int']['output']>;
+  hrv_weekly_average?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['bigint']['output'];
+  input_context?: Maybe<Scalars['String']['output']>;
+  level?: Maybe<Scalars['String']['output']>;
+  recovery_time?: Maybe<Scalars['Int']['output']>;
+  recovery_time_change_phrase?: Maybe<Scalars['String']['output']>;
+  recovery_time_factor_feedback?: Maybe<Scalars['String']['output']>;
+  recovery_time_factor_percent?: Maybe<Scalars['Int']['output']>;
+  score?: Maybe<Scalars['Int']['output']>;
+  sleep_history_factor_feedback?: Maybe<Scalars['String']['output']>;
+  sleep_history_factor_percent?: Maybe<Scalars['Int']['output']>;
+  sleep_score?: Maybe<Scalars['Int']['output']>;
+  sleep_score_factor_feedback?: Maybe<Scalars['String']['output']>;
+  sleep_score_factor_percent?: Maybe<Scalars['Int']['output']>;
+  stress_history_factor_feedback?: Maybe<Scalars['String']['output']>;
+  stress_history_factor_percent?: Maybe<Scalars['Int']['output']>;
+  synced_at?: Maybe<Scalars['timestamptz']['output']>;
+  timestamp: Scalars['timestamptz']['output'];
+  valid_sleep?: Maybe<Scalars['Boolean']['output']>;
+};
+
+/** aggregated selection of "training_readiness" */
+export type Training_Readiness_Aggregate = {
+  __typename?: 'training_readiness_aggregate';
+  aggregate?: Maybe<Training_Readiness_Aggregate_Fields>;
+  nodes: Array<Training_Readiness>;
+};
+
+/** aggregate fields of "training_readiness" */
+export type Training_Readiness_Aggregate_Fields = {
+  __typename?: 'training_readiness_aggregate_fields';
+  avg?: Maybe<Training_Readiness_Avg_Fields>;
+  count: Scalars['Int']['output'];
+  max?: Maybe<Training_Readiness_Max_Fields>;
+  min?: Maybe<Training_Readiness_Min_Fields>;
+  stddev?: Maybe<Training_Readiness_Stddev_Fields>;
+  stddev_pop?: Maybe<Training_Readiness_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Training_Readiness_Stddev_Samp_Fields>;
+  sum?: Maybe<Training_Readiness_Sum_Fields>;
+  var_pop?: Maybe<Training_Readiness_Var_Pop_Fields>;
+  var_samp?: Maybe<Training_Readiness_Var_Samp_Fields>;
+  variance?: Maybe<Training_Readiness_Variance_Fields>;
+};
+
+
+/** aggregate fields of "training_readiness" */
+export type Training_Readiness_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Training_Readiness_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** aggregate avg on columns */
+export type Training_Readiness_Avg_Fields = {
+  __typename?: 'training_readiness_avg_fields';
+  acute_load?: Maybe<Scalars['Float']['output']>;
+  acwr_factor_percent?: Maybe<Scalars['Float']['output']>;
+  device_id?: Maybe<Scalars['Float']['output']>;
+  hrv_factor_percent?: Maybe<Scalars['Float']['output']>;
+  hrv_weekly_average?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  recovery_time?: Maybe<Scalars['Float']['output']>;
+  recovery_time_factor_percent?: Maybe<Scalars['Float']['output']>;
+  score?: Maybe<Scalars['Float']['output']>;
+  sleep_history_factor_percent?: Maybe<Scalars['Float']['output']>;
+  sleep_score?: Maybe<Scalars['Float']['output']>;
+  sleep_score_factor_percent?: Maybe<Scalars['Float']['output']>;
+  stress_history_factor_percent?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Boolean expression to filter rows from the table "training_readiness". All fields are combined with a logical 'AND'. */
+export type Training_Readiness_Bool_Exp = {
+  _and?: InputMaybe<Array<Training_Readiness_Bool_Exp>>;
+  _not?: InputMaybe<Training_Readiness_Bool_Exp>;
+  _or?: InputMaybe<Array<Training_Readiness_Bool_Exp>>;
+  acute_load?: InputMaybe<Int_Comparison_Exp>;
+  acwr_factor_feedback?: InputMaybe<String_Comparison_Exp>;
+  acwr_factor_percent?: InputMaybe<Int_Comparison_Exp>;
+  calendar_date?: InputMaybe<Date_Comparison_Exp>;
+  device_id?: InputMaybe<Bigint_Comparison_Exp>;
+  feedback_long?: InputMaybe<String_Comparison_Exp>;
+  feedback_short?: InputMaybe<String_Comparison_Exp>;
+  hrv_factor_feedback?: InputMaybe<String_Comparison_Exp>;
+  hrv_factor_percent?: InputMaybe<Int_Comparison_Exp>;
+  hrv_weekly_average?: InputMaybe<Int_Comparison_Exp>;
+  id?: InputMaybe<Bigint_Comparison_Exp>;
+  input_context?: InputMaybe<String_Comparison_Exp>;
+  level?: InputMaybe<String_Comparison_Exp>;
+  recovery_time?: InputMaybe<Int_Comparison_Exp>;
+  recovery_time_change_phrase?: InputMaybe<String_Comparison_Exp>;
+  recovery_time_factor_feedback?: InputMaybe<String_Comparison_Exp>;
+  recovery_time_factor_percent?: InputMaybe<Int_Comparison_Exp>;
+  score?: InputMaybe<Int_Comparison_Exp>;
+  sleep_history_factor_feedback?: InputMaybe<String_Comparison_Exp>;
+  sleep_history_factor_percent?: InputMaybe<Int_Comparison_Exp>;
+  sleep_score?: InputMaybe<Int_Comparison_Exp>;
+  sleep_score_factor_feedback?: InputMaybe<String_Comparison_Exp>;
+  sleep_score_factor_percent?: InputMaybe<Int_Comparison_Exp>;
+  stress_history_factor_feedback?: InputMaybe<String_Comparison_Exp>;
+  stress_history_factor_percent?: InputMaybe<Int_Comparison_Exp>;
+  synced_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  timestamp?: InputMaybe<Timestamptz_Comparison_Exp>;
+  valid_sleep?: InputMaybe<Boolean_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "training_readiness" */
+export enum Training_Readiness_Constraint {
+  /** unique or primary key constraint on columns "timestamp", "calendar_date" */
+  TrainingReadinessCalendarDateTimestampKey = 'training_readiness_calendar_date_timestamp_key',
+  /** unique or primary key constraint on columns "id" */
+  TrainingReadinessPkey = 'training_readiness_pkey'
+}
+
+/** input type for incrementing numeric columns in table "training_readiness" */
+export type Training_Readiness_Inc_Input = {
+  acute_load?: InputMaybe<Scalars['Int']['input']>;
+  acwr_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  device_id?: InputMaybe<Scalars['bigint']['input']>;
+  hrv_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  hrv_weekly_average?: InputMaybe<Scalars['Int']['input']>;
+  recovery_time?: InputMaybe<Scalars['Int']['input']>;
+  recovery_time_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  score?: InputMaybe<Scalars['Int']['input']>;
+  sleep_history_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  sleep_score?: InputMaybe<Scalars['Int']['input']>;
+  sleep_score_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  stress_history_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+};
+
+/** input type for inserting data into table "training_readiness" */
+export type Training_Readiness_Insert_Input = {
+  acute_load?: InputMaybe<Scalars['Int']['input']>;
+  acwr_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  acwr_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  calendar_date?: InputMaybe<Scalars['date']['input']>;
+  device_id?: InputMaybe<Scalars['bigint']['input']>;
+  feedback_long?: InputMaybe<Scalars['String']['input']>;
+  feedback_short?: InputMaybe<Scalars['String']['input']>;
+  hrv_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  hrv_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  hrv_weekly_average?: InputMaybe<Scalars['Int']['input']>;
+  input_context?: InputMaybe<Scalars['String']['input']>;
+  level?: InputMaybe<Scalars['String']['input']>;
+  recovery_time?: InputMaybe<Scalars['Int']['input']>;
+  recovery_time_change_phrase?: InputMaybe<Scalars['String']['input']>;
+  recovery_time_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  recovery_time_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  score?: InputMaybe<Scalars['Int']['input']>;
+  sleep_history_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  sleep_history_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  sleep_score?: InputMaybe<Scalars['Int']['input']>;
+  sleep_score_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  sleep_score_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  stress_history_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  stress_history_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  synced_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  valid_sleep?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** aggregate max on columns */
+export type Training_Readiness_Max_Fields = {
+  __typename?: 'training_readiness_max_fields';
+  acute_load?: Maybe<Scalars['Int']['output']>;
+  acwr_factor_feedback?: Maybe<Scalars['String']['output']>;
+  acwr_factor_percent?: Maybe<Scalars['Int']['output']>;
+  calendar_date?: Maybe<Scalars['date']['output']>;
+  device_id?: Maybe<Scalars['bigint']['output']>;
+  feedback_long?: Maybe<Scalars['String']['output']>;
+  feedback_short?: Maybe<Scalars['String']['output']>;
+  hrv_factor_feedback?: Maybe<Scalars['String']['output']>;
+  hrv_factor_percent?: Maybe<Scalars['Int']['output']>;
+  hrv_weekly_average?: Maybe<Scalars['Int']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  input_context?: Maybe<Scalars['String']['output']>;
+  level?: Maybe<Scalars['String']['output']>;
+  recovery_time?: Maybe<Scalars['Int']['output']>;
+  recovery_time_change_phrase?: Maybe<Scalars['String']['output']>;
+  recovery_time_factor_feedback?: Maybe<Scalars['String']['output']>;
+  recovery_time_factor_percent?: Maybe<Scalars['Int']['output']>;
+  score?: Maybe<Scalars['Int']['output']>;
+  sleep_history_factor_feedback?: Maybe<Scalars['String']['output']>;
+  sleep_history_factor_percent?: Maybe<Scalars['Int']['output']>;
+  sleep_score?: Maybe<Scalars['Int']['output']>;
+  sleep_score_factor_feedback?: Maybe<Scalars['String']['output']>;
+  sleep_score_factor_percent?: Maybe<Scalars['Int']['output']>;
+  stress_history_factor_feedback?: Maybe<Scalars['String']['output']>;
+  stress_history_factor_percent?: Maybe<Scalars['Int']['output']>;
+  synced_at?: Maybe<Scalars['timestamptz']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+};
+
+/** aggregate min on columns */
+export type Training_Readiness_Min_Fields = {
+  __typename?: 'training_readiness_min_fields';
+  acute_load?: Maybe<Scalars['Int']['output']>;
+  acwr_factor_feedback?: Maybe<Scalars['String']['output']>;
+  acwr_factor_percent?: Maybe<Scalars['Int']['output']>;
+  calendar_date?: Maybe<Scalars['date']['output']>;
+  device_id?: Maybe<Scalars['bigint']['output']>;
+  feedback_long?: Maybe<Scalars['String']['output']>;
+  feedback_short?: Maybe<Scalars['String']['output']>;
+  hrv_factor_feedback?: Maybe<Scalars['String']['output']>;
+  hrv_factor_percent?: Maybe<Scalars['Int']['output']>;
+  hrv_weekly_average?: Maybe<Scalars['Int']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  input_context?: Maybe<Scalars['String']['output']>;
+  level?: Maybe<Scalars['String']['output']>;
+  recovery_time?: Maybe<Scalars['Int']['output']>;
+  recovery_time_change_phrase?: Maybe<Scalars['String']['output']>;
+  recovery_time_factor_feedback?: Maybe<Scalars['String']['output']>;
+  recovery_time_factor_percent?: Maybe<Scalars['Int']['output']>;
+  score?: Maybe<Scalars['Int']['output']>;
+  sleep_history_factor_feedback?: Maybe<Scalars['String']['output']>;
+  sleep_history_factor_percent?: Maybe<Scalars['Int']['output']>;
+  sleep_score?: Maybe<Scalars['Int']['output']>;
+  sleep_score_factor_feedback?: Maybe<Scalars['String']['output']>;
+  sleep_score_factor_percent?: Maybe<Scalars['Int']['output']>;
+  stress_history_factor_feedback?: Maybe<Scalars['String']['output']>;
+  stress_history_factor_percent?: Maybe<Scalars['Int']['output']>;
+  synced_at?: Maybe<Scalars['timestamptz']['output']>;
+  timestamp?: Maybe<Scalars['timestamptz']['output']>;
+};
+
+/** response of any mutation on the table "training_readiness" */
+export type Training_Readiness_Mutation_Response = {
+  __typename?: 'training_readiness_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int']['output'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Training_Readiness>;
+};
+
+/** on_conflict condition type for table "training_readiness" */
+export type Training_Readiness_On_Conflict = {
+  constraint: Training_Readiness_Constraint;
+  update_columns?: Array<Training_Readiness_Update_Column>;
+  where?: InputMaybe<Training_Readiness_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "training_readiness". */
+export type Training_Readiness_Order_By = {
+  acute_load?: InputMaybe<Order_By>;
+  acwr_factor_feedback?: InputMaybe<Order_By>;
+  acwr_factor_percent?: InputMaybe<Order_By>;
+  calendar_date?: InputMaybe<Order_By>;
+  device_id?: InputMaybe<Order_By>;
+  feedback_long?: InputMaybe<Order_By>;
+  feedback_short?: InputMaybe<Order_By>;
+  hrv_factor_feedback?: InputMaybe<Order_By>;
+  hrv_factor_percent?: InputMaybe<Order_By>;
+  hrv_weekly_average?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  input_context?: InputMaybe<Order_By>;
+  level?: InputMaybe<Order_By>;
+  recovery_time?: InputMaybe<Order_By>;
+  recovery_time_change_phrase?: InputMaybe<Order_By>;
+  recovery_time_factor_feedback?: InputMaybe<Order_By>;
+  recovery_time_factor_percent?: InputMaybe<Order_By>;
+  score?: InputMaybe<Order_By>;
+  sleep_history_factor_feedback?: InputMaybe<Order_By>;
+  sleep_history_factor_percent?: InputMaybe<Order_By>;
+  sleep_score?: InputMaybe<Order_By>;
+  sleep_score_factor_feedback?: InputMaybe<Order_By>;
+  sleep_score_factor_percent?: InputMaybe<Order_By>;
+  stress_history_factor_feedback?: InputMaybe<Order_By>;
+  stress_history_factor_percent?: InputMaybe<Order_By>;
+  synced_at?: InputMaybe<Order_By>;
+  timestamp?: InputMaybe<Order_By>;
+  valid_sleep?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: training_readiness */
+export type Training_Readiness_Pk_Columns_Input = {
+  id: Scalars['bigint']['input'];
+};
+
+/** select columns of table "training_readiness" */
+export enum Training_Readiness_Select_Column {
+  /** column name */
+  AcuteLoad = 'acute_load',
+  /** column name */
+  AcwrFactorFeedback = 'acwr_factor_feedback',
+  /** column name */
+  AcwrFactorPercent = 'acwr_factor_percent',
+  /** column name */
+  CalendarDate = 'calendar_date',
+  /** column name */
+  DeviceId = 'device_id',
+  /** column name */
+  FeedbackLong = 'feedback_long',
+  /** column name */
+  FeedbackShort = 'feedback_short',
+  /** column name */
+  HrvFactorFeedback = 'hrv_factor_feedback',
+  /** column name */
+  HrvFactorPercent = 'hrv_factor_percent',
+  /** column name */
+  HrvWeeklyAverage = 'hrv_weekly_average',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  InputContext = 'input_context',
+  /** column name */
+  Level = 'level',
+  /** column name */
+  RecoveryTime = 'recovery_time',
+  /** column name */
+  RecoveryTimeChangePhrase = 'recovery_time_change_phrase',
+  /** column name */
+  RecoveryTimeFactorFeedback = 'recovery_time_factor_feedback',
+  /** column name */
+  RecoveryTimeFactorPercent = 'recovery_time_factor_percent',
+  /** column name */
+  Score = 'score',
+  /** column name */
+  SleepHistoryFactorFeedback = 'sleep_history_factor_feedback',
+  /** column name */
+  SleepHistoryFactorPercent = 'sleep_history_factor_percent',
+  /** column name */
+  SleepScore = 'sleep_score',
+  /** column name */
+  SleepScoreFactorFeedback = 'sleep_score_factor_feedback',
+  /** column name */
+  SleepScoreFactorPercent = 'sleep_score_factor_percent',
+  /** column name */
+  StressHistoryFactorFeedback = 'stress_history_factor_feedback',
+  /** column name */
+  StressHistoryFactorPercent = 'stress_history_factor_percent',
+  /** column name */
+  SyncedAt = 'synced_at',
+  /** column name */
+  Timestamp = 'timestamp',
+  /** column name */
+  ValidSleep = 'valid_sleep'
+}
+
+/** input type for updating data in table "training_readiness" */
+export type Training_Readiness_Set_Input = {
+  acute_load?: InputMaybe<Scalars['Int']['input']>;
+  acwr_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  acwr_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  calendar_date?: InputMaybe<Scalars['date']['input']>;
+  device_id?: InputMaybe<Scalars['bigint']['input']>;
+  feedback_long?: InputMaybe<Scalars['String']['input']>;
+  feedback_short?: InputMaybe<Scalars['String']['input']>;
+  hrv_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  hrv_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  hrv_weekly_average?: InputMaybe<Scalars['Int']['input']>;
+  input_context?: InputMaybe<Scalars['String']['input']>;
+  level?: InputMaybe<Scalars['String']['input']>;
+  recovery_time?: InputMaybe<Scalars['Int']['input']>;
+  recovery_time_change_phrase?: InputMaybe<Scalars['String']['input']>;
+  recovery_time_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  recovery_time_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  score?: InputMaybe<Scalars['Int']['input']>;
+  sleep_history_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  sleep_history_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  sleep_score?: InputMaybe<Scalars['Int']['input']>;
+  sleep_score_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  sleep_score_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  stress_history_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  stress_history_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  synced_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  valid_sleep?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** aggregate stddev on columns */
+export type Training_Readiness_Stddev_Fields = {
+  __typename?: 'training_readiness_stddev_fields';
+  acute_load?: Maybe<Scalars['Float']['output']>;
+  acwr_factor_percent?: Maybe<Scalars['Float']['output']>;
+  device_id?: Maybe<Scalars['Float']['output']>;
+  hrv_factor_percent?: Maybe<Scalars['Float']['output']>;
+  hrv_weekly_average?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  recovery_time?: Maybe<Scalars['Float']['output']>;
+  recovery_time_factor_percent?: Maybe<Scalars['Float']['output']>;
+  score?: Maybe<Scalars['Float']['output']>;
+  sleep_history_factor_percent?: Maybe<Scalars['Float']['output']>;
+  sleep_score?: Maybe<Scalars['Float']['output']>;
+  sleep_score_factor_percent?: Maybe<Scalars['Float']['output']>;
+  stress_history_factor_percent?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Training_Readiness_Stddev_Pop_Fields = {
+  __typename?: 'training_readiness_stddev_pop_fields';
+  acute_load?: Maybe<Scalars['Float']['output']>;
+  acwr_factor_percent?: Maybe<Scalars['Float']['output']>;
+  device_id?: Maybe<Scalars['Float']['output']>;
+  hrv_factor_percent?: Maybe<Scalars['Float']['output']>;
+  hrv_weekly_average?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  recovery_time?: Maybe<Scalars['Float']['output']>;
+  recovery_time_factor_percent?: Maybe<Scalars['Float']['output']>;
+  score?: Maybe<Scalars['Float']['output']>;
+  sleep_history_factor_percent?: Maybe<Scalars['Float']['output']>;
+  sleep_score?: Maybe<Scalars['Float']['output']>;
+  sleep_score_factor_percent?: Maybe<Scalars['Float']['output']>;
+  stress_history_factor_percent?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Training_Readiness_Stddev_Samp_Fields = {
+  __typename?: 'training_readiness_stddev_samp_fields';
+  acute_load?: Maybe<Scalars['Float']['output']>;
+  acwr_factor_percent?: Maybe<Scalars['Float']['output']>;
+  device_id?: Maybe<Scalars['Float']['output']>;
+  hrv_factor_percent?: Maybe<Scalars['Float']['output']>;
+  hrv_weekly_average?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  recovery_time?: Maybe<Scalars['Float']['output']>;
+  recovery_time_factor_percent?: Maybe<Scalars['Float']['output']>;
+  score?: Maybe<Scalars['Float']['output']>;
+  sleep_history_factor_percent?: Maybe<Scalars['Float']['output']>;
+  sleep_score?: Maybe<Scalars['Float']['output']>;
+  sleep_score_factor_percent?: Maybe<Scalars['Float']['output']>;
+  stress_history_factor_percent?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Streaming cursor of the table "training_readiness" */
+export type Training_Readiness_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Training_Readiness_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Training_Readiness_Stream_Cursor_Value_Input = {
+  acute_load?: InputMaybe<Scalars['Int']['input']>;
+  acwr_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  acwr_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  calendar_date?: InputMaybe<Scalars['date']['input']>;
+  device_id?: InputMaybe<Scalars['bigint']['input']>;
+  feedback_long?: InputMaybe<Scalars['String']['input']>;
+  feedback_short?: InputMaybe<Scalars['String']['input']>;
+  hrv_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  hrv_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  hrv_weekly_average?: InputMaybe<Scalars['Int']['input']>;
+  id?: InputMaybe<Scalars['bigint']['input']>;
+  input_context?: InputMaybe<Scalars['String']['input']>;
+  level?: InputMaybe<Scalars['String']['input']>;
+  recovery_time?: InputMaybe<Scalars['Int']['input']>;
+  recovery_time_change_phrase?: InputMaybe<Scalars['String']['input']>;
+  recovery_time_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  recovery_time_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  score?: InputMaybe<Scalars['Int']['input']>;
+  sleep_history_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  sleep_history_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  sleep_score?: InputMaybe<Scalars['Int']['input']>;
+  sleep_score_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  sleep_score_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  stress_history_factor_feedback?: InputMaybe<Scalars['String']['input']>;
+  stress_history_factor_percent?: InputMaybe<Scalars['Int']['input']>;
+  synced_at?: InputMaybe<Scalars['timestamptz']['input']>;
+  timestamp?: InputMaybe<Scalars['timestamptz']['input']>;
+  valid_sleep?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Training_Readiness_Sum_Fields = {
+  __typename?: 'training_readiness_sum_fields';
+  acute_load?: Maybe<Scalars['Int']['output']>;
+  acwr_factor_percent?: Maybe<Scalars['Int']['output']>;
+  device_id?: Maybe<Scalars['bigint']['output']>;
+  hrv_factor_percent?: Maybe<Scalars['Int']['output']>;
+  hrv_weekly_average?: Maybe<Scalars['Int']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  recovery_time?: Maybe<Scalars['Int']['output']>;
+  recovery_time_factor_percent?: Maybe<Scalars['Int']['output']>;
+  score?: Maybe<Scalars['Int']['output']>;
+  sleep_history_factor_percent?: Maybe<Scalars['Int']['output']>;
+  sleep_score?: Maybe<Scalars['Int']['output']>;
+  sleep_score_factor_percent?: Maybe<Scalars['Int']['output']>;
+  stress_history_factor_percent?: Maybe<Scalars['Int']['output']>;
+};
+
+/** update columns of table "training_readiness" */
+export enum Training_Readiness_Update_Column {
+  /** column name */
+  AcuteLoad = 'acute_load',
+  /** column name */
+  AcwrFactorFeedback = 'acwr_factor_feedback',
+  /** column name */
+  AcwrFactorPercent = 'acwr_factor_percent',
+  /** column name */
+  CalendarDate = 'calendar_date',
+  /** column name */
+  DeviceId = 'device_id',
+  /** column name */
+  FeedbackLong = 'feedback_long',
+  /** column name */
+  FeedbackShort = 'feedback_short',
+  /** column name */
+  HrvFactorFeedback = 'hrv_factor_feedback',
+  /** column name */
+  HrvFactorPercent = 'hrv_factor_percent',
+  /** column name */
+  HrvWeeklyAverage = 'hrv_weekly_average',
+  /** column name */
+  InputContext = 'input_context',
+  /** column name */
+  Level = 'level',
+  /** column name */
+  RecoveryTime = 'recovery_time',
+  /** column name */
+  RecoveryTimeChangePhrase = 'recovery_time_change_phrase',
+  /** column name */
+  RecoveryTimeFactorFeedback = 'recovery_time_factor_feedback',
+  /** column name */
+  RecoveryTimeFactorPercent = 'recovery_time_factor_percent',
+  /** column name */
+  Score = 'score',
+  /** column name */
+  SleepHistoryFactorFeedback = 'sleep_history_factor_feedback',
+  /** column name */
+  SleepHistoryFactorPercent = 'sleep_history_factor_percent',
+  /** column name */
+  SleepScore = 'sleep_score',
+  /** column name */
+  SleepScoreFactorFeedback = 'sleep_score_factor_feedback',
+  /** column name */
+  SleepScoreFactorPercent = 'sleep_score_factor_percent',
+  /** column name */
+  StressHistoryFactorFeedback = 'stress_history_factor_feedback',
+  /** column name */
+  StressHistoryFactorPercent = 'stress_history_factor_percent',
+  /** column name */
+  SyncedAt = 'synced_at',
+  /** column name */
+  Timestamp = 'timestamp',
+  /** column name */
+  ValidSleep = 'valid_sleep'
+}
+
+export type Training_Readiness_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Training_Readiness_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Training_Readiness_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Training_Readiness_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Training_Readiness_Var_Pop_Fields = {
+  __typename?: 'training_readiness_var_pop_fields';
+  acute_load?: Maybe<Scalars['Float']['output']>;
+  acwr_factor_percent?: Maybe<Scalars['Float']['output']>;
+  device_id?: Maybe<Scalars['Float']['output']>;
+  hrv_factor_percent?: Maybe<Scalars['Float']['output']>;
+  hrv_weekly_average?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  recovery_time?: Maybe<Scalars['Float']['output']>;
+  recovery_time_factor_percent?: Maybe<Scalars['Float']['output']>;
+  score?: Maybe<Scalars['Float']['output']>;
+  sleep_history_factor_percent?: Maybe<Scalars['Float']['output']>;
+  sleep_score?: Maybe<Scalars['Float']['output']>;
+  sleep_score_factor_percent?: Maybe<Scalars['Float']['output']>;
+  stress_history_factor_percent?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Training_Readiness_Var_Samp_Fields = {
+  __typename?: 'training_readiness_var_samp_fields';
+  acute_load?: Maybe<Scalars['Float']['output']>;
+  acwr_factor_percent?: Maybe<Scalars['Float']['output']>;
+  device_id?: Maybe<Scalars['Float']['output']>;
+  hrv_factor_percent?: Maybe<Scalars['Float']['output']>;
+  hrv_weekly_average?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  recovery_time?: Maybe<Scalars['Float']['output']>;
+  recovery_time_factor_percent?: Maybe<Scalars['Float']['output']>;
+  score?: Maybe<Scalars['Float']['output']>;
+  sleep_history_factor_percent?: Maybe<Scalars['Float']['output']>;
+  sleep_score?: Maybe<Scalars['Float']['output']>;
+  sleep_score_factor_percent?: Maybe<Scalars['Float']['output']>;
+  stress_history_factor_percent?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Training_Readiness_Variance_Fields = {
+  __typename?: 'training_readiness_variance_fields';
+  acute_load?: Maybe<Scalars['Float']['output']>;
+  acwr_factor_percent?: Maybe<Scalars['Float']['output']>;
+  device_id?: Maybe<Scalars['Float']['output']>;
+  hrv_factor_percent?: Maybe<Scalars['Float']['output']>;
+  hrv_weekly_average?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+  recovery_time?: Maybe<Scalars['Float']['output']>;
+  recovery_time_factor_percent?: Maybe<Scalars['Float']['output']>;
+  score?: Maybe<Scalars['Float']['output']>;
+  sleep_history_factor_percent?: Maybe<Scalars['Float']['output']>;
+  sleep_score?: Maybe<Scalars['Float']['output']>;
+  sleep_score_factor_percent?: Maybe<Scalars['Float']['output']>;
+  stress_history_factor_percent?: Maybe<Scalars['Float']['output']>;
 };
 
 /** input type for updating data in table "activities" */
