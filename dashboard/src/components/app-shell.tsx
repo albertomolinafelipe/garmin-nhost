@@ -7,6 +7,7 @@ import {
 	LogOut,
 	Megaphone,
 	Settings,
+	Target,
 } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { NavLink } from "react-router-dom";
@@ -46,6 +47,7 @@ const NAV = [
 	{ to: "/overview", label: "Overview", icon: LayoutDashboard },
 	{ to: "/calendar", label: "Calendar", icon: CalendarDays },
 	{ to: "/activities", label: "Activities", icon: Activity },
+	{ to: "/plans", label: "Plans", icon: Target },
 	{ to: "/settings", label: "Settings", icon: Settings },
 ];
 
