@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
 	Bolt,
+	Check,
 	Clock3,
 	Flame,
 	Gauge,
@@ -21,8 +22,13 @@ import {
 	YAxis,
 } from "recharts";
 
+import { ClimbingAnnotation } from "@/components/annotations/ClimbingAnnotation";
+import { RunningAnnotation } from "@/components/annotations/RunningAnnotation";
+import { StrengthAnnotation } from "@/components/annotations/StrengthAnnotation";
+import { useAnnotationSave } from "@/components/annotations/use-annotation-save";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	type ChartConfig,
@@ -30,7 +36,13 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@/components/ui/chart";
-import { categoryColor, categoryOf, typeLabel } from "@/lib/activity-types";
+import { useFoodOptionsQuery } from "@/graphql/hooks";
+import {
+	categoryColor,
+	categoryOf,
+	needsAnnotation,
+	typeLabel,
+} from "@/lib/activity-types";
 import { fmtDate, fmtDistance, fmtDuration } from "@/lib/format";
 import {
 	type ActivityDetail as Activity,
@@ -352,60 +364,69 @@ function StreamChart({
 	);
 }
 
-function AnnotationSummary({ activity }: { activity: Activity }) {
-	const details = [
-		activity.feeling && ["Feeling", `${activity.feeling} / 5`],
-		activity.effort && ["Effort", `${activity.effort} / 5`],
-		activity.focus && ["Focus", activity.focus],
-		activity.weather && ["Weather", activity.weather],
-		activity.caffeine && ["Caffeine", activity.caffeine],
-		activity.hard_tries != null && ["Hard tries", String(activity.hard_tries)],
-	].filter((item): item is string[] => Boolean(item));
-	const foods = [
-		...(activity.food_during ?? []),
-		...(activity.food_after ?? []),
-	];
-	if (!details.length && !foods.length && !activity.notes) return null;
+function EditableName({
+	activity,
+	onSave,
+}: {
+	activity: Activity;
+	onSave: ReturnType<typeof useAnnotationSave>;
+}) {
+	const [name, setName] = useState(activity.name ?? "");
+	const dirty = useRef(false);
+
+	useEffect(() => {
+		if (!dirty.current) setName(activity.name ?? "");
+	}, [activity.name]);
+
+	const isDirty = name !== (activity.name ?? "");
+	const confirm = async () => {
+		if (!isDirty) return;
+		const saved = await onSave({ name: name.trim() ? name : null });
+		if (saved) dirty.current = false;
+	};
 
 	return (
-		<Card className="gap-4 py-4">
-			<CardHeader className="px-4">
-				<CardTitle className="text-sm">Notes & annotations</CardTitle>
-			</CardHeader>
-			<CardContent className="space-y-4 px-4">
-				{details.length > 0 && (
-					<div className="grid gap-4 sm:grid-cols-3">
-						{details.map(([label, value]) => (
-							<div key={label}>
-								<div className="font-medium">{value}</div>
-								<div className="text-muted-foreground text-xs">{label}</div>
-							</div>
-						))}
-					</div>
-				)}
-				{foods.length > 0 && (
-					<div className="flex flex-wrap gap-2">
-						{foods.map((food) => (
-							<Badge key={food} variant="secondary">
-								{food}
-							</Badge>
-						))}
-					</div>
-				)}
-				{activity.notes && (
-					<p className="text-muted-foreground whitespace-pre-wrap text-sm">
-						{activity.notes}
-					</p>
-				)}
-			</CardContent>
-		</Card>
+		<div className="flex min-w-0 items-center gap-2">
+			<Input
+				aria-label="Activity name"
+				className="h-auto border-0 px-0 text-xl font-semibold shadow-none focus-visible:ring-0 md:text-xl"
+				value={name}
+				placeholder="Activity name"
+				onChange={(event) => {
+					dirty.current = true;
+					setName(event.target.value);
+				}}
+				onKeyDown={(event) => {
+					if (event.key === "Enter") void confirm();
+				}}
+			/>
+			{isDirty && (
+				<Button
+					type="button"
+					variant="ghost"
+					size="icon"
+					aria-label="Confirm name"
+					onClick={() => void confirm()}
+				>
+					<Check />
+				</Button>
+			)}
+		</div>
 	);
 }
 
 export function ActivityDetail() {
 	const { id } = useParams();
 	const { data: activity, isPending, isError } = useActivity(id);
+	const foodOptions =
+		useFoodOptionsQuery().data?.food_options.flatMap((option) =>
+			option.value == null ? [] : [option.value],
+		) ?? [];
+	const save = useAnnotationSave(id ?? "");
 	const [hoverT, setHoverT] = useState<number | null>(null);
+	const [asClimbing, setAsClimbing] = useState(false);
+
+	useEffect(() => setAsClimbing(false), [id]);
 
 	if (isPending)
 		return (
@@ -451,8 +472,12 @@ export function ActivityDetail() {
 					style={{ borderLeftColor: categoryColor[category] }}
 				>
 					<CardHeader className="px-4">
-						<CardTitle className="text-xl">
-							{activity.name ?? "Untitled activity"}
+						<CardTitle>
+							<EditableName
+								key={String(activity.id)}
+								activity={activity}
+								onSave={save}
+							/>
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="flex flex-wrap items-center gap-2 px-4">
@@ -462,6 +487,9 @@ export function ActivityDetail() {
 						<Badge variant="outline">
 							{typeLabel(activity.activity_type, activity.subtype)}
 						</Badge>
+						{needsAnnotation(activity) && (
+							<Badge variant="secondary">needs annotation</Badge>
+						)}
 					</CardContent>
 				</Card>
 				<Card className="justify-center py-4 lg:col-span-2">
@@ -478,7 +506,55 @@ export function ActivityDetail() {
 					)}
 				</div>
 			)}
-			<AnnotationSummary activity={activity} />
+			<Card className="gap-4 py-4">
+				<CardHeader className="flex-row items-center justify-between px-4">
+					<CardTitle className="text-sm">Notes & annotations</CardTitle>
+					{category === "strength" && !asClimbing && (
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() => setAsClimbing(true)}
+						>
+							Log as climbing
+						</Button>
+					)}
+					{category === "strength" && asClimbing && (
+						<Button
+							type="button"
+							variant="ghost"
+							size="sm"
+							onClick={() => setAsClimbing(false)}
+						>
+							Cancel climbing
+						</Button>
+					)}
+				</CardHeader>
+				<CardContent className="px-4">
+					{(() => {
+						if (category === "running") {
+							return (
+								<RunningAnnotation
+									activity={activity}
+									foodOptions={foodOptions}
+									onSave={save}
+								/>
+							);
+						}
+						if (category === "climbing" || asClimbing) {
+							return <ClimbingAnnotation activity={activity} onSave={save} />;
+						}
+						if (category === "strength") {
+							return <StrengthAnnotation activity={activity} onSave={save} />;
+						}
+						return (
+							<p className="text-muted-foreground text-sm">
+								No annotations for this activity type yet.
+							</p>
+						);
+					})()}
+				</CardContent>
+			</Card>
 		</div>
 	);
 }
