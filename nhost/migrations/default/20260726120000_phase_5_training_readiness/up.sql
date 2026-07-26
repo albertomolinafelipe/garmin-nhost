@@ -1,4 +1,4 @@
-CREATE TABLE public.training_readiness (
+CREATE TABLE IF NOT EXISTS public.training_readiness (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   calendar_date date NOT NULL,
   "timestamp" timestamptz NOT NULL,
