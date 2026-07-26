@@ -71,6 +71,111 @@ class HrvDTO:
     synced_at: datetime
 
 
+@dataclass(frozen=True)
+class TrainingReadinessDTO:
+    calendar_date: date
+    timestamp: datetime
+    device_id: int | None
+    level: str | None
+    feedback_long: str | None
+    feedback_short: str | None
+    score: int | None
+    sleep_score: int | None
+    sleep_score_factor_percent: int | None
+    sleep_score_factor_feedback: str | None
+    recovery_time: int | None
+    recovery_time_factor_percent: int | None
+    recovery_time_factor_feedback: str | None
+    acwr_factor_percent: int | None
+    acwr_factor_feedback: str | None
+    acute_load: int | None
+    stress_history_factor_percent: int | None
+    stress_history_factor_feedback: str | None
+    hrv_factor_percent: int | None
+    hrv_factor_feedback: str | None
+    hrv_weekly_average: int | None
+    sleep_history_factor_percent: int | None
+    sleep_history_factor_feedback: str | None
+    valid_sleep: bool | None
+    input_context: str | None
+    recovery_time_change_phrase: str | None
+    synced_at: datetime
+
+
+def normalize_training_readiness(
+    response: Any, *, synced_at: datetime | None = None
+) -> list[TrainingReadinessDTO]:
+    """Map a Garmin get_training_readiness response to per-snapshot rows.
+
+    The endpoint returns a list of same-day snapshots (distinct inputContext);
+    each keeps its own timestamp. Snapshots without a calendar date or
+    timestamp cannot be keyed and are skipped.
+    """
+    stamp = synced_at or datetime.now(timezone.utc)
+    snapshots = response if isinstance(response, list) else [response]
+    rows: list[TrainingReadinessDTO] = []
+    for snapshot in snapshots:
+        if not isinstance(snapshot, dict):
+            continue
+        try:
+            calendar_date = date.fromisoformat(str(snapshot.get("calendarDate")))
+        except (TypeError, ValueError):
+            continue
+        timestamp = _utc(_parse_dt(snapshot.get("timestamp")))
+        if timestamp is None:
+            continue
+        rows.append(
+            TrainingReadinessDTO(
+                calendar_date=calendar_date,
+                timestamp=timestamp,
+                device_id=_int(snapshot.get("deviceId")),
+                level=_string(snapshot.get("level")),
+                feedback_long=_string(snapshot.get("feedbackLong")),
+                feedback_short=_string(snapshot.get("feedbackShort")),
+                score=_int(snapshot.get("score")),
+                sleep_score=_int(snapshot.get("sleepScore")),
+                sleep_score_factor_percent=_int(
+                    snapshot.get("sleepScoreFactorPercent")
+                ),
+                sleep_score_factor_feedback=_string(
+                    snapshot.get("sleepScoreFactorFeedback")
+                ),
+                recovery_time=_int(snapshot.get("recoveryTime")),
+                recovery_time_factor_percent=_int(
+                    snapshot.get("recoveryTimeFactorPercent")
+                ),
+                recovery_time_factor_feedback=_string(
+                    snapshot.get("recoveryTimeFactorFeedback")
+                ),
+                acwr_factor_percent=_int(snapshot.get("acwrFactorPercent")),
+                acwr_factor_feedback=_string(snapshot.get("acwrFactorFeedback")),
+                acute_load=_int(snapshot.get("acuteLoad")),
+                stress_history_factor_percent=_int(
+                    snapshot.get("stressHistoryFactorPercent")
+                ),
+                stress_history_factor_feedback=_string(
+                    snapshot.get("stressHistoryFactorFeedback")
+                ),
+                hrv_factor_percent=_int(snapshot.get("hrvFactorPercent")),
+                hrv_factor_feedback=_string(snapshot.get("hrvFactorFeedback")),
+                hrv_weekly_average=_int(snapshot.get("hrvWeeklyAverage")),
+                sleep_history_factor_percent=_int(
+                    snapshot.get("sleepHistoryFactorPercent")
+                ),
+                sleep_history_factor_feedback=_string(
+                    snapshot.get("sleepHistoryFactorFeedback")
+                ),
+                valid_sleep=_bool(snapshot.get("validSleep")),
+                input_context=_string(snapshot.get("inputContext")),
+                recovery_time_change_phrase=_string(
+                    snapshot.get("recoveryTimeChangePhrase")
+                ),
+                synced_at=stamp,
+            )
+        )
+    return rows
+
+
 def normalize_hrv(
     response: dict[str, Any], *, synced_at: datetime | None = None
 ) -> HrvDTO:
@@ -203,6 +308,10 @@ def _epoch_ms(value: object) -> datetime | None:
 
 def _string(value: object) -> str | None:
     return str(value) if value is not None else None
+
+
+def _bool(value: object) -> bool | None:
+    return value if isinstance(value, bool) else None
 
 
 def _float(value: object) -> float | None:

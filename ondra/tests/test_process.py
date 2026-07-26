@@ -6,6 +6,7 @@ from app.process import (
     normalize_activity,
     normalize_hrv,
     normalize_sleep,
+    normalize_training_readiness,
     seed_subtype,
 )
 
@@ -115,6 +116,52 @@ def test_normalize_hrv_maps_summary_baseline_and_readings() -> None:
 def test_normalize_hrv_rejects_missing_calendar_date() -> None:
     with pytest.raises(ValueError):
         normalize_hrv({"hrvSummary": {}})
+
+
+def test_normalize_training_readiness_keeps_each_snapshot() -> None:
+    now = datetime(2026, 7, 26, tzinfo=timezone.utc)
+    rows = normalize_training_readiness(
+        [
+            {
+                "calendarDate": "2026-07-25",
+                "timestamp": "2026-07-25T17:57:10.0",
+                "deviceId": 3437589526,
+                "level": "HIGH",
+                "score": 80,
+                "acuteLoad": 323,
+                "acwrFactorPercent": 97,
+                "validSleep": True,
+                "inputContext": "AFTER_WAKEUP_RESET",
+            },
+            {
+                "calendarDate": "2026-07-25",
+                "timestamp": "2026-07-25T05:00:00.0",
+                "score": 74,
+                "inputContext": "UPDATE_REALTIME_VARIABLES",
+            },
+            {"calendarDate": "2026-07-25"},
+        ],
+        synced_at=now,
+    )
+
+    assert [r.timestamp for r in rows] == [
+        datetime(2026, 7, 25, 17, 57, 10, tzinfo=timezone.utc),
+        datetime(2026, 7, 25, 5, 0, 0, tzinfo=timezone.utc),
+    ]
+    first = rows[0]
+    assert first.calendar_date == date(2026, 7, 25)
+    assert first.device_id == 3437589526
+    assert first.level == "HIGH"
+    assert first.score == 80
+    assert first.acute_load == 323
+    assert first.acwr_factor_percent == 97
+    assert first.valid_sleep is True
+    assert first.input_context == "AFTER_WAKEUP_RESET"
+    assert first.synced_at == now
+
+
+def test_normalize_training_readiness_tolerates_none() -> None:
+    assert normalize_training_readiness(None) == []
 
 
 def test_normalize_sleep_maps_nested_summary_and_epoch_milliseconds() -> None:

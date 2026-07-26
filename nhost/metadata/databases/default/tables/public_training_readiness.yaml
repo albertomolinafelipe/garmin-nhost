@@ -1,0 +1,3 @@
+table:
+  name: training_readiness
+  schema: public

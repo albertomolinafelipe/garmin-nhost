@@ -16,9 +16,11 @@ from .process import (
     ActivityDTO,
     HrvDTO,
     SleepDTO,
+    TrainingReadinessDTO,
     normalize_activity,
     normalize_hrv,
     normalize_sleep,
+    normalize_training_readiness,
 )
 
 log = logging.getLogger(__name__)
@@ -35,6 +37,8 @@ class GarminClient(Protocol):
 
     def get_hrv_data(self, cdate: str) -> dict[str, Any] | None: ...
 
+    def get_training_readiness(self, cdate: str) -> Any: ...
+
 
 def sync(settings: Settings, *, days: int, max_activities: int) -> WriterResult:
     """Execute one bounded, tolerant synchronization unit."""
@@ -42,17 +46,25 @@ def sync(settings: Settings, *, days: int, max_activities: int) -> WriterResult:
     activities, errors, failed = _pull_activities(client, max_activities)
     sleeps, sleep_errors = _pull_sleep(client, days)
     hrvs, hrv_errors = _pull_hrv(client, days)
+    readiness, readiness_errors = _pull_readiness(client, days)
     log.info(
-        "sync pulled %d activities (%d failed), %d sleep nights, %d hrv days",
+        "sync pulled %d activities (%d failed), %d sleep, %d hrv, %d readiness",
         len(activities),
         failed,
         len(sleeps),
         len(hrvs),
+        len(readiness),
     )
     with HasuraClient(settings) as hasura:
-        result = write_sync_data(hasura, activities, sleeps, hrvs)
+        result = write_sync_data(hasura, activities, sleeps, hrvs, readiness)
     result.activities_failed += failed
-    result.errors = [*errors, *sleep_errors, *hrv_errors, *result.errors]
+    result.errors = [
+        *errors,
+        *sleep_errors,
+        *hrv_errors,
+        *readiness_errors,
+        *result.errors,
+    ]
     return result
 
 
@@ -132,3 +144,21 @@ def _pull_hrv(client: GarminClient, days: int) -> tuple[list[HrvDTO], list[str]]
         except Exception as exc:  # noqa: BLE001 -- tolerate each Garmin day
             errors.append(f"get_hrv_data({day}) failed: {exc}")
     return hrvs, errors
+
+
+def _pull_readiness(
+    client: GarminClient, days: int
+) -> tuple[list[TrainingReadinessDTO], list[str]]:
+    readiness: list[TrainingReadinessDTO] = []
+    errors: list[str] = []
+    today = datetime.now().date()
+    for offset in range(days):
+        day = (today - timedelta(days=offset)).isoformat()
+        try:
+            data = client.get_training_readiness(day)
+            readiness.extend(
+                normalize_training_readiness(data, synced_at=datetime.now(timezone.utc))
+            )
+        except Exception as exc:  # noqa: BLE001 -- tolerate each Garmin day
+            errors.append(f"get_training_readiness({day}) failed: {exc}")
+    return readiness, errors

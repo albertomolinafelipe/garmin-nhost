@@ -18,6 +18,8 @@ mutation Sync($days: Int, $maxActivities: Int) {
     sleep_updated
     hrv_created
     hrv_updated
+    readiness_created
+    readiness_updated
     streams_written
     activities_failed
     errors
@@ -38,6 +40,8 @@ EXPECTED_RESULT = {
     "sleep_updated": 0,
     "hrv_created": 0,
     "hrv_updated": 0,
+    "readiness_created": 0,
+    "readiness_updated": 0,
     "streams_written": 0,
     "activities_failed": 0,
     "errors": [],

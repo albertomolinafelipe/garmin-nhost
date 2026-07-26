@@ -4,3 +4,4 @@
 - "!include public_exercises.yaml"
 - "!include public_food_options.yaml"
 - "!include public_sleep.yaml"
+- "!include public_training_readiness.yaml"

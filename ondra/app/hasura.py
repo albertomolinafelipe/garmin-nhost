@@ -11,7 +11,7 @@ from typing import Any
 import httpx
 
 from .main import Settings
-from .process import ActivityDTO, HrvDTO, SleepDTO
+from .process import ActivityDTO, HrvDTO, SleepDTO, TrainingReadinessDTO
 
 ACTIVITY_SYNCED_COLUMNS = (
     "activity_type",
@@ -59,6 +59,35 @@ HRV_SYNCED_COLUMNS = (
 )
 
 
+READINESS_SYNCED_COLUMNS = (
+    "device_id",
+    "level",
+    "feedback_long",
+    "feedback_short",
+    "score",
+    "sleep_score",
+    "sleep_score_factor_percent",
+    "sleep_score_factor_feedback",
+    "recovery_time",
+    "recovery_time_factor_percent",
+    "recovery_time_factor_feedback",
+    "acwr_factor_percent",
+    "acwr_factor_feedback",
+    "acute_load",
+    "stress_history_factor_percent",
+    "stress_history_factor_feedback",
+    "hrv_factor_percent",
+    "hrv_factor_feedback",
+    "hrv_weekly_average",
+    "sleep_history_factor_percent",
+    "sleep_history_factor_feedback",
+    "valid_sleep",
+    "input_context",
+    "recovery_time_change_phrase",
+    "synced_at",
+)
+
+
 def _columns(columns: Sequence[str]) -> str:
     return ", ".join(columns)
 
@@ -87,6 +116,14 @@ mutation UpsertDailyHrv($objects: [daily_hrv_insert_input!]!) {{
   }}) {{ returning {{ calendar_date }} }}
 }}
 """
+READINESS_MUTATION = f"""
+mutation UpsertTrainingReadiness($objects: [training_readiness_insert_input!]!) {{
+  insert_training_readiness(objects: $objects, on_conflict: {{
+    constraint: training_readiness_calendar_date_timestamp_key
+    update_columns: [{_columns(READINESS_SYNCED_COLUMNS)}]
+  }}) {{ returning {{ calendar_date }} }}
+}}
+"""
 STREAM_MUTATION = """
 mutation UpsertActivityStream($activityId: bigint!, $payload: jsonb!) {
   insert_activity_streams_one(object: {activity_id: $activityId, payload: $payload},
@@ -108,6 +145,14 @@ query ExistingSleep($dates: [date!]!) {
 EXISTING_HRV_QUERY = """
 query ExistingHrv($dates: [date!]!) {
   daily_hrv(where: {calendar_date: {_in: $dates}}) { calendar_date }
+}
+"""
+EXISTING_READINESS_QUERY = """
+query ExistingReadiness($dates: [date!]!) {
+  training_readiness(where: {calendar_date: {_in: $dates}}) {
+    calendar_date
+    timestamp
+  }
 }
 """
 
@@ -199,6 +244,10 @@ def serialize_hrv(dto: HrvDTO) -> dict[str, Any]:
     return _serialize(asdict(dto))
 
 
+def serialize_readiness(dto: TrainingReadinessDTO) -> dict[str, Any]:
+    return _serialize(asdict(dto))
+
+
 def upsert_activities(
     client: HasuraClient, dtos: Sequence[ActivityDTO]
 ) -> dict[int, int]:
@@ -242,6 +291,17 @@ def upsert_hrv(client: HasuraClient, dtos: Sequence[HrvDTO]) -> None:
         )
 
 
+def upsert_readiness(
+    client: HasuraClient, dtos: Sequence[TrainingReadinessDTO]
+) -> None:
+    if dtos:
+        unique_dtos = {(dto.calendar_date, dto.timestamp): dto for dto in dtos}
+        client.execute_graphql(
+            READINESS_MUTATION,
+            {"objects": [serialize_readiness(dto) for dto in unique_dtos.values()]},
+        )
+
+
 @dataclass
 class WriterResult:
     activities_created: int = 0
@@ -250,6 +310,8 @@ class WriterResult:
     sleep_updated: int = 0
     hrv_created: int = 0
     hrv_updated: int = 0
+    readiness_created: int = 0
+    readiness_updated: int = 0
     streams_written: int = 0
     activities_failed: int = 0
     errors: list[str] = field(default_factory=list)
@@ -265,6 +327,7 @@ def write_sync_data(
     activities: Sequence[tuple[ActivityDTO, dict[str, Any] | None]],
     sleep: Sequence[SleepDTO],
     hrv: Sequence[HrvDTO] = (),
+    readiness: Sequence[TrainingReadinessDTO] = (),
     *,
     batch_size: int = 50,
 ) -> WriterResult:
@@ -355,5 +418,36 @@ def write_sync_data(
         )
         result.hrv_created += sum(
             dto.calendar_date.isoformat() not in existing_hrv_dates for dto in batch
+        )
+
+    readiness_by_key = {(dto.calendar_date, dto.timestamp): dto for dto in readiness}
+    unique_readiness = list(readiness_by_key.values())
+    readiness_dates = sorted({day.isoformat() for day, _ in readiness_by_key})
+    existing_readiness_rows = (
+        client.execute_graphql(EXISTING_READINESS_QUERY, {"dates": readiness_dates})[
+            "training_readiness"
+        ]
+        if readiness_dates
+        else []
+    )
+    existing_readiness = {
+        (str(row["calendar_date"]), str(row["timestamp"]))
+        for row in existing_readiness_rows
+    }
+
+    def _readiness_key(dto: TrainingReadinessDTO) -> tuple[str, str]:
+        return (dto.calendar_date.isoformat(), dto.timestamp.isoformat())
+
+    for batch in _batches(unique_readiness, batch_size):
+        try:
+            upsert_readiness(client, batch)
+        except HasuraError as exc:
+            result.errors.append(str(exc))
+            continue
+        result.readiness_updated += sum(
+            _readiness_key(dto) in existing_readiness for dto in batch
+        )
+        result.readiness_created += sum(
+            _readiness_key(dto) not in existing_readiness for dto in batch
         )
     return result

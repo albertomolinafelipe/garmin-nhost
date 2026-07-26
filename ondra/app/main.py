@@ -72,6 +72,8 @@ class SyncResult:
     sleep_updated: int = strawberry.field(name="sleep_updated")
     hrv_created: int = strawberry.field(name="hrv_created")
     hrv_updated: int = strawberry.field(name="hrv_updated")
+    readiness_created: int = strawberry.field(name="readiness_created")
+    readiness_updated: int = strawberry.field(name="readiness_updated")
     streams_written: int = strawberry.field(name="streams_written")
     activities_failed: int = strawberry.field(name="activities_failed")
     errors: list[str] = strawberry.field(name="errors")
