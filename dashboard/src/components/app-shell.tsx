@@ -7,6 +7,7 @@ import {
 	LogIn,
 	LogOut,
 	Menu,
+	Settings,
 	X,
 } from "lucide-react";
 
@@ -21,6 +22,7 @@ const NAV = [
 	{ to: "/overview", label: "Overview", icon: LayoutDashboard },
 	{ to: "/calendar", label: "Calendar", icon: CalendarDays },
 	{ to: "/activities", label: "Activities", icon: Activity },
+	{ to: "/settings", label: "Settings", icon: Settings },
 ];
 
 function SidebarContent({
