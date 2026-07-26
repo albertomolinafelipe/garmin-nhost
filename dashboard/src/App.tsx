@@ -6,7 +6,6 @@ import { AppShell } from "@/components/app-shell";
 import { Activities } from "@/pages/Activities";
 import { ActivityDetail } from "@/pages/ActivityDetail";
 import { Calendar } from "@/pages/Calendar";
-import { Login } from "@/pages/Login";
 import { Overview } from "@/pages/Overview";
 import { queryClient } from "@/queryClient";
 
@@ -19,10 +18,6 @@ export default function App() {
 		return () => window.removeEventListener("admin-secret-invalid", invalid);
 	}, []);
 
-	if (!secret) {
-		return <Login onAuthenticated={setSecret} />;
-	}
-
 	function forget() {
 		clearAdminSecret();
 		queryClient.clear();
@@ -30,7 +25,7 @@ export default function App() {
 	}
 
 	return (
-		<AppShell onForget={forget}>
+		<AppShell secret={secret} onAuthenticated={setSecret} onForget={forget}>
 			<Routes>
 				<Route path="/" element={<Navigate to="/overview" replace />} />
 				<Route path="/overview" element={<Overview />} />

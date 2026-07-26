@@ -4,11 +4,13 @@ import {
 	Activity,
 	CalendarDays,
 	LayoutDashboard,
+	LogIn,
 	LogOut,
 	Menu,
 	X,
 } from "lucide-react";
 
+import { LoginDialog } from "@/components/login-dialog";
 import { NhostLogo } from "@/components/nhost-logo";
 import { SyncButton } from "@/components/sync-button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -22,19 +24,21 @@ const NAV = [
 ];
 
 function SidebarContent({
+	secret,
+	onLogin,
 	onForget,
 	onNavigate,
 }: {
+	secret: string | null;
+	onLogin: () => void;
 	onForget: () => void;
 	onNavigate?: () => void;
 }) {
 	return (
 		<>
-			<div className="flex h-14 items-center gap-2 px-4 font-semibold">
-				<div className="bg-sidebar-primary text-sidebar-primary-foreground flex size-7 items-center justify-center rounded-md">
-					<NhostLogo className="size-4" />
-				</div>
-				garmin-nhost
+			<div className="flex flex-col items-center gap-2 px-4 py-6">
+				<NhostLogo className="size-16" />
+				<span className="font-semibold">garmin-nhost</span>
 			</div>
 
 			<nav className="flex flex-1 flex-col gap-1 p-2">
@@ -60,14 +64,25 @@ function SidebarContent({
 			<div className="border-sidebar-border flex flex-col gap-1 border-t p-2">
 				<SyncButton />
 				<ThemeToggle />
-				<Button
-					variant="ghost"
-					className="w-full justify-start"
-					onClick={onForget}
-				>
-					<LogOut className="size-4" />
-					Forget secret
-				</Button>
+				{secret ? (
+					<Button
+						variant="ghost"
+						className="w-full justify-start"
+						onClick={onForget}
+					>
+						<LogOut className="size-4" />
+						Forget secret
+					</Button>
+				) : (
+					<Button
+						variant="ghost"
+						className="w-full justify-start"
+						onClick={onLogin}
+					>
+						<LogIn className="size-4" />
+						Login
+					</Button>
+				)}
 			</div>
 		</>
 	);
@@ -75,12 +90,17 @@ function SidebarContent({
 
 export function AppShell({
 	children,
+	secret,
+	onAuthenticated,
 	onForget,
 }: {
 	children: ReactNode;
+	secret: string | null;
+	onAuthenticated: (secret: string) => void;
 	onForget: () => void;
 }) {
 	const [mobileOpen, setMobileOpen] = useState(false);
+	const [loginOpen, setLoginOpen] = useState(false);
 
 	return (
 		<div className="flex h-svh flex-col md:flex-row">
@@ -102,7 +122,11 @@ export function AppShell({
 
 			{/* Desktop sidebar */}
 			<aside className="bg-sidebar text-sidebar-foreground border-sidebar-border hidden w-60 shrink-0 flex-col border-r md:flex">
-				<SidebarContent onForget={onForget} />
+				<SidebarContent
+					secret={secret}
+					onLogin={() => setLoginOpen(true)}
+					onForget={onForget}
+				/>
 			</aside>
 
 			{/* Mobile drawer */}
@@ -126,6 +150,11 @@ export function AppShell({
 							</Button>
 						</div>
 						<SidebarContent
+							secret={secret}
+							onLogin={() => {
+								setMobileOpen(false);
+								setLoginOpen(true);
+							}}
 							onForget={() => {
 								setMobileOpen(false);
 								onForget();
@@ -137,6 +166,12 @@ export function AppShell({
 			)}
 
 			<main className="min-w-0 flex-1 overflow-auto">{children}</main>
+
+			<LoginDialog
+				open={loginOpen}
+				onClose={() => setLoginOpen(false)}
+				onAuthenticated={onAuthenticated}
+			/>
 		</div>
 	);
 }

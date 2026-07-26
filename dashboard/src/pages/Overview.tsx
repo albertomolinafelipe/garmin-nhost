@@ -1,6 +1,7 @@
 import { type ReactNode, useMemo } from "react";
 import {
 	Area,
+	Bar,
 	CartesianGrid,
 	ComposedChart,
 	Line,
@@ -43,10 +44,12 @@ const SLEEP_COLORS = {
 	score: "#DCA561",
 };
 
-// Rolling WINDOW_DAYS sum of `contribution` for each of the last SPAN_DAYS days.
+// Rolling `windowDays` sum of `contribution` for each of the last SPAN_DAYS days.
+// windowDays === 1 gives a plain day-for-day series.
 function rolling(
 	activities: CalendarActivity[],
 	contribution: (a: CalendarActivity) => number | null,
+	windowDays: number,
 ): number[] {
 	const perDay = new Map<string, number>();
 	for (const a of activities) {
@@ -62,7 +65,7 @@ function rolling(
 		const day = new Date(today);
 		day.setDate(today.getDate() - i);
 		let sum = 0;
-		for (let w = 0; w < WINDOW_DAYS; w++) {
+		for (let w = 0; w < windowDays; w++) {
 			const d = new Date(day);
 			d.setDate(day.getDate() - w);
 			sum += perDay.get(dayKey(d)) ?? 0;
@@ -141,10 +144,14 @@ interface LoadSeries {
 function LoadPanel({
 	title,
 	series,
+	windowDays = WINDOW_DAYS,
+	variant = "area",
 	className,
 }: {
 	title: string;
 	series: LoadSeries[];
+	windowDays?: number;
+	variant?: "area" | "bar";
 	className?: string;
 }) {
 	const { data, isPending } = useActivities();
@@ -152,7 +159,9 @@ function LoadPanel({
 
 	const rows = useMemo(() => {
 		const labels = dayLabels();
-		const cols = series.map((s) => rolling(activities, s.contribution));
+		const cols = series.map((s) =>
+			rolling(activities, s.contribution, windowDays),
+		);
 		return labels.map((date, i) => {
 			const row: Record<string, string | number> = { date };
 			series.forEach((s, si) => {
@@ -160,7 +169,7 @@ function LoadPanel({
 			});
 			return row;
 		});
-	}, [activities, series]);
+	}, [activities, series, windowDays]);
 
 	const config = useMemo(
 		() =>
@@ -183,7 +192,7 @@ function LoadPanel({
 					variant="outline"
 					style={{ color: s.color, borderColor: s.color }}
 				>
-					{current(s) ?? "—"} {s.unit} / {WINDOW_DAYS}d
+					{current(s) ?? "—"} {s.unit} / {windowDays}d
 				</Badge>
 			))}
 		</div>
@@ -237,19 +246,30 @@ function LoadPanel({
 							/>
 						)}
 						<ChartTooltip content={<ChartTooltipContent />} />
-						{series.map((s) => (
-							<Area
-								key={s.key}
-								yAxisId={s.axis}
-								type="monotone"
-								dataKey={s.key}
-								stroke={s.color}
-								strokeWidth={2}
-								fill={`url(#fill-${s.key})`}
-								dot={false}
-								activeDot={{ r: 3 }}
-							/>
-						))}
+						{series.map((s) =>
+							variant === "bar" ? (
+								<Bar
+									key={s.key}
+									yAxisId={s.axis}
+									dataKey={s.key}
+									fill={`url(#fill-${s.key})`}
+									stroke={s.color}
+									radius={[2, 2, 0, 0]}
+								/>
+							) : (
+								<Area
+									key={s.key}
+									yAxisId={s.axis}
+									type="monotone"
+									dataKey={s.key}
+									stroke={s.color}
+									strokeWidth={2}
+									fill={`url(#fill-${s.key})`}
+									dot={false}
+									activeDot={{ r: 3 }}
+								/>
+							),
+						)}
 					</ComposedChart>
 				</ChartContainer>
 			</PanelBody>
@@ -359,7 +379,7 @@ function SleepPanel() {
 		<Panel
 			title="Sleep"
 			action={legend}
-			className="h-[280px] md:h-auto md:min-h-0 md:flex-1"
+			className="h-[280px] md:h-full md:flex-1"
 		>
 			<PanelBody
 				isPending={isPending}
@@ -451,23 +471,44 @@ function SleepPanel() {
 	);
 }
 
+// Each row is one third of the window on md+, so panels stay a uniform,
+// window-proportional height and the page simply scrolls as rows are added.
+const ROW = "md:h-[calc((100svh-4rem)/3)] md:min-h-[260px]";
+
 export function Overview() {
 	return (
-		<div className="flex flex-col gap-4 p-4 md:h-full">
-			<div className="flex flex-col gap-4 md:min-h-0 md:flex-1 md:flex-row">
+		<div className="flex flex-col gap-4 p-4">
+			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
 				<LoadPanel
 					title="Running load"
 					series={RUNNING_SERIES}
-					className="h-[280px] md:h-auto md:min-h-0 md:flex-[2]"
+					className="h-[280px] md:h-full md:flex-[2]"
 				/>
 				<LoadPanel
 					title="Climbing & weights load"
 					series={EFFORT_SERIES}
-					className="h-[280px] md:h-auto md:min-h-0 md:flex-1"
+					className="h-[280px] md:h-full md:flex-1"
 				/>
 			</div>
-			<div className="flex flex-col gap-4 md:min-h-0 md:flex-1 md:flex-row">
+			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
 				<SleepPanel />
+			</div>
+			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
+				<LoadPanel
+					title="Daily running"
+					series={RUNNING_SERIES}
+					windowDays={1}
+					className="h-[280px] md:h-full md:flex-1"
+				/>
+			</div>
+			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
+				<LoadPanel
+					title="Daily running (bars)"
+					series={RUNNING_SERIES}
+					windowDays={1}
+					variant="bar"
+					className="h-[280px] md:h-full md:flex-1"
+				/>
 			</div>
 		</div>
 	);

@@ -12,7 +12,7 @@ export function SyncButton() {
 
 	function run() {
 		sync.mutate(
-			{},
+			{ maxActivities: 5 },
 			{
 				onSuccess: (data) => {
 					const r = data.syncActivities;

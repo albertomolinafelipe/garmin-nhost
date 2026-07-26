@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
 	Bolt,
 	Clock3,
@@ -11,7 +11,7 @@ import {
 import type { LatLngBoundsExpression, LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Link, useParams } from "react-router-dom";
-import { MapContainer, Polyline, TileLayer } from "react-leaflet";
+import { CircleMarker, MapContainer, Polyline, TileLayer } from "react-leaflet";
 import {
 	Area,
 	CartesianGrid,
@@ -134,7 +134,13 @@ function Metrics({ activity }: { activity: Activity }) {
 	);
 }
 
-function RouteMap({ track }: { track: { lat: number; lng: number }[] }) {
+function RouteMap({
+	track,
+	marker,
+}: {
+	track: { lat: number; lng: number }[];
+	marker?: { lat: number; lng: number } | null;
+}) {
 	const positions: LatLngExpression[] = track.map((point) => [
 		point.lat,
 		point.lng,
@@ -147,7 +153,7 @@ function RouteMap({ track }: { track: { lat: number; lng: number }[] }) {
 				<CardTitle className="text-sm">Route</CardTitle>
 			</CardHeader>
 			<CardContent className="px-4">
-				<div className="overflow-hidden rounded-lg border">
+				<div className="isolate overflow-hidden rounded-lg border">
 					<MapContainer
 						bounds={bounds}
 						boundsOptions={{ padding: [20, 20] }}
@@ -173,6 +179,18 @@ function RouteMap({ track }: { track: { lat: number; lng: number }[] }) {
 							positions={positions}
 							pathOptions={{ color: "#7FB4CA", weight: 4, opacity: 0.9 }}
 						/>
+						{marker && (
+							<CircleMarker
+								center={[marker.lat, marker.lng]}
+								radius={6}
+								pathOptions={{
+									color: "#fff",
+									weight: 2,
+									fillColor: "#E46876",
+									fillOpacity: 1,
+								}}
+							/>
+						)}
 					</MapContainer>
 				</div>
 			</CardContent>
@@ -202,9 +220,11 @@ const streamConfig = {
 function StreamChart({
 	hr,
 	elevation,
+	onHover,
 }: {
 	hr: StreamSample[];
 	elevation: StreamSample[];
+	onHover?: (t: number | null) => void;
 }) {
 	const rows = useMemo(() => mergeStreams(hr, elevation), [hr, elevation]);
 	const hasHr = hr.length > 0;
@@ -221,7 +241,15 @@ function StreamChart({
 					config={streamConfig}
 					className="aspect-auto h-full w-full"
 				>
-					<ComposedChart data={rows} margin={{ top: 5, right: 2, left: 0 }}>
+					<ComposedChart
+						data={rows}
+						margin={{ top: 5, right: 2, left: 0 }}
+						onMouseMove={(state) => {
+							const label = state?.activeLabel;
+							onHover?.(label == null ? null : Number(label));
+						}}
+						onMouseLeave={() => onHover?.(null)}
+					>
 						<defs>
 							<linearGradient
 								id="activity-elevation"
@@ -264,7 +292,22 @@ function StreamChart({
 						<ChartTooltip
 							content={
 								<ChartTooltipContent
-									labelFormatter={(value) => elapsed(Number(value))}
+									hideLabel
+									formatter={(value, name) => {
+										if (value == null || Number.isNaN(Number(value)))
+											return null;
+										const isHr = name === "hr" || name === "Heart rate";
+										return (
+											<div className="flex w-full items-center justify-between gap-4">
+												<span className="text-muted-foreground">
+													{isHr ? "Heart rate" : "Elevation"}
+												</span>
+												<span className="text-foreground font-mono font-medium tabular-nums">
+													{Math.round(Number(value))} {isHr ? "bpm" : "m"}
+												</span>
+											</div>
+										);
+									}}
 								/>
 							}
 						/>
@@ -362,6 +405,7 @@ function AnnotationSummary({ activity }: { activity: Activity }) {
 export function ActivityDetail() {
 	const { id } = useParams();
 	const { data: activity, isPending, isError } = useActivity(id);
+	const [hoverT, setHoverT] = useState<number | null>(null);
 
 	if (isPending)
 		return (
@@ -385,6 +429,19 @@ export function ActivityDetail() {
 	const elevation = payload.elevation ?? [];
 	const track = payload.track ?? [];
 	const hasChart = hr.length > 0 || elevation.length > 0;
+
+	// Track points carry no timestamps, so approximate the hovered fix by mapping
+	// the hovered elapsed time onto the uniformly-thinned track by fraction.
+	const maxT = Math.max(hr.at(-1)?.t ?? 0, elevation.at(-1)?.t ?? 0);
+	const hoverMarker =
+		hoverT != null && track.length > 0 && maxT > 0
+			? track[
+					Math.min(
+						track.length - 1,
+						Math.max(0, Math.round((hoverT / maxT) * (track.length - 1))),
+					)
+				]
+			: null;
 
 	return (
 		<div className="space-y-4 p-4">
@@ -415,8 +472,10 @@ export function ActivityDetail() {
 			</div>
 			{(track.length > 1 || hasChart) && (
 				<div className="grid gap-4 lg:grid-cols-2">
-					{track.length > 1 && <RouteMap track={track} />}
-					{hasChart && <StreamChart hr={hr} elevation={elevation} />}
+					{track.length > 1 && <RouteMap track={track} marker={hoverMarker} />}
+					{hasChart && (
+						<StreamChart hr={hr} elevation={elevation} onHover={setHoverT} />
+					)}
 				</div>
 			)}
 			<AnnotationSummary activity={activity} />
