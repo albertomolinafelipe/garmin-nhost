@@ -5312,6 +5312,52 @@ export type Training_Readiness_Variance_Fields = {
   stress_history_factor_percent?: Maybe<Scalars['Float']['output']>;
 };
 
+/** Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'. */
+export type GeneratedInt_Comparison_Exp = {
+  _eq?: number | null | undefined;
+  _gt?: number | null | undefined;
+  _gte?: number | null | undefined;
+  _in?: Array<number> | null | undefined;
+  _is_null?: boolean | null | undefined;
+  _lt?: number | null | undefined;
+  _lte?: number | null | undefined;
+  _neq?: number | null | undefined;
+  _nin?: Array<number> | null | undefined;
+};
+
+/** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
+export type GeneratedString_Comparison_Exp = {
+  _eq?: string | null | undefined;
+  _gt?: string | null | undefined;
+  _gte?: string | null | undefined;
+  /** does the column match the given case-insensitive pattern */
+  _ilike?: string | null | undefined;
+  _in?: Array<string> | null | undefined;
+  /** does the column match the given POSIX regular expression, case insensitive */
+  _iregex?: string | null | undefined;
+  _is_null?: boolean | null | undefined;
+  /** does the column match the given pattern */
+  _like?: string | null | undefined;
+  _lt?: string | null | undefined;
+  _lte?: string | null | undefined;
+  _neq?: string | null | undefined;
+  /** does the column NOT match the given case-insensitive pattern */
+  _nilike?: string | null | undefined;
+  _nin?: Array<string> | null | undefined;
+  /** does the column NOT match the given POSIX regular expression, case insensitive */
+  _niregex?: string | null | undefined;
+  /** does the column NOT match the given pattern */
+  _nlike?: string | null | undefined;
+  /** does the column NOT match the given POSIX regular expression, case sensitive */
+  _nregex?: string | null | undefined;
+  /** does the column NOT match the given SQL regular expression */
+  _nsimilar?: string | null | undefined;
+  /** does the column match the given POSIX regular expression, case sensitive */
+  _regex?: string | null | undefined;
+  /** does the column match the given SQL regular expression */
+  _similar?: string | null | undefined;
+};
+
 /** input type for updating data in table "activities" */
 export type GeneratedActivities_Set_Input = {
   activity_type?: string | null | undefined;
@@ -5342,11 +5388,297 @@ export type GeneratedActivities_Set_Input = {
   weather?: string | null | undefined;
 };
 
+/** Boolean expression to compare columns of type "bigint". All fields are combined with logical 'AND'. */
+export type GeneratedBigint_Comparison_Exp = {
+  _eq?: unknown;
+  _gt?: unknown;
+  _gte?: unknown;
+  _in?: Array<unknown> | null | undefined;
+  _is_null?: boolean | null | undefined;
+  _lt?: unknown;
+  _lte?: unknown;
+  _neq?: unknown;
+  _nin?: Array<unknown> | null | undefined;
+};
+
 /** input type for updating data in table "exercises" */
 export type GeneratedExercises_Set_Input = {
   categories?: Array<string> | null | undefined;
   name?: string | null | undefined;
 };
+
+/** Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'. */
+export type GeneratedNumeric_Comparison_Exp = {
+  _eq?: unknown;
+  _gt?: unknown;
+  _gte?: unknown;
+  _in?: Array<unknown> | null | undefined;
+  _is_null?: boolean | null | undefined;
+  _lt?: unknown;
+  _lte?: unknown;
+  _neq?: unknown;
+  _nin?: Array<unknown> | null | undefined;
+};
+
+export type GeneratedPlan_Requirements_Aggregate_Bool_Exp = {
+  count?: GeneratedPlan_Requirements_Aggregate_Bool_Exp_Count | null | undefined;
+};
+
+export type GeneratedPlan_Requirements_Aggregate_Bool_Exp_Count = {
+  arguments?: Array<GeneratedPlan_Requirements_Select_Column> | null | undefined;
+  distinct?: boolean | null | undefined;
+  filter?: GeneratedPlan_Requirements_Bool_Exp | null | undefined;
+  predicate: GeneratedInt_Comparison_Exp;
+};
+
+/** input type for inserting array relation for remote table "plan_requirements" */
+export type GeneratedPlan_Requirements_Arr_Rel_Insert_Input = {
+  data: Array<GeneratedPlan_Requirements_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: GeneratedPlan_Requirements_On_Conflict | null | undefined;
+};
+
+/** Boolean expression to filter rows from the table "plan_requirements". All fields are combined with a logical 'AND'. */
+export type GeneratedPlan_Requirements_Bool_Exp = {
+  _and?: Array<GeneratedPlan_Requirements_Bool_Exp> | null | undefined;
+  _not?: GeneratedPlan_Requirements_Bool_Exp | null | undefined;
+  _or?: Array<GeneratedPlan_Requirements_Bool_Exp> | null | undefined;
+  id?: GeneratedBigint_Comparison_Exp | null | undefined;
+  metric?: GeneratedString_Comparison_Exp | null | undefined;
+  notes?: GeneratedString_Comparison_Exp | null | undefined;
+  plan?: GeneratedPlans_Bool_Exp | null | undefined;
+  plan_id?: GeneratedBigint_Comparison_Exp | null | undefined;
+  sport?: GeneratedString_Comparison_Exp | null | undefined;
+  target?: GeneratedNumeric_Comparison_Exp | null | undefined;
+  week?: GeneratedString_Comparison_Exp | null | undefined;
+};
+
+/** unique or primary key constraints on table "plan_requirements" */
+export type GeneratedPlan_Requirements_Constraint =
+  /** unique or primary key constraint on columns "id" */
+  | 'plan_requirements_pkey';
+
+/** input type for inserting data into table "plan_requirements" */
+export type GeneratedPlan_Requirements_Insert_Input = {
+  metric?: string | null | undefined;
+  notes?: string | null | undefined;
+  plan?: GeneratedPlans_Obj_Rel_Insert_Input | null | undefined;
+  plan_id?: unknown;
+  sport?: string | null | undefined;
+  target?: unknown;
+  week?: string | null | undefined;
+};
+
+/** on_conflict condition type for table "plan_requirements" */
+export type GeneratedPlan_Requirements_On_Conflict = {
+  constraint: GeneratedPlan_Requirements_Constraint;
+  update_columns?: Array<GeneratedPlan_Requirements_Update_Column>;
+  where?: GeneratedPlan_Requirements_Bool_Exp | null | undefined;
+};
+
+/** select columns of table "plan_requirements" */
+export type GeneratedPlan_Requirements_Select_Column =
+  /** column name */
+  | 'id'
+  /** column name */
+  | 'metric'
+  /** column name */
+  | 'notes'
+  /** column name */
+  | 'plan_id'
+  /** column name */
+  | 'sport'
+  /** column name */
+  | 'target'
+  /** column name */
+  | 'week';
+
+/** input type for updating data in table "plan_requirements" */
+export type GeneratedPlan_Requirements_Set_Input = {
+  metric?: string | null | undefined;
+  notes?: string | null | undefined;
+  plan_id?: unknown;
+  sport?: string | null | undefined;
+  target?: unknown;
+  week?: string | null | undefined;
+};
+
+/** update columns of table "plan_requirements" */
+export type GeneratedPlan_Requirements_Update_Column =
+  /** column name */
+  | 'metric'
+  /** column name */
+  | 'notes'
+  /** column name */
+  | 'plan_id'
+  /** column name */
+  | 'sport'
+  /** column name */
+  | 'target'
+  /** column name */
+  | 'week';
+
+export type GeneratedPlan_Workouts_Aggregate_Bool_Exp = {
+  count?: GeneratedPlan_Workouts_Aggregate_Bool_Exp_Count | null | undefined;
+};
+
+export type GeneratedPlan_Workouts_Aggregate_Bool_Exp_Count = {
+  arguments?: Array<GeneratedPlan_Workouts_Select_Column> | null | undefined;
+  distinct?: boolean | null | undefined;
+  filter?: GeneratedPlan_Workouts_Bool_Exp | null | undefined;
+  predicate: GeneratedInt_Comparison_Exp;
+};
+
+/** input type for inserting array relation for remote table "plan_workouts" */
+export type GeneratedPlan_Workouts_Arr_Rel_Insert_Input = {
+  data: Array<GeneratedPlan_Workouts_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: GeneratedPlan_Workouts_On_Conflict | null | undefined;
+};
+
+/** Boolean expression to filter rows from the table "plan_workouts". All fields are combined with a logical 'AND'. */
+export type GeneratedPlan_Workouts_Bool_Exp = {
+  _and?: Array<GeneratedPlan_Workouts_Bool_Exp> | null | undefined;
+  _not?: GeneratedPlan_Workouts_Bool_Exp | null | undefined;
+  _or?: Array<GeneratedPlan_Workouts_Bool_Exp> | null | undefined;
+  day_of_week?: GeneratedString_Comparison_Exp | null | undefined;
+  description?: GeneratedString_Comparison_Exp | null | undefined;
+  id?: GeneratedBigint_Comparison_Exp | null | undefined;
+  plan?: GeneratedPlans_Bool_Exp | null | undefined;
+  plan_id?: GeneratedBigint_Comparison_Exp | null | undefined;
+  sport?: GeneratedString_Comparison_Exp | null | undefined;
+  title?: GeneratedString_Comparison_Exp | null | undefined;
+  week?: GeneratedString_Comparison_Exp | null | undefined;
+};
+
+/** unique or primary key constraints on table "plan_workouts" */
+export type GeneratedPlan_Workouts_Constraint =
+  /** unique or primary key constraint on columns "id" */
+  | 'plan_workouts_pkey';
+
+/** input type for inserting data into table "plan_workouts" */
+export type GeneratedPlan_Workouts_Insert_Input = {
+  day_of_week?: string | null | undefined;
+  description?: string | null | undefined;
+  plan?: GeneratedPlans_Obj_Rel_Insert_Input | null | undefined;
+  plan_id?: unknown;
+  sport?: string | null | undefined;
+  title?: string | null | undefined;
+  week?: string | null | undefined;
+};
+
+/** on_conflict condition type for table "plan_workouts" */
+export type GeneratedPlan_Workouts_On_Conflict = {
+  constraint: GeneratedPlan_Workouts_Constraint;
+  update_columns?: Array<GeneratedPlan_Workouts_Update_Column>;
+  where?: GeneratedPlan_Workouts_Bool_Exp | null | undefined;
+};
+
+/** select columns of table "plan_workouts" */
+export type GeneratedPlan_Workouts_Select_Column =
+  /** column name */
+  | 'day_of_week'
+  /** column name */
+  | 'description'
+  /** column name */
+  | 'id'
+  /** column name */
+  | 'plan_id'
+  /** column name */
+  | 'sport'
+  /** column name */
+  | 'title'
+  /** column name */
+  | 'week';
+
+/** input type for updating data in table "plan_workouts" */
+export type GeneratedPlan_Workouts_Set_Input = {
+  day_of_week?: string | null | undefined;
+  description?: string | null | undefined;
+  plan_id?: unknown;
+  sport?: string | null | undefined;
+  title?: string | null | undefined;
+  week?: string | null | undefined;
+};
+
+/** update columns of table "plan_workouts" */
+export type GeneratedPlan_Workouts_Update_Column =
+  /** column name */
+  | 'day_of_week'
+  /** column name */
+  | 'description'
+  /** column name */
+  | 'plan_id'
+  /** column name */
+  | 'sport'
+  /** column name */
+  | 'title'
+  /** column name */
+  | 'week';
+
+/** Boolean expression to filter rows from the table "plans". All fields are combined with a logical 'AND'. */
+export type GeneratedPlans_Bool_Exp = {
+  _and?: Array<GeneratedPlans_Bool_Exp> | null | undefined;
+  _not?: GeneratedPlans_Bool_Exp | null | undefined;
+  _or?: Array<GeneratedPlans_Bool_Exp> | null | undefined;
+  end_week?: GeneratedString_Comparison_Exp | null | undefined;
+  id?: GeneratedBigint_Comparison_Exp | null | undefined;
+  name?: GeneratedString_Comparison_Exp | null | undefined;
+  notes?: GeneratedString_Comparison_Exp | null | undefined;
+  requirements?: GeneratedPlan_Requirements_Bool_Exp | null | undefined;
+  requirements_aggregate?: GeneratedPlan_Requirements_Aggregate_Bool_Exp | null | undefined;
+  start_week?: GeneratedString_Comparison_Exp | null | undefined;
+  workouts?: GeneratedPlan_Workouts_Bool_Exp | null | undefined;
+  workouts_aggregate?: GeneratedPlan_Workouts_Aggregate_Bool_Exp | null | undefined;
+};
+
+/** unique or primary key constraints on table "plans" */
+export type GeneratedPlans_Constraint =
+  /** unique or primary key constraint on columns "id" */
+  | 'plans_pkey';
+
+/** input type for inserting data into table "plans" */
+export type GeneratedPlans_Insert_Input = {
+  end_week?: string | null | undefined;
+  name?: string | null | undefined;
+  notes?: string | null | undefined;
+  requirements?: GeneratedPlan_Requirements_Arr_Rel_Insert_Input | null | undefined;
+  start_week?: string | null | undefined;
+  workouts?: GeneratedPlan_Workouts_Arr_Rel_Insert_Input | null | undefined;
+};
+
+/** input type for inserting object relation for remote table "plans" */
+export type GeneratedPlans_Obj_Rel_Insert_Input = {
+  data: GeneratedPlans_Insert_Input;
+  /** upsert condition */
+  on_conflict?: GeneratedPlans_On_Conflict | null | undefined;
+};
+
+/** on_conflict condition type for table "plans" */
+export type GeneratedPlans_On_Conflict = {
+  constraint: GeneratedPlans_Constraint;
+  update_columns?: Array<GeneratedPlans_Update_Column>;
+  where?: GeneratedPlans_Bool_Exp | null | undefined;
+};
+
+/** input type for updating data in table "plans" */
+export type GeneratedPlans_Set_Input = {
+  end_week?: string | null | undefined;
+  name?: string | null | undefined;
+  notes?: string | null | undefined;
+  start_week?: string | null | undefined;
+};
+
+/** update columns of table "plans" */
+export type GeneratedPlans_Update_Column =
+  /** column name */
+  | 'end_week'
+  /** column name */
+  | 'name'
+  /** column name */
+  | 'notes'
+  /** column name */
+  | 'start_week';
 
 export type GeneratedActivitiesSmokeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -5406,6 +5738,84 @@ export type GeneratedDeleteExerciseMutationVariables = Exact<{
 
 export type GeneratedDeleteExerciseMutation = { delete_exercises_by_pk: { id: unknown } | null };
 
+export type GeneratedPlansQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GeneratedPlansQuery = { plans: Array<{ id: unknown, name: string, start_week: string, end_week: string, notes: string | null }> };
+
+export type GeneratedPlanQueryVariables = Exact<{
+  id: unknown;
+}>;
+
+
+export type GeneratedPlanQuery = { plans_by_pk: { id: unknown, name: string, start_week: string, end_week: string, notes: string | null, requirements: Array<{ id: unknown, week: string, sport: string | null, metric: string, target: unknown, notes: string | null }>, workouts: Array<{ id: unknown, week: string, day_of_week: string, sport: string, title: string, description: string | null }> } | null };
+
+export type GeneratedInsertPlanMutationVariables = Exact<{
+  object: GeneratedPlans_Insert_Input;
+}>;
+
+
+export type GeneratedInsertPlanMutation = { insert_plans_one: { id: unknown } | null };
+
+export type GeneratedUpdatePlanMutationVariables = Exact<{
+  id: unknown;
+  set: GeneratedPlans_Set_Input;
+}>;
+
+
+export type GeneratedUpdatePlanMutation = { update_plans_by_pk: { id: unknown } | null };
+
+export type GeneratedDeletePlanMutationVariables = Exact<{
+  id: unknown;
+}>;
+
+
+export type GeneratedDeletePlanMutation = { delete_plans_by_pk: { id: unknown } | null };
+
+export type GeneratedInsertPlanRequirementMutationVariables = Exact<{
+  object: GeneratedPlan_Requirements_Insert_Input;
+}>;
+
+
+export type GeneratedInsertPlanRequirementMutation = { insert_plan_requirements_one: { id: unknown } | null };
+
+export type GeneratedUpdatePlanRequirementMutationVariables = Exact<{
+  id: unknown;
+  set: GeneratedPlan_Requirements_Set_Input;
+}>;
+
+
+export type GeneratedUpdatePlanRequirementMutation = { update_plan_requirements_by_pk: { id: unknown } | null };
+
+export type GeneratedDeletePlanRequirementMutationVariables = Exact<{
+  id: unknown;
+}>;
+
+
+export type GeneratedDeletePlanRequirementMutation = { delete_plan_requirements_by_pk: { id: unknown } | null };
+
+export type GeneratedInsertPlanWorkoutMutationVariables = Exact<{
+  object: GeneratedPlan_Workouts_Insert_Input;
+}>;
+
+
+export type GeneratedInsertPlanWorkoutMutation = { insert_plan_workouts_one: { id: unknown } | null };
+
+export type GeneratedUpdatePlanWorkoutMutationVariables = Exact<{
+  id: unknown;
+  set: GeneratedPlan_Workouts_Set_Input;
+}>;
+
+
+export type GeneratedUpdatePlanWorkoutMutation = { update_plan_workouts_by_pk: { id: unknown } | null };
+
+export type GeneratedDeletePlanWorkoutMutationVariables = Exact<{
+  id: unknown;
+}>;
+
+
+export type GeneratedDeletePlanWorkoutMutation = { delete_plan_workouts_by_pk: { id: unknown } | null };
+
 export type GeneratedSyncActivitiesMutationVariables = Exact<{
   days?: number | null | undefined;
   maxActivities?: number | null | undefined;
@@ -5424,4 +5834,15 @@ export const ExercisesDocument = {"kind":"Document","definitions":[{"kind":"Oper
 export const InsertExerciseDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertExercise"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"categories"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_exercises_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"categories"},"value":{"kind":"Variable","name":{"kind":"Name","value":"categories"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"categories"}}]}}]}}]} as unknown as DocumentNode<GeneratedInsertExerciseMutation, GeneratedInsertExerciseMutationVariables>;
 export const UpdateExerciseDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateExercise"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"set"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"exercises_set_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_exercises_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"Variable","name":{"kind":"Name","value":"set"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"categories"}}]}}]}}]} as unknown as DocumentNode<GeneratedUpdateExerciseMutation, GeneratedUpdateExerciseMutationVariables>;
 export const DeleteExerciseDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteExercise"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete_exercises_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedDeleteExerciseMutation, GeneratedDeleteExerciseMutationVariables>;
+export const PlansDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Plans"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"plans"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"start_week"},"value":{"kind":"EnumValue","value":"desc"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"start_week"}},{"kind":"Field","name":{"kind":"Name","value":"end_week"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}}]}}]}}]} as unknown as DocumentNode<GeneratedPlansQuery, GeneratedPlansQueryVariables>;
+export const PlanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Plan"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"plans_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"start_week"}},{"kind":"Field","name":{"kind":"Name","value":"end_week"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"requirements"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"week"},"value":{"kind":"EnumValue","value":"asc"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"week"}},{"kind":"Field","name":{"kind":"Name","value":"sport"}},{"kind":"Field","name":{"kind":"Name","value":"metric"}},{"kind":"Field","name":{"kind":"Name","value":"target"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}}]}},{"kind":"Field","name":{"kind":"Name","value":"workouts"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"week"},"value":{"kind":"EnumValue","value":"asc"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"week"}},{"kind":"Field","name":{"kind":"Name","value":"day_of_week"}},{"kind":"Field","name":{"kind":"Name","value":"sport"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]} as unknown as DocumentNode<GeneratedPlanQuery, GeneratedPlanQueryVariables>;
+export const InsertPlanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertPlan"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"object"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"plans_insert_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_plans_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"Variable","name":{"kind":"Name","value":"object"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedInsertPlanMutation, GeneratedInsertPlanMutationVariables>;
+export const UpdatePlanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdatePlan"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"set"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"plans_set_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_plans_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"Variable","name":{"kind":"Name","value":"set"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedUpdatePlanMutation, GeneratedUpdatePlanMutationVariables>;
+export const DeletePlanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeletePlan"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete_plans_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedDeletePlanMutation, GeneratedDeletePlanMutationVariables>;
+export const InsertPlanRequirementDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertPlanRequirement"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"object"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"plan_requirements_insert_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_plan_requirements_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"Variable","name":{"kind":"Name","value":"object"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedInsertPlanRequirementMutation, GeneratedInsertPlanRequirementMutationVariables>;
+export const UpdatePlanRequirementDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdatePlanRequirement"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"set"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"plan_requirements_set_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_plan_requirements_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"Variable","name":{"kind":"Name","value":"set"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedUpdatePlanRequirementMutation, GeneratedUpdatePlanRequirementMutationVariables>;
+export const DeletePlanRequirementDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeletePlanRequirement"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete_plan_requirements_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedDeletePlanRequirementMutation, GeneratedDeletePlanRequirementMutationVariables>;
+export const InsertPlanWorkoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertPlanWorkout"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"object"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"plan_workouts_insert_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_plan_workouts_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"Variable","name":{"kind":"Name","value":"object"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedInsertPlanWorkoutMutation, GeneratedInsertPlanWorkoutMutationVariables>;
+export const UpdatePlanWorkoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdatePlanWorkout"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"set"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"plan_workouts_set_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_plan_workouts_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"Variable","name":{"kind":"Name","value":"set"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedUpdatePlanWorkoutMutation, GeneratedUpdatePlanWorkoutMutationVariables>;
+export const DeletePlanWorkoutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeletePlanWorkout"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete_plan_workouts_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedDeletePlanWorkoutMutation, GeneratedDeletePlanWorkoutMutationVariables>;
 export const SyncActivitiesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SyncActivities"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"days"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"7"}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"maxActivities"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"20"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"syncActivities"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"days"},"value":{"kind":"Variable","name":{"kind":"Name","value":"days"}}},{"kind":"Argument","name":{"kind":"Name","value":"maxActivities"},"value":{"kind":"Variable","name":{"kind":"Name","value":"maxActivities"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activities_created"}},{"kind":"Field","name":{"kind":"Name","value":"activities_updated"}},{"kind":"Field","name":{"kind":"Name","value":"sleep_created"}},{"kind":"Field","name":{"kind":"Name","value":"sleep_updated"}},{"kind":"Field","name":{"kind":"Name","value":"streams_written"}},{"kind":"Field","name":{"kind":"Name","value":"activities_failed"}},{"kind":"Field","name":{"kind":"Name","value":"errors"}}]}}]}}]} as unknown as DocumentNode<GeneratedSyncActivitiesMutation, GeneratedSyncActivitiesMutationVariables>;

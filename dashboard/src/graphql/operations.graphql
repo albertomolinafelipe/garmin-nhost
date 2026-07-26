@@ -114,6 +114,96 @@ mutation DeleteExercise($id: bigint!) {
   }
 }
 
+query Plans {
+  plans(order_by: {start_week: desc}) {
+    id
+    name
+    start_week
+    end_week
+    notes
+  }
+}
+
+query Plan($id: bigint!) {
+  plans_by_pk(id: $id) {
+    id
+    name
+    start_week
+    end_week
+    notes
+    requirements(order_by: {week: asc}) {
+      id
+      week
+      sport
+      metric
+      target
+      notes
+    }
+    workouts(order_by: {week: asc}) {
+      id
+      week
+      day_of_week
+      sport
+      title
+      description
+    }
+  }
+}
+
+mutation InsertPlan($object: plans_insert_input!) {
+  insert_plans_one(object: $object) {
+    id
+  }
+}
+
+mutation UpdatePlan($id: bigint!, $set: plans_set_input!) {
+  update_plans_by_pk(pk_columns: {id: $id}, _set: $set) {
+    id
+  }
+}
+
+mutation DeletePlan($id: bigint!) {
+  delete_plans_by_pk(id: $id) {
+    id
+  }
+}
+
+mutation InsertPlanRequirement($object: plan_requirements_insert_input!) {
+  insert_plan_requirements_one(object: $object) {
+    id
+  }
+}
+
+mutation UpdatePlanRequirement($id: bigint!, $set: plan_requirements_set_input!) {
+  update_plan_requirements_by_pk(pk_columns: {id: $id}, _set: $set) {
+    id
+  }
+}
+
+mutation DeletePlanRequirement($id: bigint!) {
+  delete_plan_requirements_by_pk(id: $id) {
+    id
+  }
+}
+
+mutation InsertPlanWorkout($object: plan_workouts_insert_input!) {
+  insert_plan_workouts_one(object: $object) {
+    id
+  }
+}
+
+mutation UpdatePlanWorkout($id: bigint!, $set: plan_workouts_set_input!) {
+  update_plan_workouts_by_pk(pk_columns: {id: $id}, _set: $set) {
+    id
+  }
+}
+
+mutation DeletePlanWorkout($id: bigint!) {
+  delete_plan_workouts_by_pk(id: $id) {
+    id
+  }
+}
+
 mutation SyncActivities($days: Int = 7, $maxActivities: Int = 20) {
   syncActivities(days: $days, maxActivities: $maxActivities) {
     activities_created
