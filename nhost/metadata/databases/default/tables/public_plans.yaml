@@ -1,0 +1,18 @@
+table:
+  name: plans
+  schema: public
+array_relationships:
+  - name: requirements
+    using:
+      foreign_key_constraint_on:
+        column: plan_id
+        table:
+          name: plan_requirements
+          schema: public
+  - name: workouts
+    using:
+      foreign_key_constraint_on:
+        column: plan_id
+        table:
+          name: plan_workouts
+          schema: public

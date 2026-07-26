@@ -3,5 +3,8 @@
 - "!include public_daily_hrv.yaml"
 - "!include public_exercises.yaml"
 - "!include public_food_options.yaml"
+- "!include public_plan_requirements.yaml"
+- "!include public_plan_workouts.yaml"
+- "!include public_plans.yaml"
 - "!include public_sleep.yaml"
 - "!include public_training_readiness.yaml"
