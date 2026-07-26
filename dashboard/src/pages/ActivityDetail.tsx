@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import {
 	Bolt,
 	Check,
@@ -30,6 +30,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+
+const TerrainRouteMap = lazy(() =>
+	import("@/components/TerrainRouteMap").then((m) => ({
+		default: m.TerrainRouteMap,
+	})),
+);
 import {
 	type ChartConfig,
 	ChartContainer,
@@ -154,6 +161,7 @@ function RouteMap({
 	track: { lat: number; lng: number }[];
 	marker?: { lat: number; lng: number } | null;
 }) {
+	const [mode, setMode] = useState<"2d" | "3d">("2d");
 	const positions: LatLngExpression[] = track.map((point) => [
 		point.lat,
 		point.lng,
@@ -162,49 +170,71 @@ function RouteMap({
 
 	return (
 		<Card className="gap-3 overflow-hidden py-4">
-			<CardHeader className="px-4">
+			<CardHeader className="flex flex-row items-center justify-between px-4">
 				<CardTitle className="text-sm">Route</CardTitle>
+				<ToggleGroup
+					type="single"
+					value={mode}
+					onValueChange={(value) => value && setMode(value as "2d" | "3d")}
+					variant="outline"
+					size="sm"
+				>
+					<ToggleGroupItem value="2d">2D</ToggleGroupItem>
+					<ToggleGroupItem value="3d">3D</ToggleGroupItem>
+				</ToggleGroup>
 			</CardHeader>
 			<CardContent className="px-4">
 				<div className="isolate overflow-hidden rounded-lg border">
-					<MapContainer
-						bounds={bounds}
-						boundsOptions={{ padding: [20, 20] }}
-						scrollWheelZoom={false}
-						attributionControl={false}
-						className="route-map"
-						style={{ height: 280, width: "100%" }}
-					>
-						<TileLayer
-							url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-							subdomains="abcd"
-							className="route-map-basemap"
-							opacity={0.68}
-							zIndex={1}
-						/>
-						<TileLayer
-							url="https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}"
-							className="route-map-hillshade"
-							opacity={0.28}
-							zIndex={2}
-						/>
-						<Polyline
-							positions={positions}
-							pathOptions={{ color: "#7FB4CA", weight: 4, opacity: 0.9 }}
-						/>
-						{marker && (
-							<CircleMarker
-								center={[marker.lat, marker.lng]}
-								radius={6}
-								pathOptions={{
-									color: "#fff",
-									weight: 2,
-									fillColor: "#E46876",
-									fillOpacity: 1,
-								}}
+					{mode === "3d" ? (
+						<Suspense
+							fallback={
+								<div className="text-muted-foreground flex h-[280px] items-center justify-center text-sm">
+									Loading 3D terrain…
+								</div>
+							}
+						>
+							<TerrainRouteMap track={track} marker={marker} />
+						</Suspense>
+					) : (
+						<MapContainer
+							bounds={bounds}
+							boundsOptions={{ padding: [20, 20] }}
+							scrollWheelZoom={false}
+							attributionControl={false}
+							className="route-map"
+							style={{ height: 280, width: "100%" }}
+						>
+							<TileLayer
+								url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+								subdomains="abcd"
+								className="route-map-basemap"
+								opacity={0.68}
+								zIndex={1}
 							/>
-						)}
-					</MapContainer>
+							<TileLayer
+								url="https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}"
+								className="route-map-hillshade"
+								opacity={0.28}
+								zIndex={2}
+							/>
+							<Polyline
+								positions={positions}
+								pathOptions={{ color: "#7FB4CA", weight: 4, opacity: 0.9 }}
+							/>
+							{marker && (
+								<CircleMarker
+									center={[marker.lat, marker.lng]}
+									radius={6}
+									pathOptions={{
+										color: "#fff",
+										weight: 2,
+										fillColor: "#E46876",
+										fillOpacity: 1,
+									}}
+								/>
+							)}
+						</MapContainer>
+					)}
 				</div>
 			</CardContent>
 		</Card>

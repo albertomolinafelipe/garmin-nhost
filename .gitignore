@@ -11,3 +11,6 @@ dist/
 dashboard/vite.config.js
 dashboard/vite.config.d.ts
 .DS_Store
+
+# nhost-code agent scratch artifacts
+.nhost-code/
