@@ -12,9 +12,7 @@ def _secret(payload: dict[str, str]) -> str:
 
 
 def test_materializes_tokens_when_cache_empty(tmp_path: Path) -> None:
-    secret = _secret(
-        {"oauth1_token.json": "one", "oauth2_token.json": "two"}
-    )
+    secret = _secret({"oauth1_token.json": "one", "oauth2_token.json": "two"})
     _materialize_tokens(tmp_path, secret)
     assert (tmp_path / "oauth1_token.json").read_text() == "one"
     assert (tmp_path / "oauth2_token.json").read_text() == "two"
