@@ -6,5 +6,6 @@
 - "!include public_plan_requirements.yaml"
 - "!include public_plan_workouts.yaml"
 - "!include public_plans.yaml"
+- "!include public_races.yaml"
 - "!include public_sleep.yaml"
 - "!include public_training_readiness.yaml"
