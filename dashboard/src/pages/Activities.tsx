@@ -12,11 +12,18 @@ import {
 	typeLabel,
 } from "@/lib/activity-types";
 import { fmtDay, fmtDistance, fmtDuration } from "@/lib/format";
-import { num, useActivities } from "@/lib/queries";
+import {
+	num,
+	raceForStartTime,
+	useActivities,
+	useRacesByDay,
+} from "@/lib/queries";
+import { raceIcon as RaceIcon } from "@/lib/plans";
 
 export function Activities() {
 	const navigate = useNavigate();
 	const { data, isPending } = useActivities();
+	const racesByDay = useRacesByDay();
 	const [search, setSearch] = useState("");
 	const activities = data?.activities ?? [];
 
@@ -112,6 +119,12 @@ export function Activities() {
 										<td className="max-w-[60vw] px-4 py-3 font-medium md:max-w-72">
 											<div className="flex min-w-0 items-center gap-2">
 												<span className="truncate">{activity.name ?? "—"}</span>
+												{raceForStartTime(racesByDay, activity.start_time) ? (
+													<RaceIcon
+														className="text-race size-4 shrink-0"
+														aria-label="Race"
+													/>
+												) : null}
 												{needsAnnotation(activity) ? (
 													<Badge
 														variant="outline"

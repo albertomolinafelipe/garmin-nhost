@@ -255,12 +255,17 @@ export function indexRaces(races: Race[]): Map<string, Race[]> {
 export function DayRaces({
 	day,
 	byDay,
+	activitiesByDay,
 }: {
 	day: Date;
 	byDay?: Map<string, Race[]>;
+	// When the race day already has a logged activity, the race is represented by
+	// a laurel on that activity (DayEvent) instead of its own chip.
+	activitiesByDay?: Map<string, CalendarActivity[]>;
 }) {
 	const races = byDay?.get(dayKey(day)) ?? [];
 	if (races.length === 0) return null;
+	if ((activitiesByDay?.get(dayKey(day))?.length ?? 0) > 0) return null;
 	return (
 		<>
 			{races.map((r) => {
@@ -435,15 +440,24 @@ export function eventInfo(a: CalendarActivity): string {
 	return parts.join(" · ");
 }
 
-export function DayEvent({ a }: { a: CalendarActivity }) {
+export function DayEvent({
+	a,
+	isRace,
+}: {
+	a: CalendarActivity;
+	isRace?: boolean;
+}) {
 	const category = categoryOf(a.activity_type, a.subtype);
-	const Icon = categoryIcon[category];
+	const Icon = isRace ? RaceIcon : categoryIcon[category];
 	const color = categoryColor[category];
 	return (
 		<Link
 			to={`/activities/${a.id}`}
-			className="bg-accent/40 hover:bg-accent focus-visible:ring-ring rounded-md border-l-2 px-2 py-1.5 leading-tight transition-colors focus-visible:ring-2 focus-visible:outline-none"
-			style={{ borderLeftColor: color }}
+			className={cn(
+				"bg-accent/40 hover:bg-accent focus-visible:ring-ring rounded-md border-l-2 px-2 py-1.5 leading-tight transition-colors focus-visible:ring-2 focus-visible:outline-none",
+				isRace && "text-race border-race",
+			)}
+			style={isRace ? undefined : { borderLeftColor: color }}
 		>
 			<div className="flex items-center justify-center gap-1.5 md:justify-start">
 				<Icon size={16} className="shrink-0" />
@@ -451,7 +465,12 @@ export function DayEvent({ a }: { a: CalendarActivity }) {
 					{a.name ?? a.activity_type ?? "Activity"}
 				</span>
 			</div>
-			<div className="text-muted-foreground hidden truncate text-xs md:block">
+			<div
+				className={cn(
+					"hidden truncate text-xs md:block",
+					isRace ? "text-race/80" : "text-muted-foreground",
+				)}
+			>
 				{eventInfo(a)}
 			</div>
 		</Link>
@@ -581,9 +600,17 @@ export function WeekStrip({
 								</span>
 							</div>
 							<div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-1 pt-2">
-								<DayRaces day={day} byDay={racesByDay} />
+								<DayRaces
+									day={day}
+									byDay={racesByDay}
+									activitiesByDay={byDay}
+								/>
 								{events.map((a) => (
-									<DayEvent key={a.id} a={a} />
+									<DayEvent
+										key={a.id}
+										a={a}
+										isRace={(racesByDay?.get(key)?.length ?? 0) > 0}
+									/>
 								))}
 								{workoutsByWeekDay ? (
 									<DayWorkouts day={day} byWeekDay={workoutsByWeekDay} />

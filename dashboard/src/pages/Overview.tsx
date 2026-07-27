@@ -180,7 +180,6 @@ const READINESS_COLORS = {
 	acuteLoad: "#C34043",
 	recovery: "#7AA89F",
 	stress: "#D27E99",
-	sleepHistory: "#6A9589",
 };
 
 const HRV_COLORS = {
@@ -842,12 +841,11 @@ const readinessConfig = {
 	acuteLoad: { label: "Acute load", color: READINESS_COLORS.acuteLoad },
 	recovery: { label: "Recovery", color: READINESS_COLORS.recovery },
 	stress: { label: "Stress hist.", color: READINESS_COLORS.stress },
-	sleepHistory: { label: "Sleep hist.", color: READINESS_COLORS.sleepHistory },
 } satisfies ChartConfig;
 
 // Score is the headline; the rest are 0-100 factor percentages except acute
 // load, which rides its own right axis.
-const READINESS_FACTORS = ["recovery", "stress", "sleepHistory"] as const;
+const READINESS_FACTORS = ["recovery", "stress"] as const;
 const READINESS_LEGEND = ["score", "acuteLoad", ...READINESS_FACTORS] as const;
 
 function ReadinessPanel() {
@@ -875,10 +873,6 @@ function ReadinessPanel() {
 				r.stress_history_factor_percent == null
 					? null
 					: num(r.stress_history_factor_percent),
-			sleepHistory:
-				r.sleep_history_factor_percent == null
-					? null
-					: num(r.sleep_history_factor_percent),
 		}));
 	}, [data, win]);
 	const animate = useInitialAnimation(rows.length > 0);

@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+	Check,
+	ChevronLeft,
+	ChevronRight,
+	Pencil,
+	Plus,
+	Trash2,
+	X,
+} from "lucide-react";
 import { format } from "date-fns";
 import ReactMarkdown from "react-markdown";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -71,6 +79,7 @@ import {
 	usePlanQuery,
 	usePlansQuery,
 	useUpdatePlanMutation,
+	useUpdatePlanRequirementMutation,
 } from "@/graphql/hooks";
 import {
 	currentIsoWeek,
@@ -364,8 +373,12 @@ function RequirementsSection({ plan }: { plan: Plan }) {
 	const queryClient = useQueryClient();
 	const { data } = usePlanQuery(planId);
 	const insert = useInsertPlanRequirementMutation();
+	const update = useUpdatePlanRequirementMutation();
 	const remove = useDeletePlanRequirementMutation();
 	const reqs = data?.requirements ?? [];
+
+	const [editId, setEditId] = useState<string | null>(null);
+	const [editTarget, setEditTarget] = useState<number | null>(null);
 	const weeks = weeksInRange(plan.start_week, plan.end_week);
 
 	const [adding, setAdding] = useState(false);
@@ -410,6 +423,30 @@ function RequirementsSection({ plan }: { plan: Plan }) {
 			await refresh();
 		} catch {
 			toast.error("Could not delete requirement");
+		}
+	};
+
+	const startEdit = (r: (typeof reqs)[number]) => {
+		setEditId(String(r.id));
+		setEditTarget(METRIC_META[r.metric as Metric].fromBase(Number(r.target)));
+	};
+
+	const cancelEdit = () => {
+		setEditId(null);
+		setEditTarget(null);
+	};
+
+	const saveEdit = async (r: (typeof reqs)[number]) => {
+		if (editTarget == null || update.isPending) return;
+		try {
+			await update.mutateAsync({
+				id: r.id,
+				set: { target: METRIC_META[r.metric as Metric].toBase(editTarget) },
+			});
+			cancelEdit();
+			await refresh();
+		} catch {
+			toast.error("Could not update requirement");
 		}
 	};
 
@@ -464,18 +501,69 @@ function RequirementsSection({ plan }: { plan: Plan }) {
 										</span>
 									</TableCell>
 									<TableCell className="tabular-nums">
-										{meta?.format(Number(r.target)) ?? String(r.target)}
+										{editId === String(r.id) ? (
+											<div className="relative w-28">
+												<NumberInput
+													autoFocus
+													nonNegative
+													value={editTarget}
+													className="pr-9"
+													onChange={setEditTarget}
+													onKeyDown={(e) => {
+														if (e.key === "Enter") void saveEdit(r);
+														if (e.key === "Escape") cancelEdit();
+													}}
+												/>
+												{meta?.inputUnit ? (
+													<span className="text-muted-foreground pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs">
+														{meta.inputUnit}
+													</span>
+												) : null}
+											</div>
+										) : (
+											<button
+												type="button"
+												className="hover:bg-muted -mx-1 rounded px-1 text-left tabular-nums"
+												onClick={() => startEdit(r)}
+											>
+												{meta?.format(Number(r.target)) ?? String(r.target)}
+											</button>
+										)}
 									</TableCell>
 									<TableCell>
-										<Button
-											variant="ghost"
-											size="icon"
-											className="text-muted-foreground hover:text-destructive size-7"
-											aria-label="Delete requirement"
-											onClick={() => void del(r.id)}
-										>
-											<Trash2 className="size-4" />
-										</Button>
+										{editId === String(r.id) ? (
+											<div className="flex items-center gap-1">
+												<Button
+													variant="ghost"
+													size="icon"
+													className="size-7"
+													disabled={editTarget == null || update.isPending}
+													aria-label="Save target"
+													onClick={() => void saveEdit(r)}
+												>
+													<Check className="size-4" />
+												</Button>
+												<Button
+													variant="ghost"
+													size="icon"
+													className="text-muted-foreground size-7"
+													aria-label="Cancel edit"
+													onClick={cancelEdit}
+												>
+													<X className="size-4" />
+												</Button>
+											</div>
+										) : (
+											<Button
+												variant="ghost"
+												size="icon"
+												className="text-muted-foreground hover:text-destructive size-7"
+												aria-label="Delete requirement"
+												onClick={() => void del(r.id)}
+											>
+												<Trash2 className="size-4" />
+											</Button>
+										)}
 									</TableCell>
 								</TableRow>
 							);

@@ -245,9 +245,19 @@ function CalendarInner() {
 													{day.getDate()}
 												</div>
 												<div className="mt-2 flex flex-col gap-1">
-													<DayRaces day={day} byDay={racesByDay} />
+													<DayRaces
+														day={day}
+														byDay={racesByDay}
+														activitiesByDay={byDay}
+													/>
 													{events.map((a) => (
-														<DayEvent key={a.id} a={a} />
+														<DayEvent
+															key={a.id}
+															a={a}
+															isRace={
+																(racesByDay.get(dayKey(day))?.length ?? 0) > 0
+															}
+														/>
 													))}
 												</div>
 												<DayWorkouts day={day} byWeekDay={workoutsByWeekDay} />

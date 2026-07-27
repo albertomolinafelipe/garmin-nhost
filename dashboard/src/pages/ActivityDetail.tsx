@@ -56,8 +56,11 @@ import {
 	type ActivityDetail as Activity,
 	type StreamSample,
 	num,
+	raceForStartTime,
 	useActivity,
+	useRacesByDay,
 } from "@/lib/queries";
+import { raceIcon as RaceIcon } from "@/lib/plans";
 
 const HR = "#E46876";
 const ELEVATION = "#7AA89F";
@@ -456,6 +459,7 @@ export function ActivityDetail() {
 			option.value == null ? [] : [option.value],
 		) ?? [];
 	const save = useAnnotationSave(id ?? "");
+	const racesByDay = useRacesByDay();
 	const [hoverT, setHoverT] = useState<number | null>(null);
 
 	if (isPending)
@@ -517,6 +521,18 @@ export function ActivityDetail() {
 						<Badge variant="outline">
 							{typeLabel(activity.activity_type, activity.subtype)}
 						</Badge>
+						{(() => {
+							const race = raceForStartTime(racesByDay, activity.start_time);
+							return race ? (
+								<Badge
+									variant="outline"
+									className="text-race border-race gap-1"
+								>
+									<RaceIcon className="size-3.5" />
+									{race.name}
+								</Badge>
+							) : null;
+						})()}
 						{needsAnnotation(activity) && (
 							<Badge variant="secondary">needs annotation</Badge>
 						)}

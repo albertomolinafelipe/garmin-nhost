@@ -1,10 +1,13 @@
+import { useMemo } from "react";
 import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 
 import { graphQLClient } from "@/graphql/client";
 import {
 	useActivityDetailQuery,
 	useCalendarActivitiesQuery,
+	useRacesQuery,
 } from "@/graphql/hooks";
+import { dayKey } from "@/lib/format";
 
 export interface CalendarActivity {
 	id: string;
@@ -34,6 +37,36 @@ export function useActivities(): UseQueryResult<
 
 export const num = (v: number | string | null | undefined): number =>
 	v == null ? 0 : Number(v);
+
+export interface RaceRef {
+	id: unknown;
+	name: string;
+}
+
+// Races indexed by their local YYYY-MM-DD date, so an activity can be matched
+// to the race held on its day (activity.start_time -> dayKey).
+export function useRacesByDay(): Map<string, RaceRef[]> {
+	const { data } = useRacesQuery();
+	return useMemo(() => {
+		const map = new Map<string, RaceRef[]>();
+		for (const r of data ?? []) {
+			const key = String(r.date);
+			const list = map.get(key) ?? [];
+			list.push({ id: r.id, name: r.name });
+			map.set(key, list);
+		}
+		return map;
+	}, [data]);
+}
+
+// The race held on an activity's day, if any (first when multiple exist).
+export function raceForStartTime(
+	racesByDay: Map<string, RaceRef[]>,
+	startTime: string | null,
+): RaceRef | null {
+	if (!startTime) return null;
+	return racesByDay.get(dayKey(new Date(startTime)))?.[0] ?? null;
+}
 
 export interface SleepNight {
 	calendar_date: string;
