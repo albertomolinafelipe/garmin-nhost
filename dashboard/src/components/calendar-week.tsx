@@ -18,6 +18,7 @@ import {
 	categoryIcon,
 	categoryOf,
 	effectiveSubtype,
+	sportColor,
 } from "@/lib/activity-types";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -100,12 +101,13 @@ export function WeekRequirements({
 				const pct = target > 0 ? Math.min(100, (actual / target) * 100) : 0;
 				const SportIcon = sportIcon(r.sport);
 				const MetricIcon = meta?.icon;
+				const color = sportColor(r.sport);
 				return (
 					<div key={String(r.id)} className="flex items-center gap-1.5">
 						<Progress
 							value={pct}
 							className="h-1"
-							indicatorClassName="bg-plan"
+							indicatorStyle={{ backgroundColor: color }}
 						/>
 						<span className="text-muted-foreground flex w-20 shrink-0 items-center gap-1 text-[10px] tabular-nums">
 							<SportIcon size={11} className="shrink-0" />
@@ -307,6 +309,7 @@ function WorkoutChip({ w, isPast }: { w: PlanWorkout; isPast: boolean }) {
 	const dnd = useWorkoutDnd();
 	const [open, setOpen] = useState(false);
 	const Icon = sportIcon(w.sport);
+	const color = sportColor(w.sport);
 	const goToPlan = () => navigate(`/plans?plan=${w.plan_id}`);
 
 	const chip = (
@@ -317,8 +320,9 @@ function WorkoutChip({ w, isPast }: { w: PlanWorkout; isPast: boolean }) {
 			className={cn(
 				"hover:bg-accent flex items-center justify-center gap-1 rounded-md px-1.5 py-1 leading-tight transition-colors md:justify-start",
 				dnd ? "md:cursor-grab md:active:cursor-grabbing" : "",
-				isPast ? "bg-accent/40 text-muted-foreground" : "bg-muted text-plan",
+				isPast ? "bg-accent/40 text-muted-foreground" : "bg-muted",
 			)}
+			style={isPast ? undefined : { color }}
 			title={w.title}
 		>
 			<Icon size={14} className="shrink-0" />
@@ -371,9 +375,14 @@ export function DayWorkouts({
 	const workouts = byWeekDay.get(`${toIsoWeek(day)}|${dayToken(day)}`) ?? [];
 	if (workouts.length === 0) return null;
 	const isPast = dayKey(day) < dayKey(new Date());
+	const sortKey = (sport: string | null) =>
+		sport ? CATEGORY_ORDER.indexOf(sport as Category) : -1;
+	const ordered = [...workouts].sort(
+		(a, b) => sortKey(a.sport) - sortKey(b.sport),
+	);
 	return (
 		<div className="mt-auto flex flex-col gap-1 pt-1">
-			{workouts.map((w) => (
+			{ordered.map((w) => (
 				<WorkoutChip key={String(w.id)} w={w} isPast={isPast} />
 			))}
 		</div>

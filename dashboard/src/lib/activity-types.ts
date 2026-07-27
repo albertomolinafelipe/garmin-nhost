@@ -216,3 +216,34 @@ export const categoryColor: Record<Category, string> = {
 	cycling: "#957FB8", // oniViolet
 	other: "#727169", // fujiGray
 };
+
+// A more saturated, slightly brighter take on a category color, used where plan
+// items (workouts, requirement bars) borrow the sport's identity but need to pop.
+export function saturatedColor(hex: string): string {
+	const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(hex);
+	if (!m) return hex;
+	const [r, g, b] = [m[1], m[2], m[3]].map((h) => parseInt(h, 16) / 255);
+	const max = Math.max(r, g, b);
+	const min = Math.min(r, g, b);
+	const l = (max + min) / 2;
+	const d = max - min;
+	let h = 0;
+	if (d !== 0) {
+		if (max === r) h = ((g - b) / d) % 6;
+		else if (max === g) h = (b - r) / d + 2;
+		else h = (r - g) / d + 4;
+		h *= 60;
+		if (h < 0) h += 360;
+	}
+	let s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+	s = Math.min(1, s * 1.8);
+	const l2 = Math.min(0.62, l * 1.05);
+	return `hsl(${h.toFixed(0)} ${(s * 100).toFixed(0)}% ${(l2 * 100).toFixed(0)}%)`;
+}
+
+// Saturated color for a plan sport; falls back to the plan accent token when the
+// sport is null ("all sports") or unknown.
+export function sportColor(sport: string | null): string {
+	const base = sport ? categoryColor[sport as Category] : undefined;
+	return base ? saturatedColor(base) : "var(--plan)";
+}
