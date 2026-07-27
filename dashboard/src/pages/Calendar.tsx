@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -8,11 +9,14 @@ import {
 	computeWeekTotals,
 	DayEvent,
 	DayRaces,
+	dayDropProps,
 	DayWorkouts,
 	indexRaces,
 	indexRequirements,
 	indexWorkouts,
+	PlanWorkoutDndProvider,
 	type Race,
+	useWorkoutDnd,
 	startOfWeek,
 	TotalRow,
 	WeekRequirements,
@@ -36,8 +40,38 @@ import { type CalendarActivity, useActivities } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 export function Calendar() {
-	const [cursor, setCursor] = useState(() => new Date());
+	return (
+		<PlanWorkoutDndProvider>
+			<CalendarInner />
+		</PlanWorkoutDndProvider>
+	);
+}
+
+// Month token 'YYYY-MM' <-> Date (first of month), used to persist the viewed
+// month in the URL so returning from an activity lands on the same month.
+function monthToken(date: Date): string {
+	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+function parseMonthToken(token: string | null): Date | null {
+	if (!token) return null;
+	const match = /^(\d{4})-(\d{2})$/.exec(token);
+	if (!match) return null;
+	return new Date(Number(match[1]), Number(match[2]) - 1, 1);
+}
+
+function CalendarInner() {
+	const [searchParams, setSearchParams] = useSearchParams();
+	const cursor = parseMonthToken(searchParams.get("month")) ?? new Date();
+	const setCursor = (date: Date) =>
+		setSearchParams(
+			(prev) => {
+				prev.set("month", monthToken(date));
+				return prev;
+			},
+			{ replace: true },
+		);
 	const [filter, setFilter] = useState<Category | null>(null);
+	const dnd = useWorkoutDnd();
 	const { data, isLoading } = useActivities();
 	const { data: workouts } = useAllPlanWorkoutsQuery();
 	const { data: requirements } = useAllPlanRequirementsQuery();
@@ -196,6 +230,7 @@ export function Calendar() {
 										return (
 											<div
 												key={dayKey(day)}
+												{...dayDropProps(dnd, day)}
 												className={cn(
 													"flex min-w-0 flex-col overflow-hidden border-r p-1 last:border-r-0",
 													offMonth && "bg-muted/30",

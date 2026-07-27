@@ -1,5 +1,15 @@
-import { useState } from "react";
+import {
+	createContext,
+	type ReactNode,
+	useCallback,
+	useContext,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import {
 	type Category,
@@ -19,6 +29,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
+import { usePlansQuery, useUpdatePlanWorkoutMutation } from "@/graphql/hooks";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { dayKey, fmtDistance, fmtDuration } from "@/lib/format";
 import {
@@ -122,6 +133,94 @@ export interface PlanWorkout {
 	description?: string | null;
 }
 
+// Drag-and-drop: dragging a workout chip onto a day cell reschedules it to that
+// day's ISO week + weekday, provided the day still falls inside the plan's week
+// range. Shared by the month calendar and the week strip via context so the
+// drop targets (page-owned day cells) and drag source (WorkoutChip) coordinate
+// without prop drilling.
+interface WorkoutDndValue {
+	onDragStartWorkout: (w: PlanWorkout, e: React.DragEvent) => void;
+	onDropDay: (day: Date, e: React.DragEvent) => void;
+}
+
+const WorkoutDndContext = createContext<WorkoutDndValue | null>(null);
+
+export function PlanWorkoutDndProvider({ children }: { children: ReactNode }) {
+	const dragged = useRef<PlanWorkout | null>(null);
+	const plans = usePlansQuery();
+	const update = useUpdatePlanWorkoutMutation();
+	const queryClient = useQueryClient();
+
+	const onDragStartWorkout = useCallback(
+		(w: PlanWorkout, e: React.DragEvent) => {
+			dragged.current = w;
+			e.dataTransfer.effectAllowed = "move";
+			e.dataTransfer.setData("text/plain", String(w.id));
+		},
+		[],
+	);
+
+	const onDropDay = useCallback(
+		(day: Date, e: React.DragEvent) => {
+			e.preventDefault();
+			const w = dragged.current;
+			dragged.current = null;
+			if (!w) return;
+			const week = toIsoWeek(day);
+			const dow = dayToken(day);
+			if (w.week === week && w.day_of_week === dow) return;
+			const plan = plans.data?.find((p) => String(p.id) === String(w.plan_id));
+			if (!plan || week < plan.start_week || week > plan.end_week) {
+				toast.error("That day is outside the plan's range");
+				return;
+			}
+			void (async () => {
+				try {
+					await update.mutateAsync({
+						id: w.id,
+						set: { week, day_of_week: dow },
+					});
+					await queryClient.invalidateQueries({ queryKey: ["plan-workouts"] });
+				} catch {
+					toast.error("Could not move the workout");
+				}
+			})();
+		},
+		[plans.data, update, queryClient],
+	);
+
+	const value = useMemo(
+		() => ({ onDragStartWorkout, onDropDay }),
+		[onDragStartWorkout, onDropDay],
+	);
+	return (
+		<WorkoutDndContext.Provider value={value}>
+			{children}
+		</WorkoutDndContext.Provider>
+	);
+}
+
+export function useWorkoutDnd(): WorkoutDndValue | null {
+	return useContext(WorkoutDndContext);
+}
+
+// Plain helpers (not hooks) so they can be used inside `.map` day loops.
+export function dayDropProps(dnd: WorkoutDndValue | null, day: Date) {
+	if (!dnd) return {};
+	return {
+		onDragOver: (e: React.DragEvent) => e.preventDefault(),
+		onDrop: (e: React.DragEvent) => dnd.onDropDay(day, e),
+	};
+}
+
+export function workoutDragProps(dnd: WorkoutDndValue | null, w: PlanWorkout) {
+	if (!dnd) return {};
+	return {
+		draggable: true,
+		onDragStart: (e: React.DragEvent) => dnd.onDragStartWorkout(w, e),
+	};
+}
+
 // Index workouts by `${isoWeek}|${dayOfWeek}` for O(1) per-day lookup.
 export function indexWorkouts(
 	workouts: PlanWorkout[],
@@ -200,6 +299,7 @@ export function DayRaces({
 function WorkoutChip({ w, isPast }: { w: PlanWorkout; isPast: boolean }) {
 	const navigate = useNavigate();
 	const isMobile = useIsMobile();
+	const dnd = useWorkoutDnd();
 	const [open, setOpen] = useState(false);
 	const Icon = sportIcon(w.sport);
 	const goToPlan = () => navigate(`/plans?plan=${w.plan_id}`);
@@ -207,9 +307,11 @@ function WorkoutChip({ w, isPast }: { w: PlanWorkout; isPast: boolean }) {
 	const chip = (
 		<button
 			type="button"
+			{...workoutDragProps(dnd, w)}
 			onClick={() => (isMobile ? setOpen(true) : goToPlan())}
 			className={cn(
 				"bg-muted hover:bg-accent flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 leading-tight transition-colors md:justify-start",
+				dnd ? "md:cursor-grab md:active:cursor-grabbing" : "",
 				isPast ? "text-muted-foreground" : "text-plan",
 			)}
 			title={w.title}
@@ -443,6 +545,7 @@ export function WeekStrip({
 	requirements?: PlanRequirement[];
 }) {
 	const today = dayKey(new Date());
+	const dnd = useWorkoutDnd();
 	const showTotals = totals !== undefined || requirements !== undefined;
 	const weekActivities = showTotals ? Array.from(byDay.values()).flat() : [];
 	return (
@@ -456,6 +559,7 @@ export function WeekStrip({
 					return (
 						<div
 							key={key}
+							{...dayDropProps(dnd, day)}
 							className="flex min-h-0 min-w-0 flex-col border-r last:border-r-0"
 						>
 							<div

@@ -37,6 +37,7 @@ import {
 	computeWeekTotals,
 	indexRaces,
 	indexWorkouts,
+	PlanWorkoutDndProvider,
 	type Race,
 	startOfWeek,
 	WeekStrip,
@@ -1040,14 +1041,16 @@ function WeekPanel({ className }: { className?: string }) {
 
 	return (
 		<div className={cn("min-h-0", className)}>
-			<WeekStrip
-				weekStart={weekStart}
-				byDay={byDay}
-				workoutsByWeekDay={workoutsByWeekDay}
-				racesByDay={racesByDay}
-				totals={totals}
-				requirements={weekRequirements}
-			/>
+			<PlanWorkoutDndProvider>
+				<WeekStrip
+					weekStart={weekStart}
+					byDay={byDay}
+					workoutsByWeekDay={workoutsByWeekDay}
+					racesByDay={racesByDay}
+					totals={totals}
+					requirements={weekRequirements}
+				/>
+			</PlanWorkoutDndProvider>
 		</div>
 	);
 }
