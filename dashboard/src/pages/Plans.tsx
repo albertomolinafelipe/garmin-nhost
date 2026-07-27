@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { CalendarRange, Plus, Target, Trash2 } from "lucide-react";
+import {
+	ChevronLeft,
+	ChevronRight,
+	Layers,
+	Pencil,
+	Plus,
+	Trash2,
+} from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 
 import {
@@ -17,8 +26,31 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+	Card,
+	CardAction,
+	CardContent,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NumberInput } from "@/components/ui/number-input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+} from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import {
 	Sheet,
 	SheetContent,
@@ -26,15 +58,32 @@ import {
 	SheetFooter,
 	SheetHeader,
 	SheetTitle,
-	SheetTrigger,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import {
 	useDeletePlanMutation,
+	useDeletePlanRequirementMutation,
+	useDeletePlanWorkoutMutation,
 	useInsertPlanMutation,
+	useInsertPlanRequirementMutation,
+	useInsertPlanWorkoutMutation,
+	usePlanQuery,
 	usePlansQuery,
+	useUpdatePlanMutation,
 } from "@/graphql/hooks";
-import { currentIsoWeek, isIsoWeek, planIsActive } from "@/lib/plans";
+import {
+	currentIsoWeek,
+	DAY_LABEL,
+	DAYS,
+	isIsoWeek,
+	type Metric,
+	METRIC_META,
+	METRICS,
+	planIsActive,
+	sportIcon,
+	SPORTS,
+	weeksInRange,
+} from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
 type Plan = {
@@ -45,14 +94,31 @@ type Plan = {
 	notes: string | null;
 };
 
-function CreatePlanForm({ onCreated }: { onCreated: () => void }) {
-	const queryClient = useQueryClient();
-	const insert = useInsertPlanMutation();
+type PlanFormValues = {
+	name: string;
+	start_week: string;
+	end_week: string;
+	notes: string | null;
+};
+
+function PlanForm({
+	initial,
+	submitting,
+	submitLabel,
+	pendingLabel,
+	onSubmit,
+}: {
+	initial?: PlanFormValues;
+	submitting: boolean;
+	submitLabel: string;
+	pendingLabel: string;
+	onSubmit: (values: PlanFormValues) => void;
+}) {
 	const [month, setMonth] = useState<Date>(new Date());
-	const [name, setName] = useState("");
-	const [startWeek, setStartWeek] = useState("");
-	const [endWeek, setEndWeek] = useState("");
-	const [notes, setNotes] = useState("");
+	const [name, setName] = useState(initial?.name ?? "");
+	const [startWeek, setStartWeek] = useState(initial?.start_week ?? "");
+	const [endWeek, setEndWeek] = useState(initial?.end_week ?? "");
+	const [notes, setNotes] = useState(initial?.notes ?? "");
 
 	const orderInvalid =
 		isIsoWeek(startWeek) && isIsoWeek(endWeek) && endWeek < startWeek;
@@ -62,22 +128,14 @@ function CreatePlanForm({ onCreated }: { onCreated: () => void }) {
 		isIsoWeek(endWeek) &&
 		!orderInvalid;
 
-	const create = async () => {
-		if (!valid || insert.isPending) return;
-		try {
-			await insert.mutateAsync({
-				object: {
-					name: name.trim(),
-					start_week: startWeek,
-					end_week: endWeek,
-					notes: notes.trim() || null,
-				},
-			});
-			await queryClient.invalidateQueries({ queryKey: ["plans"] });
-			onCreated();
-		} catch {
-			toast.error("Could not create the plan");
-		}
+	const submit = () => {
+		if (!valid || submitting) return;
+		onSubmit({
+			name: name.trim(),
+			start_week: startWeek,
+			end_week: endWeek,
+			notes: notes.trim() || null,
+		});
 	};
 
 	return (
@@ -100,7 +158,7 @@ function CreatePlanForm({ onCreated }: { onCreated: () => void }) {
 						id="plan-name"
 						value={name}
 						placeholder="e.g. Base build 2026"
-						disabled={insert.isPending}
+						disabled={submitting}
 						onChange={(event) => setName(event.target.value)}
 					/>
 				</div>
@@ -111,7 +169,7 @@ function CreatePlanForm({ onCreated }: { onCreated: () => void }) {
 							id="plan-start"
 							value={startWeek}
 							placeholder="2026-W01"
-							disabled={insert.isPending}
+							disabled={submitting}
 							onChange={(event) => setStartWeek(event.target.value)}
 						/>
 					</div>
@@ -121,7 +179,7 @@ function CreatePlanForm({ onCreated }: { onCreated: () => void }) {
 							id="plan-end"
 							value={endWeek}
 							placeholder="2026-W04"
-							disabled={insert.isPending}
+							disabled={submitting}
 							onChange={(event) => setEndWeek(event.target.value)}
 						/>
 					</div>
@@ -136,25 +194,87 @@ function CreatePlanForm({ onCreated }: { onCreated: () => void }) {
 					</p>
 				) : null}
 				<div className="grid gap-2">
-					<Label htmlFor="plan-notes">Notes</Label>
+					<Label htmlFor="plan-notes">Notes (markdown)</Label>
 					<Textarea
 						id="plan-notes"
 						value={notes}
-						placeholder="Optional"
-						disabled={insert.isPending}
+						rows={8}
+						placeholder="Supports **markdown**"
+						disabled={submitting}
 						onChange={(event) => setNotes(event.target.value)}
 					/>
 				</div>
 			</div>
 			<SheetFooter>
-				<Button
-					disabled={!valid || insert.isPending}
-					onClick={() => void create()}
-				>
-					{insert.isPending ? "Creating…" : "Create plan"}
+				<Button disabled={!valid || submitting} onClick={submit}>
+					{submitting ? pendingLabel : submitLabel}
 				</Button>
 			</SheetFooter>
 		</>
+	);
+}
+
+function PlanSheet({
+	open,
+	onOpenChange,
+	plan,
+}: {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	plan?: Plan;
+}) {
+	const queryClient = useQueryClient();
+	const insert = useInsertPlanMutation();
+	const update = useUpdatePlanMutation();
+	const editing = plan != null;
+	const submitting = editing ? update.isPending : insert.isPending;
+
+	const submit = async (values: PlanFormValues) => {
+		try {
+			if (editing) {
+				await update.mutateAsync({ id: plan.id, set: values });
+			} else {
+				await insert.mutateAsync({ object: values });
+			}
+			await queryClient.invalidateQueries({ queryKey: ["plans"] });
+			toast.success(editing ? "Plan updated" : "Plan created");
+			onOpenChange(false);
+		} catch {
+			toast.error(
+				editing ? "Could not update the plan" : "Could not create the plan",
+			);
+		}
+	};
+
+	return (
+		<Sheet open={open} onOpenChange={onOpenChange}>
+			<SheetContent side="right" className="w-full gap-0 p-0 sm:max-w-md">
+				<SheetHeader>
+					<SheetTitle>{editing ? "Edit plan" : "New plan"}</SheetTitle>
+					<SheetDescription>
+						{editing
+							? "Update the plan's details."
+							: "A plan spans a range of ISO weeks and holds weekly requirements and planned workouts."}
+					</SheetDescription>
+				</SheetHeader>
+				<PlanForm
+					initial={
+						editing
+							? {
+									name: plan.name,
+									start_week: plan.start_week,
+									end_week: plan.end_week,
+									notes: plan.notes,
+								}
+							: undefined
+					}
+					submitting={submitting}
+					submitLabel={editing ? "Save changes" : "Create plan"}
+					pendingLabel={editing ? "Saving…" : "Creating…"}
+					onSubmit={(values) => void submit(values)}
+				/>
+			</SheetContent>
+		</Sheet>
 	);
 }
 
@@ -196,6 +316,451 @@ function DeletePlanButton({
 	);
 }
 
+function WeekStepper({
+	weeks,
+	value,
+	onChange,
+	disabled,
+}: {
+	weeks: string[];
+	value: string;
+	onChange: (week: string) => void;
+	disabled?: boolean;
+}) {
+	const index = Math.max(0, weeks.indexOf(value));
+	return (
+		<div className="flex items-center gap-1">
+			<Button
+				type="button"
+				variant="outline"
+				size="icon"
+				className="size-9"
+				disabled={disabled || index <= 0}
+				onClick={() => onChange(weeks[index - 1])}
+			>
+				<ChevronLeft className="size-4" />
+			</Button>
+			<span className="w-20 text-center text-sm font-medium tabular-nums">
+				{value || "—"}
+			</span>
+			<Button
+				type="button"
+				variant="outline"
+				size="icon"
+				className="size-9"
+				disabled={disabled || index >= weeks.length - 1}
+				onClick={() => onChange(weeks[index + 1])}
+			>
+				<ChevronRight className="size-4" />
+			</Button>
+		</div>
+	);
+}
+
+function RequirementsSection({ plan }: { plan: Plan }) {
+	const planId = String(plan.id);
+	const queryClient = useQueryClient();
+	const { data } = usePlanQuery(planId);
+	const insert = useInsertPlanRequirementMutation();
+	const remove = useDeletePlanRequirementMutation();
+	const reqs = data?.requirements ?? [];
+	const weeks = weeksInRange(plan.start_week, plan.end_week);
+
+	const [adding, setAdding] = useState(false);
+	const [week, setWeek] = useState(weeks[0] ?? "");
+	const [sport, setSport] = useState("all");
+	const [metric, setMetric] = useState<string>(METRICS[0]);
+	const [target, setTarget] = useState<number | null>(null);
+
+	const refresh = () =>
+		queryClient.invalidateQueries({ queryKey: ["plan", planId] });
+
+	const valid = isIsoWeek(week) && target != null;
+
+	const resetDraft = () => {
+		setMetric(METRICS[0]);
+		setTarget(null);
+		setAdding(false);
+	};
+
+	const save = async () => {
+		if (!valid || insert.isPending) return;
+		try {
+			await insert.mutateAsync({
+				object: {
+					plan_id: planId,
+					week,
+					sport: sport === "all" ? null : sport,
+					metric,
+					target: METRIC_META[metric as Metric].toBase(target),
+				},
+			});
+			resetDraft();
+			await refresh();
+		} catch {
+			toast.error("Could not add requirement");
+		}
+	};
+
+	const del = async (id: unknown) => {
+		try {
+			await remove.mutateAsync({ id });
+			await refresh();
+		} catch {
+			toast.error("Could not delete requirement");
+		}
+	};
+
+	const SportIcon = sportIcon(sport === "all" ? null : sport);
+	const MetricIcon = METRIC_META[metric as Metric].icon;
+
+	return (
+		<Card className="bg-muted/50 gap-4 border-none py-4 shadow-none">
+			<CardHeader className="px-4">
+				<CardTitle className="text-sm">Requirements</CardTitle>
+				{adding ? null : (
+					<CardAction>
+						<Button variant="outline" size="sm" onClick={() => setAdding(true)}>
+							<Plus className="size-4" />
+							New
+						</Button>
+					</CardAction>
+				)}
+			</CardHeader>
+			<CardContent className="space-y-3 px-4">
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>Week</TableHead>
+							<TableHead>Sport</TableHead>
+							<TableHead>Metric</TableHead>
+							<TableHead>Target</TableHead>
+							<TableHead className="w-8" />
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{reqs.map((r) => {
+							const RowSport = sportIcon(r.sport);
+							const meta = METRIC_META[r.metric as Metric];
+							const RowMetric = meta?.icon;
+							return (
+								<TableRow key={String(r.id)}>
+									<TableCell className="tabular-nums">{r.week}</TableCell>
+									<TableCell>
+										<span className="flex items-center gap-1.5">
+											<RowSport className="text-muted-foreground size-4" />
+											{r.sport ?? "All"}
+										</span>
+									</TableCell>
+									<TableCell>
+										<span className="flex items-center gap-1.5">
+											{RowMetric ? (
+												<RowMetric className="text-muted-foreground size-4" />
+											) : null}
+											{meta?.label ?? r.metric}
+										</span>
+									</TableCell>
+									<TableCell className="tabular-nums">
+										{meta?.format(Number(r.target)) ?? String(r.target)}
+									</TableCell>
+									<TableCell>
+										<Button
+											variant="ghost"
+											size="icon"
+											className="text-muted-foreground hover:text-destructive size-7"
+											aria-label="Delete requirement"
+											onClick={() => void del(r.id)}
+										>
+											<Trash2 className="size-4" />
+										</Button>
+									</TableCell>
+								</TableRow>
+							);
+						})}
+						{reqs.length === 0 ? (
+							<TableRow>
+								<TableCell
+									colSpan={5}
+									className="text-muted-foreground text-center"
+								>
+									No requirements yet.
+								</TableCell>
+							</TableRow>
+						) : null}
+					</TableBody>
+				</Table>
+
+				{adding ? (
+					<div className="flex flex-wrap items-center gap-2">
+						<WeekStepper weeks={weeks} value={week} onChange={setWeek} />
+						<Select value={sport} onValueChange={setSport}>
+							<SelectTrigger className="w-36">
+								<span className="flex items-center gap-1.5">
+									<SportIcon className="size-4" />
+									{sport === "all" ? "All sports" : sport}
+								</span>
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all">
+									<span className="flex items-center gap-1.5">
+										<Layers className="size-4" />
+										All sports
+									</span>
+								</SelectItem>
+								{SPORTS.map((s) => {
+									const Icon = sportIcon(s);
+									return (
+										<SelectItem key={s} value={s}>
+											<span className="flex items-center gap-1.5">
+												<Icon className="size-4" />
+												{s}
+											</span>
+										</SelectItem>
+									);
+								})}
+							</SelectContent>
+						</Select>
+						<Select value={metric} onValueChange={setMetric}>
+							<SelectTrigger className="w-36">
+								<span className="flex items-center gap-1.5">
+									<MetricIcon className="size-4" />
+									{METRIC_META[metric as Metric].label}
+								</span>
+							</SelectTrigger>
+							<SelectContent>
+								{METRICS.map((m) => {
+									const Icon = METRIC_META[m].icon;
+									return (
+										<SelectItem key={m} value={m}>
+											<span className="flex items-center gap-1.5">
+												<Icon className="size-4" />
+												{METRIC_META[m].label}
+											</span>
+										</SelectItem>
+									);
+								})}
+							</SelectContent>
+						</Select>
+						<div className="relative">
+							<NumberInput
+								nonNegative
+								value={target}
+								placeholder="target"
+								className="w-28 pr-9"
+								onChange={setTarget}
+							/>
+							{METRIC_META[metric as Metric].inputUnit ? (
+								<span className="text-muted-foreground pointer-events-none absolute inset-y-0 right-2 flex items-center text-xs">
+									{METRIC_META[metric as Metric].inputUnit}
+								</span>
+							) : null}
+						</div>
+						<Button
+							size="sm"
+							disabled={!valid || insert.isPending}
+							onClick={() => void save()}
+						>
+							{insert.isPending ? "Saving…" : "Save"}
+						</Button>
+						<Button variant="ghost" size="sm" onClick={resetDraft}>
+							Cancel
+						</Button>
+					</div>
+				) : null}
+			</CardContent>
+		</Card>
+	);
+}
+
+function WorkoutsSection({ plan }: { plan: Plan }) {
+	const planId = String(plan.id);
+	const queryClient = useQueryClient();
+	const { data } = usePlanQuery(planId);
+	const insert = useInsertPlanWorkoutMutation();
+	const remove = useDeletePlanWorkoutMutation();
+	const workouts = data?.workouts ?? [];
+	const weeks = weeksInRange(plan.start_week, plan.end_week);
+
+	const [adding, setAdding] = useState(false);
+	const [week, setWeek] = useState(weeks[0] ?? "");
+	const [day, setDay] = useState<string>(DAYS[0]);
+	const [sport, setSport] = useState<string>(SPORTS[0]);
+	const [title, setTitle] = useState("");
+
+	const refresh = () =>
+		queryClient.invalidateQueries({ queryKey: ["plan", planId] });
+
+	const valid = isIsoWeek(week) && title.trim() !== "";
+
+	const resetDraft = () => {
+		setTitle("");
+		setAdding(false);
+	};
+
+	const save = async () => {
+		if (!valid || insert.isPending) return;
+		try {
+			await insert.mutateAsync({
+				object: {
+					plan_id: planId,
+					week,
+					day_of_week: day,
+					sport,
+					title: title.trim(),
+				},
+			});
+			resetDraft();
+			await refresh();
+		} catch {
+			toast.error("Could not add workout");
+		}
+	};
+
+	const del = async (id: unknown) => {
+		try {
+			await remove.mutateAsync({ id });
+			await refresh();
+		} catch {
+			toast.error("Could not delete workout");
+		}
+	};
+
+	const SportIcon = sportIcon(sport);
+
+	return (
+		<Card className="bg-muted/50 gap-4 border-none py-4 shadow-none">
+			<CardHeader className="px-4">
+				<CardTitle className="text-sm">Workouts</CardTitle>
+				{adding ? null : (
+					<CardAction>
+						<Button variant="outline" size="sm" onClick={() => setAdding(true)}>
+							<Plus className="size-4" />
+							New
+						</Button>
+					</CardAction>
+				)}
+			</CardHeader>
+			<CardContent className="space-y-3 px-4">
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>Week</TableHead>
+							<TableHead>Day</TableHead>
+							<TableHead>Sport</TableHead>
+							<TableHead>Title</TableHead>
+							<TableHead className="w-8" />
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{workouts.map((w) => {
+							const RowSport = sportIcon(w.sport);
+							return (
+								<TableRow key={String(w.id)}>
+									<TableCell className="tabular-nums">{w.week}</TableCell>
+									<TableCell>
+										{DAY_LABEL[w.day_of_week as keyof typeof DAY_LABEL] ??
+											w.day_of_week}
+									</TableCell>
+									<TableCell>
+										<span className="flex items-center gap-1.5">
+											<RowSport className="text-muted-foreground size-4" />
+											{w.sport}
+										</span>
+									</TableCell>
+									<TableCell className="whitespace-normal">{w.title}</TableCell>
+									<TableCell>
+										<Button
+											variant="ghost"
+											size="icon"
+											className="text-muted-foreground hover:text-destructive size-7"
+											aria-label="Delete workout"
+											onClick={() => void del(w.id)}
+										>
+											<Trash2 className="size-4" />
+										</Button>
+									</TableCell>
+								</TableRow>
+							);
+						})}
+						{workouts.length === 0 ? (
+							<TableRow>
+								<TableCell
+									colSpan={5}
+									className="text-muted-foreground text-center"
+								>
+									No workouts yet.
+								</TableCell>
+							</TableRow>
+						) : null}
+					</TableBody>
+				</Table>
+
+				{adding ? (
+					<div className="flex flex-wrap items-center gap-2">
+						<WeekStepper weeks={weeks} value={week} onChange={setWeek} />
+						<ToggleGroup
+							type="single"
+							variant="outline"
+							size="sm"
+							value={day}
+							className="gap-0"
+							onValueChange={(value) => value && setDay(value)}
+						>
+							{DAYS.map((d) => (
+								<ToggleGroupItem
+									key={d}
+									value={d}
+									aria-label={DAY_LABEL[d]}
+									className="rounded-none border-l-0 first:rounded-l-md first:border-l last:rounded-r-md"
+								>
+									{DAY_LABEL[d]}
+								</ToggleGroupItem>
+							))}
+						</ToggleGroup>
+						<Select value={sport} onValueChange={setSport}>
+							<SelectTrigger className="w-36">
+								<span className="flex items-center gap-1.5">
+									<SportIcon className="size-4" />
+									{sport}
+								</span>
+							</SelectTrigger>
+							<SelectContent>
+								{SPORTS.map((s) => {
+									const Icon = sportIcon(s);
+									return (
+										<SelectItem key={s} value={s}>
+											<span className="flex items-center gap-1.5">
+												<Icon className="size-4" />
+												{s}
+											</span>
+										</SelectItem>
+									);
+								})}
+							</SelectContent>
+						</Select>
+						<Input
+							value={title}
+							placeholder="Workout title"
+							className="min-w-32 flex-1"
+							onChange={(e) => setTitle(e.target.value)}
+						/>
+						<Button
+							size="sm"
+							disabled={!valid || insert.isPending}
+							onClick={() => void save()}
+						>
+							{insert.isPending ? "Saving…" : "Save"}
+						</Button>
+						<Button variant="ghost" size="sm" onClick={resetDraft}>
+							Cancel
+						</Button>
+					</div>
+				) : null}
+			</CardContent>
+		</Card>
+	);
+}
+
 function SelectedPlanPanel({
 	plan,
 	active,
@@ -203,6 +768,8 @@ function SelectedPlanPanel({
 	plan: Plan | null;
 	active: boolean;
 }) {
+	const [editOpen, setEditOpen] = useState(false);
+
 	if (!plan) {
 		return (
 			<div className="text-muted-foreground flex flex-1 items-center justify-center p-8 text-sm">
@@ -210,31 +777,41 @@ function SelectedPlanPanel({
 			</div>
 		);
 	}
+
 	return (
-		<div className="min-h-0 flex-1 overflow-y-auto p-6">
-			<div className="flex items-start gap-4">
-				<div className="bg-primary/10 text-primary flex size-12 shrink-0 items-center justify-center rounded-xl">
-					<Target className="size-6" />
-				</div>
-				<div className="min-w-0 flex-1">
+		<div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-6">
+			<div className="flex items-start justify-between gap-3">
+				<div className="min-w-0">
 					<div className="flex items-center gap-2">
-						<h3 className="truncate text-xl font-semibold">{plan.name}</h3>
+						<h3 className="truncate text-base font-semibold">{plan.name}</h3>
 						{active ? <Badge variant="secondary">Active</Badge> : null}
 					</div>
-					<div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-sm">
-						<CalendarRange className="size-4" />
-						<span>
-							{plan.start_week} – {plan.end_week}
-						</span>
-					</div>
+					<p className="text-muted-foreground mt-0.5 text-xs">
+						{plan.start_week} – {plan.end_week}
+					</p>
+					{plan.notes ? (
+						<div className="text-muted-foreground mt-2 space-y-1 text-sm [&_a]:underline [&_h1]:font-semibold [&_h2]:font-semibold [&_li]:ml-4 [&_li]:list-disc [&_ul]:my-1">
+							<ReactMarkdown remarkPlugins={[remarkGfm]}>
+								{plan.notes}
+							</ReactMarkdown>
+						</div>
+					) : null}
 				</div>
+				<Button
+					variant="outline"
+					size="sm"
+					className="shrink-0"
+					onClick={() => setEditOpen(true)}
+				>
+					<Pencil className="size-4" />
+					Edit
+				</Button>
 			</div>
-			{plan.notes ? (
-				<p className="text-muted-foreground mt-4 text-sm">{plan.notes}</p>
-			) : null}
-			<div className="text-muted-foreground mt-6 rounded-lg border border-dashed p-6 text-center text-sm">
-				Weekly requirements and planned workouts will appear here.
-			</div>
+
+			<PlanSheet plan={plan} open={editOpen} onOpenChange={setEditOpen} />
+
+			<RequirementsSection plan={plan} />
+			<WorkoutsSection plan={plan} />
 		</div>
 	);
 }
@@ -272,6 +849,7 @@ export function Plans() {
 		<div className="grid h-full grid-cols-1 gap-4 p-4 md:grid-cols-3 md:p-6">
 			<section className="bg-card flex h-full min-h-0 flex-col rounded-xl border md:col-span-2">
 				<SelectedPlanPanel
+					key={selected ? String(selected.id) : "none"}
 					plan={selected}
 					active={selected != null && planIsActive(selected, week)}
 				/>
@@ -283,24 +861,11 @@ export function Plans() {
 						<h2 className="font-semibold">All plans</h2>
 						<p className="text-muted-foreground text-xs">{all.length} total</p>
 					</div>
-					<Sheet open={createOpen} onOpenChange={setCreateOpen}>
-						<SheetTrigger asChild>
-							<Button size="sm">
-								<Plus className="size-4" />
-								New
-							</Button>
-						</SheetTrigger>
-						<SheetContent className="w-full gap-0 p-0 sm:max-w-md">
-							<SheetHeader>
-								<SheetTitle>New plan</SheetTitle>
-								<SheetDescription>
-									A plan spans a range of ISO weeks and holds weekly
-									requirements and planned workouts.
-								</SheetDescription>
-							</SheetHeader>
-							<CreatePlanForm onCreated={() => setCreateOpen(false)} />
-						</SheetContent>
-					</Sheet>
+					<Button size="sm" onClick={() => setCreateOpen(true)}>
+						<Plus className="size-4" />
+						New
+					</Button>
+					<PlanSheet open={createOpen} onOpenChange={setCreateOpen} />
 				</div>
 
 				<div className="min-h-0 flex-1 overflow-y-auto p-2">

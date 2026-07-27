@@ -1,12 +1,31 @@
-import { getISOWeek, getISOWeekYear } from "date-fns";
+import {
+	addWeeks,
+	getISOWeek,
+	getISOWeekYear,
+	setISOWeek,
+	setISOWeekYear,
+	startOfISOWeek,
+} from "date-fns";
+import { Clock, Layers, Mountain, Repeat, Route } from "lucide-react";
 
-import { CATEGORY_ORDER, type Category } from "./activity-types";
+import {
+	CATEGORY_ORDER,
+	categoryIcon,
+	type Category,
+	type IconComponent,
+} from "./activity-types";
 
 // Mirrors the DB CHECK vocab for plans. These enums are the mutation-boundary
 // source of truth; the Postgres CHECK constraints are the backstop.
 
 export type Sport = Category;
 export const SPORTS: readonly Sport[] = CATEGORY_ORDER;
+
+// Icon for a requirement/workout sport; null means "all sports".
+export function sportIcon(sport: string | null): IconComponent {
+	if (!sport) return Layers;
+	return categoryIcon[sport as Category] ?? Layers;
+}
 
 export type Metric = "distance" | "elevation" | "duration" | "sessions";
 export const METRICS = [
@@ -43,23 +62,40 @@ export const METRIC_META: Record<
 	Metric,
 	{
 		label: string;
+		icon: IconComponent;
 		activityColumn: string | null;
-		format: (target: number) => string;
+		// Unit the user types in the form; converted to the stored base unit.
+		inputUnit: string;
+		toBase: (input: number) => number;
+		fromBase: (base: number) => number;
+		format: (base: number) => string;
 	}
 > = {
 	distance: {
 		label: "Distance",
+		icon: Route,
 		activityColumn: "distance_m",
+		inputUnit: "km",
+		toBase: (km) => km * 1000,
+		fromBase: (m) => m / 1000,
 		format: (m) => `${(m / 1000).toFixed(1)} km`,
 	},
 	elevation: {
 		label: "Elevation",
+		icon: Mountain,
 		activityColumn: "elevation_gain_m",
+		inputUnit: "m",
+		toBase: (m) => m,
+		fromBase: (m) => m,
 		format: (m) => `${Math.round(m)} m`,
 	},
 	duration: {
 		label: "Duration",
+		icon: Clock,
 		activityColumn: "duration_s",
+		inputUnit: "min",
+		toBase: (min) => min * 60,
+		fromBase: (s) => s / 60,
 		format: (s) => {
 			const h = Math.floor(s / 3600);
 			const min = Math.round((s % 3600) / 60);
@@ -68,7 +104,11 @@ export const METRIC_META: Record<
 	},
 	sessions: {
 		label: "Sessions",
+		icon: Repeat,
 		activityColumn: null,
+		inputUnit: "",
+		toBase: (n) => n,
+		fromBase: (n) => n,
 		format: (n) => `${n} session${n === 1 ? "" : "s"}`,
 	},
 };
@@ -98,4 +138,25 @@ export function planIsActive(
 	week: string,
 ): boolean {
 	return plan.start_week <= week && week <= plan.end_week;
+}
+
+function isoWeekToDate(value: string): Date {
+	const [year, week] = value.split("-W");
+	return startOfISOWeek(
+		setISOWeek(setISOWeekYear(new Date(), Number(year)), Number(week)),
+	);
+}
+
+// Every ISO week from start to end inclusive, e.g. ['2026-W01', '2026-W02', ...].
+export function weeksInRange(start: string, end: string): string[] {
+	if (!isIsoWeek(start) || !isIsoWeek(end) || end < start) return [];
+	const weeks: string[] = [];
+	let date = isoWeekToDate(start);
+	for (let i = 0; i < 260; i++) {
+		const week = toIsoWeek(date);
+		weeks.push(week);
+		if (week >= end) break;
+		date = addWeeks(date, 1);
+	}
+	return weeks;
 }
