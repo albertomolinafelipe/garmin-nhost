@@ -18,6 +18,9 @@ import {
 
 const allSportsIcon = iconifyIcon("mdi:layers");
 
+// Shared race glyph. Colour comes from the `--race` token (text-race/bg-race).
+export const raceIcon = iconifyIcon("tabler:laurel-wreath");
+
 // Mirrors the DB CHECK vocab for plans. These enums are the mutation-boundary
 // source of truth; the Postgres CHECK constraints are the backstop.
 

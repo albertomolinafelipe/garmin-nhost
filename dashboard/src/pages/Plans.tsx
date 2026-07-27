@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import ReactMarkdown from "react-markdown";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 
@@ -57,6 +57,7 @@ import {
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { TimelineList } from "@/components/timeline-list";
+import { useActivities } from "@/lib/queries";
 import {
 	useDeletePlanMutation,
 	useDeletePlanRequirementMutation,
@@ -80,6 +81,7 @@ import {
 	METRIC_META,
 	METRICS,
 	planIsActive,
+	raceIcon as RaceIcon,
 	sportIcon,
 	SPORTS,
 	weeksInRange,
@@ -920,13 +922,30 @@ function RaceSheet({
 
 function RacesPanel() {
 	const queryClient = useQueryClient();
+	const navigate = useNavigate();
 	const races = useRacesQuery();
+	const activities = useActivities();
 	const remove = useDeleteRaceMutation();
 	const [createOpen, setCreateOpen] = useState(false);
 	const today = new Date().toISOString().slice(0, 10);
 	const list = [...(races.data ?? [])].sort((a, b) =>
 		String(a.date).localeCompare(String(b.date)),
 	);
+
+	// Local calendar date -> activity ids started that day. A race links to its
+	// day's activity only when exactly one exists.
+	const byDay = new Map<string, string[]>();
+	for (const activity of activities.data?.activities ?? []) {
+		if (!activity.start_time) continue;
+		const day = format(new Date(activity.start_time), "yyyy-MM-dd");
+		const ids = byDay.get(day) ?? [];
+		ids.push(String(activity.id));
+		byDay.set(day, ids);
+	}
+	const activityForRace = (date: string): string | null => {
+		const ids = byDay.get(date);
+		return ids && ids.length === 1 ? ids[0] : null;
+	};
 
 	const del = async (id: unknown) => {
 		try {
@@ -969,11 +988,25 @@ function RacesPanel() {
 					]
 						.filter(Boolean)
 						.join(" · ");
+					const activityId = activityForRace(String(race.date));
 					return (
-						<div className="hover:bg-muted group flex items-center gap-2 rounded-lg p-2">
-							<span className="min-w-0 flex-1">
-								<span className="block truncate text-sm font-medium">
-									{race.name}
+						<div className="hover:bg-muted group flex items-center gap-2 rounded-lg">
+							<button
+								type="button"
+								disabled={activityId == null}
+								onClick={() =>
+									activityId && navigate(`/activities/${activityId}`)
+								}
+								className={cn(
+									"min-w-0 flex-1 p-2 text-left",
+									activityId != null && "cursor-pointer",
+								)}
+							>
+								<span className="flex items-center gap-1.5 truncate text-sm font-medium">
+									{String(race.date) < today ? (
+										<RaceIcon className="text-race size-4 shrink-0" />
+									) : null}
+									<span className="truncate">{race.name}</span>
 								</span>
 								<span className="text-muted-foreground block truncate text-xs">
 									{format(
@@ -982,11 +1015,11 @@ function RacesPanel() {
 									)}
 									{meta ? ` · ${meta}` : ""}
 								</span>
-							</span>
+							</button>
 							<Button
 								variant="ghost"
 								size="icon"
-								className="text-muted-foreground hover:text-destructive size-8 shrink-0 opacity-0 group-hover:opacity-100"
+								className="text-muted-foreground hover:text-destructive mr-1 size-8 shrink-0 opacity-0 group-hover:opacity-100"
 								aria-label={`Delete ${race.name}`}
 								onClick={() => void del(race.id)}
 							>

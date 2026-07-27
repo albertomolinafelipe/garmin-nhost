@@ -8,7 +8,6 @@ import {
 	categoryIcon,
 	categoryOf,
 	effectiveSubtype,
-	iconifyIcon,
 } from "@/lib/activity-types";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -27,6 +26,7 @@ import {
 	dayToken,
 	type Metric,
 	METRIC_META,
+	raceIcon,
 	sportIcon,
 	toIsoWeek,
 } from "@/lib/plans";
@@ -134,7 +134,7 @@ export function indexWorkouts(
 	return map;
 }
 
-const RaceIcon = iconifyIcon("tabler:laurel-wreath");
+const RaceIcon = raceIcon;
 
 export interface Race {
 	id: unknown;

@@ -57,9 +57,9 @@ export function TerrainRouteMap({
 				source: ROUTE_SOURCE,
 				layout: { "line-cap": "round", "line-join": "round" },
 				paint: {
-					"line-color": "#7FB4CA",
+					"line-color": "#0066ff",
 					"line-width": 4,
-					"line-opacity": 0.9,
+					"line-opacity": 1,
 				},
 			});
 		});
