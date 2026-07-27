@@ -1,3 +1,5 @@
+import { getISOWeek, getISOWeekYear } from "date-fns";
+
 import { CATEGORY_ORDER, type Category } from "./activity-types";
 
 // Mirrors the DB CHECK vocab for plans. These enums are the mutation-boundary
@@ -7,7 +9,12 @@ export type Sport = Category;
 export const SPORTS: readonly Sport[] = CATEGORY_ORDER;
 
 export type Metric = "distance" | "elevation" | "duration" | "sessions";
-export const METRICS = ["distance", "elevation", "duration", "sessions"] as const;
+export const METRICS = [
+	"distance",
+	"elevation",
+	"duration",
+	"sessions",
+] as const;
 
 export type Day = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 export const DAYS: readonly Day[] = [
@@ -34,7 +41,11 @@ export const DAY_LABEL: Record<Day, string> = {
 // column: distance/elevation in metres, duration in seconds, sessions a count.
 export const METRIC_META: Record<
 	Metric,
-	{ label: string; activityColumn: string | null; format: (target: number) => string }
+	{
+		label: string;
+		activityColumn: string | null;
+		format: (target: number) => string;
+	}
 > = {
 	distance: {
 		label: "Distance",
@@ -67,4 +78,24 @@ const ISO_WEEK_RE = /^\d{4}-W(0[1-9]|[1-4]\d|5[0-3])$/;
 
 export function isIsoWeek(value: string): boolean {
 	return ISO_WEEK_RE.test(value);
+}
+
+// Date -> '2026-W02' using ISO-8601 week numbering.
+export function toIsoWeek(date: Date): string {
+	const year = getISOWeekYear(date);
+	const week = getISOWeek(date);
+	return `${year}-W${String(week).padStart(2, "0")}`;
+}
+
+export function currentIsoWeek(): string {
+	return toIsoWeek(new Date());
+}
+
+// ISO week tokens are zero-padded and year-prefixed, so lexicographic order
+// matches chronological order. A plan is active when its range spans the week.
+export function planIsActive(
+	plan: { start_week: string; end_week: string },
+	week: string,
+): boolean {
+	return plan.start_week <= week && week <= plan.end_week;
 }
