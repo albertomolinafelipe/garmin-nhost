@@ -36,6 +36,7 @@
 	--muted-foreground: oklch(0.556 0 0); /* secondary text */
 	--destructive: oklch(0.577 0.245 27.325); /* errors / delete */
 	--plan: oklch(0.59 0.24 328); /* plans: workouts & requirements accent */
+	--race: oklch(0.72 0.13 85); /* races: gold accent */
 
 	/* borders & focus */
 	--border: oklch(0.922 0 0);
@@ -71,6 +72,7 @@
 	--muted-foreground: oklch(0.708 0 0);
 	--destructive: oklch(0.704 0.191 22.216);
 	--plan: oklch(0.72 0.19 328);
+	--race: oklch(0.8 0.13 85);
 
 	--border: oklch(1 0 0 / 10%);
 	--input: oklch(1 0 0 / 15%);
@@ -112,6 +114,7 @@
 	--color-accent-foreground: var(--accent-foreground);
 	--color-destructive: var(--destructive);
 	--color-plan: var(--plan);
+	--color-race: var(--race);
 	--color-border: var(--border);
 	--color-input: var(--input);
 	--color-ring: var(--ring);

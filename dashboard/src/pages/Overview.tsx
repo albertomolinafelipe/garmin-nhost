@@ -35,7 +35,9 @@ import {
 import {
 	addDays,
 	computeWeekTotals,
+	indexRaces,
 	indexWorkouts,
+	type Race,
 	startOfWeek,
 	WeekStrip,
 } from "@/components/calendar-week";
@@ -52,6 +54,7 @@ import {
 import {
 	useAllPlanRequirementsQuery,
 	useAllPlanWorkoutsQuery,
+	useRacesQuery,
 } from "@/graphql/hooks";
 import { toIsoWeek } from "@/lib/plans";
 import { cn } from "@/lib/utils";
@@ -1001,11 +1004,16 @@ function WeekPanel({ className }: { className?: string }) {
 	const { data } = useActivities();
 	const { data: workouts } = useAllPlanWorkoutsQuery();
 	const { data: requirements } = useAllPlanRequirementsQuery();
+	const { data: races } = useRacesQuery();
 	const activities = data?.activities ?? [];
 	const weekStart = useMemo(() => startOfWeek(new Date()), []);
 	const workoutsByWeekDay = useMemo(
 		() => indexWorkouts(workouts ?? []),
 		[workouts],
+	);
+	const racesByDay = useMemo(
+		() => indexRaces((races ?? []) as Race[]),
+		[races],
 	);
 	const weekRequirements = useMemo(() => {
 		const iso = toIsoWeek(weekStart);
@@ -1036,6 +1044,7 @@ function WeekPanel({ className }: { className?: string }) {
 				weekStart={weekStart}
 				byDay={byDay}
 				workoutsByWeekDay={workoutsByWeekDay}
+				racesByDay={racesByDay}
 				totals={totals}
 				requirements={weekRequirements}
 			/>

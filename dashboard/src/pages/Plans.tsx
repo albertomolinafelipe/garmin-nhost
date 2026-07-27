@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { format } from "date-fns";
 import ReactMarkdown from "react-markdown";
 import { useSearchParams } from "react-router-dom";
 import remarkGfm from "remark-gfm";
@@ -29,6 +30,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
 import { NumberInput } from "@/components/ui/number-input";
 import {
 	Select,
@@ -54,6 +56,7 @@ import {
 	SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import { TimelineList } from "@/components/timeline-list";
 import {
 	useDeletePlanMutation,
 	useDeletePlanRequirementMutation,
@@ -61,6 +64,9 @@ import {
 	useInsertPlanMutation,
 	useInsertPlanRequirementMutation,
 	useInsertPlanWorkoutMutation,
+	useInsertRaceMutation,
+	useDeleteRaceMutation,
+	useRacesQuery,
 	usePlanQuery,
 	usePlansQuery,
 	useUpdatePlanMutation,
@@ -811,6 +817,189 @@ function SelectedPlanPanel({
 	);
 }
 
+function RaceSheet({
+	open,
+	onOpenChange,
+}: {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+}) {
+	const queryClient = useQueryClient();
+	const insert = useInsertRaceMutation();
+	const [date, setDate] = useState("");
+	const [name, setName] = useState("");
+	const [distanceKm, setDistanceKm] = useState<number | null>(null);
+	const [elevationM, setElevationM] = useState<number | null>(null);
+
+	const valid = date !== "" && name.trim() !== "";
+
+	const create = async () => {
+		if (!valid || insert.isPending) return;
+		try {
+			await insert.mutateAsync({
+				object: {
+					date,
+					name: name.trim(),
+					distance_m: distanceKm == null ? null : distanceKm * 1000,
+					elevation_gain_m: elevationM,
+				},
+			});
+			await queryClient.invalidateQueries({ queryKey: ["races"] });
+			setDate("");
+			setName("");
+			setDistanceKm(null);
+			setElevationM(null);
+			onOpenChange(false);
+		} catch {
+			toast.error("Could not create the race");
+		}
+	};
+
+	return (
+		<Sheet open={open} onOpenChange={onOpenChange}>
+			<SheetContent side="right" className="w-full gap-0 p-0 sm:max-w-md">
+				<SheetHeader>
+					<SheetTitle>New race</SheetTitle>
+					<SheetDescription>An upcoming or past race event.</SheetDescription>
+				</SheetHeader>
+				<div className="flex-1 space-y-5 overflow-y-auto px-4">
+					<div className="grid gap-2">
+						<Label htmlFor="race-date">Date</Label>
+						<DatePicker
+							id="race-date"
+							value={date}
+							disabled={insert.isPending}
+							onChange={setDate}
+						/>
+					</div>
+					<div className="grid gap-2">
+						<Label htmlFor="race-name">Name</Label>
+						<Input
+							id="race-name"
+							value={name}
+							placeholder="e.g. Zegama Marathon"
+							disabled={insert.isPending}
+							onChange={(event) => setName(event.target.value)}
+						/>
+					</div>
+					<div className="grid grid-cols-2 gap-3">
+						<div className="grid gap-2">
+							<Label htmlFor="race-distance">Distance (km)</Label>
+							<NumberInput
+								id="race-distance"
+								nonNegative
+								value={distanceKm}
+								disabled={insert.isPending}
+								onChange={setDistanceKm}
+							/>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="race-elevation">Elevation (m)</Label>
+							<NumberInput
+								id="race-elevation"
+								nonNegative
+								value={elevationM}
+								disabled={insert.isPending}
+								onChange={setElevationM}
+							/>
+						</div>
+					</div>
+				</div>
+				<SheetFooter>
+					<Button
+						disabled={!valid || insert.isPending}
+						onClick={() => void create()}
+					>
+						{insert.isPending ? "Creating…" : "Create race"}
+					</Button>
+				</SheetFooter>
+			</SheetContent>
+		</Sheet>
+	);
+}
+
+function RacesPanel() {
+	const queryClient = useQueryClient();
+	const races = useRacesQuery();
+	const remove = useDeleteRaceMutation();
+	const [createOpen, setCreateOpen] = useState(false);
+	const today = new Date().toISOString().slice(0, 10);
+	const list = [...(races.data ?? [])].sort((a, b) =>
+		String(a.date).localeCompare(String(b.date)),
+	);
+
+	const del = async (id: unknown) => {
+		try {
+			await remove.mutateAsync({ id });
+			await queryClient.invalidateQueries({ queryKey: ["races"] });
+		} catch {
+			toast.error("Could not delete race");
+		}
+	};
+
+	return (
+		<div className="bg-card flex min-h-0 flex-1 flex-col rounded-xl border">
+			<div className="flex items-center justify-between gap-2 p-4">
+				<div>
+					<h2 className="font-semibold">Races</h2>
+					<p className="text-muted-foreground text-xs">{list.length} total</p>
+				</div>
+				<Button size="sm" onClick={() => setCreateOpen(true)}>
+					<Plus className="size-4" />
+					New
+				</Button>
+				<RaceSheet open={createOpen} onOpenChange={setCreateOpen} />
+			</div>
+			<TimelineList
+				items={list}
+				getKey={(race) => String(race.id)}
+				isPast={(race) => String(race.date) < today}
+				loading={races.isLoading}
+				empty={
+					<p className="text-muted-foreground p-4 text-center text-sm">
+						No races yet.
+					</p>
+				}
+				renderItem={(race) => {
+					const dist = Number(race.distance_m);
+					const elev = Number(race.elevation_gain_m);
+					const meta = [
+						dist ? `${(dist / 1000).toFixed(1)} km` : null,
+						elev ? `${Math.round(elev)} m` : null,
+					]
+						.filter(Boolean)
+						.join(" · ");
+					return (
+						<div className="hover:bg-muted group flex items-center gap-2 rounded-lg p-2">
+							<span className="min-w-0 flex-1">
+								<span className="block truncate text-sm font-medium">
+									{race.name}
+								</span>
+								<span className="text-muted-foreground block truncate text-xs">
+									{format(
+										new Date(`${String(race.date)}T00:00:00`),
+										"d MMM yyyy",
+									)}
+									{meta ? ` · ${meta}` : ""}
+								</span>
+							</span>
+							<Button
+								variant="ghost"
+								size="icon"
+								className="text-muted-foreground hover:text-destructive size-8 shrink-0 opacity-0 group-hover:opacity-100"
+								aria-label={`Delete ${race.name}`}
+								onClick={() => void del(race.id)}
+							>
+								<Trash2 className="size-4" />
+							</Button>
+						</div>
+					);
+				}}
+			/>
+		</div>
+	);
+}
+
 export function Plans() {
 	const queryClient = useQueryClient();
 	const plans = usePlansQuery();
@@ -832,9 +1021,11 @@ export function Plans() {
 	const week = currentIsoWeek();
 	const all = plans.data ?? [];
 	const active = all.filter((plan) => planIsActive(plan, week));
-	// Active plans float to the top; array order is otherwise preserved (stable).
+	// Chronological by end week; past plans stay in the list but above the fold.
 	const ordered = [...all].sort(
-		(a, b) => Number(planIsActive(b, week)) - Number(planIsActive(a, week)),
+		(a, b) =>
+			a.end_week.localeCompare(b.end_week) ||
+			a.start_week.localeCompare(b.start_week),
 	);
 	const selected =
 		all.find((plan) => String(plan.id) === selectedId) ??
@@ -853,69 +1044,72 @@ export function Plans() {
 				/>
 			</section>
 
-			<aside className="bg-card flex h-full min-h-0 flex-col rounded-xl border md:col-span-1">
-				<div className="flex items-center justify-between gap-2 border-b p-4">
-					<div>
-						<h2 className="font-semibold">All plans</h2>
-						<p className="text-muted-foreground text-xs">{all.length} total</p>
+			<aside className="flex h-full min-h-0 flex-col gap-4 md:col-span-1">
+				<RacesPanel />
+				<div className="bg-card flex min-h-0 flex-1 flex-col rounded-xl border">
+					<div className="flex items-center justify-between gap-2 p-4">
+						<div>
+							<h2 className="font-semibold">All plans</h2>
+							<p className="text-muted-foreground text-xs">
+								{all.length} total
+							</p>
+						</div>
+						<Button size="sm" onClick={() => setCreateOpen(true)}>
+							<Plus className="size-4" />
+							New
+						</Button>
+						<PlanSheet open={createOpen} onOpenChange={setCreateOpen} />
 					</div>
-					<Button size="sm" onClick={() => setCreateOpen(true)}>
-						<Plus className="size-4" />
-						New
-					</Button>
-					<PlanSheet open={createOpen} onOpenChange={setCreateOpen} />
-				</div>
 
-				<div className="min-h-0 flex-1 overflow-y-auto p-2">
-					{!plans.isLoading && all.length === 0 ? (
-						<p className="text-muted-foreground p-4 text-center text-sm">
-							No plans yet. Create your first one.
-						</p>
-					) : (
-						<ul className="flex flex-col gap-1">
-							{ordered.map((plan) => {
-								const isActive = planIsActive(plan, week);
-								return (
-									<li
-										key={String(plan.id)}
-										className="hover:bg-muted group relative flex items-center rounded-lg transition-colors"
+					<TimelineList
+						items={ordered}
+						getKey={(plan) => String(plan.id)}
+						isPast={(plan) => plan.end_week < week}
+						loading={plans.isLoading}
+						empty={
+							<p className="text-muted-foreground p-4 text-center text-sm">
+								No plans yet. Create your first one.
+							</p>
+						}
+						renderItem={(plan) => {
+							const isActive = planIsActive(plan, week);
+							return (
+								<div className="hover:bg-muted group relative flex items-center rounded-lg transition-colors">
+									<button
+										type="button"
+										onClick={() => setSelectedId(String(plan.id))}
+										className={cn(
+											"flex min-w-0 flex-1 items-center gap-2 p-2 text-left",
+											selected != null &&
+												String(selected.id) === String(plan.id) &&
+												"font-medium",
+										)}
 									>
-										<button
-											type="button"
-											onClick={() => setSelectedId(String(plan.id))}
-											className={cn(
-												"flex min-w-0 flex-1 items-center gap-2 p-2 text-left",
-												selected != null &&
-													String(selected.id) === String(plan.id) &&
-													"font-medium",
-											)}
-										>
-											<span
-												className={
-													isActive
-														? "bg-primary size-2 shrink-0 rounded-full"
-														: "bg-muted-foreground/30 size-2 shrink-0 rounded-full"
-												}
-											/>
-											<span className="min-w-0 flex-1">
-												<span className="block truncate text-sm font-medium">
-													{plan.name}
-												</span>
-												<span className="text-muted-foreground block truncate text-xs">
-													{plan.start_week} – {plan.end_week}
-												</span>
-											</span>
-										</button>
-										<DeletePlanButton
-											plan={plan}
-											onDelete={() => void deletePlan(plan.id, plan.name)}
-											className="text-muted-foreground hover:text-destructive mr-1 size-8 shrink-0 opacity-0 group-hover:opacity-100"
+										<span
+											className={
+												isActive
+													? "bg-primary size-2 shrink-0 rounded-full"
+													: "bg-muted-foreground/30 size-2 shrink-0 rounded-full"
+											}
 										/>
-									</li>
-								);
-							})}
-						</ul>
-					)}
+										<span className="min-w-0 flex-1">
+											<span className="block truncate text-sm font-medium">
+												{plan.name}
+											</span>
+											<span className="text-muted-foreground block truncate text-xs">
+												{plan.start_week} – {plan.end_week}
+											</span>
+										</span>
+									</button>
+									<DeletePlanButton
+										plan={plan}
+										onDelete={() => void deletePlan(plan.id, plan.name)}
+										className="text-muted-foreground hover:text-destructive mr-1 size-8 shrink-0 opacity-0 group-hover:opacity-100"
+									/>
+								</div>
+							);
+						}}
+					/>
 				</div>
 			</aside>
 		</div>

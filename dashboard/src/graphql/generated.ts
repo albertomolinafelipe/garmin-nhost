@@ -1987,6 +1987,10 @@ export type Mutation_Root = {
   delete_plans?: Maybe<Plans_Mutation_Response>;
   /** delete single row from the table: "plans" */
   delete_plans_by_pk?: Maybe<Plans>;
+  /** delete data from the table: "races" */
+  delete_races?: Maybe<Races_Mutation_Response>;
+  /** delete single row from the table: "races" */
+  delete_races_by_pk?: Maybe<Races>;
   /** delete data from the table: "sleep" */
   delete_sleep?: Maybe<Sleep_Mutation_Response>;
   /** delete single row from the table: "sleep" */
@@ -2023,6 +2027,10 @@ export type Mutation_Root = {
   insert_plans?: Maybe<Plans_Mutation_Response>;
   /** insert a single row into the table: "plans" */
   insert_plans_one?: Maybe<Plans>;
+  /** insert data into the table: "races" */
+  insert_races?: Maybe<Races_Mutation_Response>;
+  /** insert a single row into the table: "races" */
+  insert_races_one?: Maybe<Races>;
   /** insert data into the table: "sleep" */
   insert_sleep?: Maybe<Sleep_Mutation_Response>;
   /** insert a single row into the table: "sleep" */
@@ -2075,6 +2083,12 @@ export type Mutation_Root = {
   update_plans_by_pk?: Maybe<Plans>;
   /** update multiples rows of table: "plans" */
   update_plans_many?: Maybe<Array<Maybe<Plans_Mutation_Response>>>;
+  /** update data of the table: "races" */
+  update_races?: Maybe<Races_Mutation_Response>;
+  /** update single row of the table: "races" */
+  update_races_by_pk?: Maybe<Races>;
+  /** update multiples rows of table: "races" */
+  update_races_many?: Maybe<Array<Maybe<Races_Mutation_Response>>>;
   /** update data of the table: "sleep" */
   update_sleep?: Maybe<Sleep_Mutation_Response>;
   /** update single row of the table: "sleep" */
@@ -2170,6 +2184,18 @@ export type Mutation_RootDelete_PlansArgs = {
 
 /** mutation root */
 export type Mutation_RootDelete_Plans_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_RacesArgs = {
+  where: Races_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Races_By_PkArgs = {
   id: Scalars['bigint']['input'];
 };
 
@@ -2293,6 +2319,20 @@ export type Mutation_RootInsert_PlansArgs = {
 export type Mutation_RootInsert_Plans_OneArgs = {
   object: Plans_Insert_Input;
   on_conflict?: InputMaybe<Plans_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_RacesArgs = {
+  objects: Array<Races_Insert_Input>;
+  on_conflict?: InputMaybe<Races_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Races_OneArgs = {
+  object: Races_Insert_Input;
+  on_conflict?: InputMaybe<Races_On_Conflict>;
 };
 
 
@@ -2508,6 +2548,28 @@ export type Mutation_RootUpdate_Plans_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Plans_ManyArgs = {
   updates: Array<Plans_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_RacesArgs = {
+  _inc?: InputMaybe<Races_Inc_Input>;
+  _set?: InputMaybe<Races_Set_Input>;
+  where: Races_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Races_By_PkArgs = {
+  _inc?: InputMaybe<Races_Inc_Input>;
+  _set?: InputMaybe<Races_Set_Input>;
+  pk_columns: Races_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Races_ManyArgs = {
+  updates: Array<Races_Updates>;
 };
 
 
@@ -3671,6 +3733,12 @@ export type Query_Root = {
   plans_aggregate: Plans_Aggregate;
   /** fetch data from the table: "plans" using primary key columns */
   plans_by_pk?: Maybe<Plans>;
+  /** fetch data from the table: "races" */
+  races: Array<Races>;
+  /** fetch aggregated fields from the table: "races" */
+  races_aggregate: Races_Aggregate;
+  /** fetch data from the table: "races" using primary key columns */
+  races_by_pk?: Maybe<Races>;
   /** Service readiness marker. */
   service: Scalars['String']['output'];
   /** fetch data from the table: "sleep" */
@@ -3867,6 +3935,29 @@ export type Query_RootPlans_By_PkArgs = {
 };
 
 
+export type Query_RootRacesArgs = {
+  distinct_on?: InputMaybe<Array<Races_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Races_Order_By>>;
+  where?: InputMaybe<Races_Bool_Exp>;
+};
+
+
+export type Query_RootRaces_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Races_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Races_Order_By>>;
+  where?: InputMaybe<Races_Bool_Exp>;
+};
+
+
+export type Query_RootRaces_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
 export type Query_RootSleepArgs = {
   distinct_on?: InputMaybe<Array<Sleep_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -3910,6 +4001,252 @@ export type Query_RootTraining_Readiness_AggregateArgs = {
 
 export type Query_RootTraining_Readiness_By_PkArgs = {
   id: Scalars['bigint']['input'];
+};
+
+/** columns and relationships of "races" */
+export type Races = {
+  __typename?: 'races';
+  date: Scalars['date']['output'];
+  distance_m?: Maybe<Scalars['numeric']['output']>;
+  elevation_gain_m?: Maybe<Scalars['numeric']['output']>;
+  id: Scalars['bigint']['output'];
+  name: Scalars['String']['output'];
+};
+
+/** aggregated selection of "races" */
+export type Races_Aggregate = {
+  __typename?: 'races_aggregate';
+  aggregate?: Maybe<Races_Aggregate_Fields>;
+  nodes: Array<Races>;
+};
+
+/** aggregate fields of "races" */
+export type Races_Aggregate_Fields = {
+  __typename?: 'races_aggregate_fields';
+  avg?: Maybe<Races_Avg_Fields>;
+  count: Scalars['Int']['output'];
+  max?: Maybe<Races_Max_Fields>;
+  min?: Maybe<Races_Min_Fields>;
+  stddev?: Maybe<Races_Stddev_Fields>;
+  stddev_pop?: Maybe<Races_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Races_Stddev_Samp_Fields>;
+  sum?: Maybe<Races_Sum_Fields>;
+  var_pop?: Maybe<Races_Var_Pop_Fields>;
+  var_samp?: Maybe<Races_Var_Samp_Fields>;
+  variance?: Maybe<Races_Variance_Fields>;
+};
+
+
+/** aggregate fields of "races" */
+export type Races_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Races_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** aggregate avg on columns */
+export type Races_Avg_Fields = {
+  __typename?: 'races_avg_fields';
+  distance_m?: Maybe<Scalars['Float']['output']>;
+  elevation_gain_m?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Boolean expression to filter rows from the table "races". All fields are combined with a logical 'AND'. */
+export type Races_Bool_Exp = {
+  _and?: InputMaybe<Array<Races_Bool_Exp>>;
+  _not?: InputMaybe<Races_Bool_Exp>;
+  _or?: InputMaybe<Array<Races_Bool_Exp>>;
+  date?: InputMaybe<Date_Comparison_Exp>;
+  distance_m?: InputMaybe<Numeric_Comparison_Exp>;
+  elevation_gain_m?: InputMaybe<Numeric_Comparison_Exp>;
+  id?: InputMaybe<Bigint_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "races" */
+export enum Races_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  RacesPkey = 'races_pkey'
+}
+
+/** input type for incrementing numeric columns in table "races" */
+export type Races_Inc_Input = {
+  distance_m?: InputMaybe<Scalars['numeric']['input']>;
+  elevation_gain_m?: InputMaybe<Scalars['numeric']['input']>;
+};
+
+/** input type for inserting data into table "races" */
+export type Races_Insert_Input = {
+  date?: InputMaybe<Scalars['date']['input']>;
+  distance_m?: InputMaybe<Scalars['numeric']['input']>;
+  elevation_gain_m?: InputMaybe<Scalars['numeric']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate max on columns */
+export type Races_Max_Fields = {
+  __typename?: 'races_max_fields';
+  date?: Maybe<Scalars['date']['output']>;
+  distance_m?: Maybe<Scalars['numeric']['output']>;
+  elevation_gain_m?: Maybe<Scalars['numeric']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+};
+
+/** aggregate min on columns */
+export type Races_Min_Fields = {
+  __typename?: 'races_min_fields';
+  date?: Maybe<Scalars['date']['output']>;
+  distance_m?: Maybe<Scalars['numeric']['output']>;
+  elevation_gain_m?: Maybe<Scalars['numeric']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+};
+
+/** response of any mutation on the table "races" */
+export type Races_Mutation_Response = {
+  __typename?: 'races_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int']['output'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Races>;
+};
+
+/** on_conflict condition type for table "races" */
+export type Races_On_Conflict = {
+  constraint: Races_Constraint;
+  update_columns?: Array<Races_Update_Column>;
+  where?: InputMaybe<Races_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "races". */
+export type Races_Order_By = {
+  date?: InputMaybe<Order_By>;
+  distance_m?: InputMaybe<Order_By>;
+  elevation_gain_m?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: races */
+export type Races_Pk_Columns_Input = {
+  id: Scalars['bigint']['input'];
+};
+
+/** select columns of table "races" */
+export enum Races_Select_Column {
+  /** column name */
+  Date = 'date',
+  /** column name */
+  DistanceM = 'distance_m',
+  /** column name */
+  ElevationGainM = 'elevation_gain_m',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Name = 'name'
+}
+
+/** input type for updating data in table "races" */
+export type Races_Set_Input = {
+  date?: InputMaybe<Scalars['date']['input']>;
+  distance_m?: InputMaybe<Scalars['numeric']['input']>;
+  elevation_gain_m?: InputMaybe<Scalars['numeric']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate stddev on columns */
+export type Races_Stddev_Fields = {
+  __typename?: 'races_stddev_fields';
+  distance_m?: Maybe<Scalars['Float']['output']>;
+  elevation_gain_m?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Races_Stddev_Pop_Fields = {
+  __typename?: 'races_stddev_pop_fields';
+  distance_m?: Maybe<Scalars['Float']['output']>;
+  elevation_gain_m?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Races_Stddev_Samp_Fields = {
+  __typename?: 'races_stddev_samp_fields';
+  distance_m?: Maybe<Scalars['Float']['output']>;
+  elevation_gain_m?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** Streaming cursor of the table "races" */
+export type Races_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Races_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Races_Stream_Cursor_Value_Input = {
+  date?: InputMaybe<Scalars['date']['input']>;
+  distance_m?: InputMaybe<Scalars['numeric']['input']>;
+  elevation_gain_m?: InputMaybe<Scalars['numeric']['input']>;
+  id?: InputMaybe<Scalars['bigint']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** aggregate sum on columns */
+export type Races_Sum_Fields = {
+  __typename?: 'races_sum_fields';
+  distance_m?: Maybe<Scalars['numeric']['output']>;
+  elevation_gain_m?: Maybe<Scalars['numeric']['output']>;
+  id?: Maybe<Scalars['bigint']['output']>;
+};
+
+/** update columns of table "races" */
+export enum Races_Update_Column {
+  /** column name */
+  Date = 'date',
+  /** column name */
+  DistanceM = 'distance_m',
+  /** column name */
+  ElevationGainM = 'elevation_gain_m',
+  /** column name */
+  Name = 'name'
+}
+
+export type Races_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Races_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Races_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Races_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Races_Var_Pop_Fields = {
+  __typename?: 'races_var_pop_fields';
+  distance_m?: Maybe<Scalars['Float']['output']>;
+  elevation_gain_m?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate var_samp on columns */
+export type Races_Var_Samp_Fields = {
+  __typename?: 'races_var_samp_fields';
+  distance_m?: Maybe<Scalars['Float']['output']>;
+  elevation_gain_m?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
+};
+
+/** aggregate variance on columns */
+export type Races_Variance_Fields = {
+  __typename?: 'races_variance_fields';
+  distance_m?: Maybe<Scalars['Float']['output']>;
+  elevation_gain_m?: Maybe<Scalars['Float']['output']>;
+  id?: Maybe<Scalars['Float']['output']>;
 };
 
 /** columns and relationships of "sleep" */
@@ -4374,6 +4711,14 @@ export type Subscription_Root = {
   plans_by_pk?: Maybe<Plans>;
   /** fetch data from the table in a streaming manner: "plans" */
   plans_stream: Array<Plans>;
+  /** fetch data from the table: "races" */
+  races: Array<Races>;
+  /** fetch aggregated fields from the table: "races" */
+  races_aggregate: Races_Aggregate;
+  /** fetch data from the table: "races" using primary key columns */
+  races_by_pk?: Maybe<Races>;
+  /** fetch data from the table in a streaming manner: "races" */
+  races_stream: Array<Races>;
   /** fetch data from the table: "sleep" */
   sleep: Array<Sleep>;
   /** fetch aggregated fields from the table: "sleep" */
@@ -4625,6 +4970,36 @@ export type Subscription_RootPlans_StreamArgs = {
   batch_size: Scalars['Int']['input'];
   cursor: Array<InputMaybe<Plans_Stream_Cursor_Input>>;
   where?: InputMaybe<Plans_Bool_Exp>;
+};
+
+
+export type Subscription_RootRacesArgs = {
+  distinct_on?: InputMaybe<Array<Races_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Races_Order_By>>;
+  where?: InputMaybe<Races_Bool_Exp>;
+};
+
+
+export type Subscription_RootRaces_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Races_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  order_by?: InputMaybe<Array<Races_Order_By>>;
+  where?: InputMaybe<Races_Bool_Exp>;
+};
+
+
+export type Subscription_RootRaces_By_PkArgs = {
+  id: Scalars['bigint']['input'];
+};
+
+
+export type Subscription_RootRaces_StreamArgs = {
+  batch_size: Scalars['Int']['input'];
+  cursor: Array<InputMaybe<Races_Stream_Cursor_Input>>;
+  where?: InputMaybe<Races_Bool_Exp>;
 };
 
 
@@ -5680,6 +6055,22 @@ export type GeneratedPlans_Update_Column =
   /** column name */
   | 'start_week';
 
+/** input type for inserting data into table "races" */
+export type GeneratedRaces_Insert_Input = {
+  date?: unknown;
+  distance_m?: unknown;
+  elevation_gain_m?: unknown;
+  name?: string | null | undefined;
+};
+
+/** input type for updating data in table "races" */
+export type GeneratedRaces_Set_Input = {
+  date?: unknown;
+  distance_m?: unknown;
+  elevation_gain_m?: unknown;
+  name?: string | null | undefined;
+};
+
 export type GeneratedActivitiesSmokeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -5742,6 +6133,33 @@ export type GeneratedPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GeneratedPlansQuery = { plans: Array<{ id: unknown, name: string, start_week: string, end_week: string, notes: string | null }> };
+
+export type GeneratedRacesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GeneratedRacesQuery = { races: Array<{ id: unknown, date: unknown, name: string, distance_m: unknown, elevation_gain_m: unknown }> };
+
+export type GeneratedInsertRaceMutationVariables = Exact<{
+  object: GeneratedRaces_Insert_Input;
+}>;
+
+
+export type GeneratedInsertRaceMutation = { insert_races_one: { id: unknown } | null };
+
+export type GeneratedUpdateRaceMutationVariables = Exact<{
+  id: unknown;
+  set: GeneratedRaces_Set_Input;
+}>;
+
+
+export type GeneratedUpdateRaceMutation = { update_races_by_pk: { id: unknown } | null };
+
+export type GeneratedDeleteRaceMutationVariables = Exact<{
+  id: unknown;
+}>;
+
+
+export type GeneratedDeleteRaceMutation = { delete_races_by_pk: { id: unknown } | null };
 
 export type GeneratedPlanQueryVariables = Exact<{
   id: unknown;
@@ -5845,6 +6263,10 @@ export const InsertExerciseDocument = {"kind":"Document","definitions":[{"kind":
 export const UpdateExerciseDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateExercise"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"set"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"exercises_set_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_exercises_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"Variable","name":{"kind":"Name","value":"set"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"categories"}}]}}]}}]} as unknown as DocumentNode<GeneratedUpdateExerciseMutation, GeneratedUpdateExerciseMutationVariables>;
 export const DeleteExerciseDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteExercise"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete_exercises_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedDeleteExerciseMutation, GeneratedDeleteExerciseMutationVariables>;
 export const PlansDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Plans"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"plans"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"start_week"},"value":{"kind":"EnumValue","value":"desc"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"start_week"}},{"kind":"Field","name":{"kind":"Name","value":"end_week"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}}]}}]}}]} as unknown as DocumentNode<GeneratedPlansQuery, GeneratedPlansQueryVariables>;
+export const RacesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Races"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"races"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"date"},"value":{"kind":"EnumValue","value":"desc"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"date"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"distance_m"}},{"kind":"Field","name":{"kind":"Name","value":"elevation_gain_m"}}]}}]}}]} as unknown as DocumentNode<GeneratedRacesQuery, GeneratedRacesQueryVariables>;
+export const InsertRaceDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertRace"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"object"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"races_insert_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_races_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"Variable","name":{"kind":"Name","value":"object"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedInsertRaceMutation, GeneratedInsertRaceMutationVariables>;
+export const UpdateRaceDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateRace"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"set"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"races_set_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_races_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"Variable","name":{"kind":"Name","value":"set"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedUpdateRaceMutation, GeneratedUpdateRaceMutationVariables>;
+export const DeleteRaceDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteRace"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete_races_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedDeleteRaceMutation, GeneratedDeleteRaceMutationVariables>;
 export const PlanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Plan"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"plans_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"start_week"}},{"kind":"Field","name":{"kind":"Name","value":"end_week"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}},{"kind":"Field","name":{"kind":"Name","value":"requirements"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"week"},"value":{"kind":"EnumValue","value":"asc"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"week"}},{"kind":"Field","name":{"kind":"Name","value":"sport"}},{"kind":"Field","name":{"kind":"Name","value":"metric"}},{"kind":"Field","name":{"kind":"Name","value":"target"}},{"kind":"Field","name":{"kind":"Name","value":"notes"}}]}},{"kind":"Field","name":{"kind":"Name","value":"workouts"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"order_by"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"week"},"value":{"kind":"EnumValue","value":"asc"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"week"}},{"kind":"Field","name":{"kind":"Name","value":"day_of_week"}},{"kind":"Field","name":{"kind":"Name","value":"sport"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}}]}}]}}]}}]} as unknown as DocumentNode<GeneratedPlanQuery, GeneratedPlanQueryVariables>;
 export const InsertPlanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InsertPlan"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"object"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"plans_insert_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"insert_plans_one"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"object"},"value":{"kind":"Variable","name":{"kind":"Name","value":"object"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedInsertPlanMutation, GeneratedInsertPlanMutationVariables>;
 export const UpdatePlanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdatePlan"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"bigint"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"set"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"plans_set_input"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update_plans_by_pk"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"pk_columns"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"_set"},"value":{"kind":"Variable","name":{"kind":"Name","value":"set"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GeneratedUpdatePlanMutation, GeneratedUpdatePlanMutationVariables>;

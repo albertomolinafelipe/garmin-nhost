@@ -124,6 +124,34 @@ query Plans {
   }
 }
 
+query Races {
+  races(order_by: {date: desc}) {
+    id
+    date
+    name
+    distance_m
+    elevation_gain_m
+  }
+}
+
+mutation InsertRace($object: races_insert_input!) {
+  insert_races_one(object: $object) {
+    id
+  }
+}
+
+mutation UpdateRace($id: bigint!, $set: races_set_input!) {
+  update_races_by_pk(pk_columns: {id: $id}, _set: $set) {
+    id
+  }
+}
+
+mutation DeleteRace($id: bigint!) {
+  delete_races_by_pk(id: $id) {
+    id
+  }
+}
+
 query Plan($id: bigint!) {
   plans_by_pk(id: $id) {
     id

@@ -2,13 +2,17 @@ import { useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
 	addDays,
 	computeWeekTotals,
 	DayEvent,
+	DayRaces,
 	DayWorkouts,
+	indexRaces,
 	indexRequirements,
 	indexWorkouts,
+	type Race,
 	startOfWeek,
 	TotalRow,
 	WeekRequirements,
@@ -17,6 +21,7 @@ import {
 import {
 	useAllPlanRequirementsQuery,
 	useAllPlanWorkoutsQuery,
+	useRacesQuery,
 } from "@/graphql/hooks";
 import { toIsoWeek } from "@/lib/plans";
 import {
@@ -36,11 +41,16 @@ export function Calendar() {
 	const { data, isLoading } = useActivities();
 	const { data: workouts } = useAllPlanWorkoutsQuery();
 	const { data: requirements } = useAllPlanRequirementsQuery();
+	const { data: races } = useRacesQuery();
 
 	const activities = data?.activities ?? [];
 	const workoutsByWeekDay = useMemo(
 		() => indexWorkouts(workouts ?? []),
 		[workouts],
+	);
+	const racesByDay = useMemo(
+		() => indexRaces((races ?? []) as Race[]),
+		[races],
 	);
 	const requirementsByWeek = useMemo(
 		() => indexRequirements(requirements ?? []),
@@ -129,6 +139,7 @@ export function Calendar() {
 							<ChevronRight />
 						</Button>
 					</div>
+					<Separator orientation="vertical" className="h-6" />
 					<div className="flex items-center gap-1">
 						{presentCats.map((c) => {
 							const Icon = categoryIcon[c];
@@ -136,7 +147,7 @@ export function Calendar() {
 							return (
 								<Button
 									key={c}
-									variant="outline"
+									variant="ghost"
 									size="icon"
 									aria-label={`Filter ${c}`}
 									aria-pressed={active}
@@ -199,6 +210,7 @@ export function Calendar() {
 													{day.getDate()}
 												</div>
 												<div className="mt-2 flex flex-col gap-1">
+													<DayRaces day={day} byDay={racesByDay} />
 													{events.map((a) => (
 														<DayEvent key={a.id} a={a} />
 													))}

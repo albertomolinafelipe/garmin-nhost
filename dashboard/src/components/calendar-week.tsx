@@ -8,6 +8,7 @@ import {
 	categoryIcon,
 	categoryOf,
 	effectiveSubtype,
+	iconifyIcon,
 } from "@/lib/activity-types";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -131,6 +132,69 @@ export function indexWorkouts(
 		(map.get(key) ?? map.set(key, []).get(key))?.push(w);
 	}
 	return map;
+}
+
+const RaceIcon = iconifyIcon("tabler:laurel-wreath");
+
+export interface Race {
+	id: unknown;
+	date: string;
+	name: string;
+	distance_m: number | string | null;
+	elevation_gain_m: number | string | null;
+}
+
+// Index races by their local YYYY-MM-DD date string.
+export function indexRaces(races: Race[]): Map<string, Race[]> {
+	const map = new Map<string, Race[]>();
+	for (const r of races) {
+		(map.get(r.date) ?? map.set(r.date, []).get(r.date))?.push(r);
+	}
+	return map;
+}
+
+export function DayRaces({
+	day,
+	byDay,
+}: {
+	day: Date;
+	byDay?: Map<string, Race[]>;
+}) {
+	const races = byDay?.get(dayKey(day)) ?? [];
+	if (races.length === 0) return null;
+	return (
+		<>
+			{races.map((r) => {
+				const info = [
+					num(r.distance_m) ? fmtDistance(num(r.distance_m)) : null,
+					num(r.elevation_gain_m)
+						? `${Math.round(num(r.elevation_gain_m))} m`
+						: null,
+				]
+					.filter(Boolean)
+					.join(" · ");
+				return (
+					<div
+						key={String(r.id)}
+						className="text-race border-race bg-race/10 flex flex-col rounded-md border-l-2 px-2 py-1.5 leading-tight"
+						title={r.name}
+					>
+						<div className="flex items-center justify-center gap-1.5 md:justify-start">
+							<RaceIcon size={16} className="shrink-0" />
+							<span className="hidden truncate text-sm font-medium md:inline">
+								{r.name}
+							</span>
+						</div>
+						{info ? (
+							<div className="text-muted-foreground hidden truncate text-xs md:block">
+								{info}
+							</div>
+						) : null}
+					</div>
+				);
+			})}
+		</>
+	);
 }
 
 function WorkoutChip({ w, isPast }: { w: PlanWorkout; isPast: boolean }) {
@@ -367,12 +431,14 @@ export function WeekStrip({
 	weekStart,
 	byDay,
 	workoutsByWeekDay,
+	racesByDay,
 	totals,
 	requirements,
 }: {
 	weekStart: Date;
 	byDay: Map<string, CalendarActivity[]>;
 	workoutsByWeekDay?: Map<string, PlanWorkout[]>;
+	racesByDay?: Map<string, Race[]>;
 	totals?: WeekTotals;
 	requirements?: PlanRequirement[];
 }) {
@@ -411,6 +477,7 @@ export function WeekStrip({
 								</span>
 							</div>
 							<div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-1 pt-2">
+								<DayRaces day={day} byDay={racesByDay} />
 								{events.map((a) => (
 									<DayEvent key={a.id} a={a} />
 								))}

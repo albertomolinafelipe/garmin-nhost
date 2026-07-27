@@ -18,6 +18,13 @@ import {
 	PlanDocument,
 	AllPlanWorkoutsDocument,
 	AllPlanRequirementsDocument,
+	RacesDocument,
+	InsertRaceDocument,
+	type GeneratedInsertRaceMutationVariables,
+	UpdateRaceDocument,
+	type GeneratedUpdateRaceMutationVariables,
+	DeleteRaceDocument,
+	type GeneratedDeleteRaceMutationVariables,
 	type GeneratedPlanQueryVariables,
 	InsertPlanDocument,
 	type GeneratedInsertPlanMutationVariables,
@@ -130,6 +137,35 @@ export function usePlansQuery() {
 		queryKey: ["plans"],
 		queryFn: () => graphQLClient.request(PlansDocument),
 		select: (data) => data.plans,
+	});
+}
+
+export function useRacesQuery() {
+	return useQuery({
+		queryKey: ["races"],
+		queryFn: () => graphQLClient.request(RacesDocument),
+		select: (data) => data.races,
+	});
+}
+
+export function useInsertRaceMutation() {
+	return useMutation({
+		mutationFn: (variables: GeneratedInsertRaceMutationVariables) =>
+			graphQLClient.request(InsertRaceDocument, variables),
+	});
+}
+
+export function useUpdateRaceMutation() {
+	return useMutation({
+		mutationFn: (variables: GeneratedUpdateRaceMutationVariables) =>
+			graphQLClient.request(UpdateRaceDocument, variables),
+	});
+}
+
+export function useDeleteRaceMutation() {
+	return useMutation({
+		mutationFn: (variables: GeneratedDeleteRaceMutationVariables) =>
+			graphQLClient.request(DeleteRaceDocument, variables),
 	});
 }
 
