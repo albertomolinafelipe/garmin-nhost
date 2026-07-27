@@ -315,14 +315,14 @@ function WorkoutChip({ w, isPast }: { w: PlanWorkout; isPast: boolean }) {
 			{...workoutDragProps(dnd, w)}
 			onClick={() => (isMobile ? setOpen(true) : goToPlan())}
 			className={cn(
-				"bg-muted hover:bg-accent flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 leading-tight transition-colors md:justify-start",
+				"hover:bg-accent flex items-center justify-center gap-1 rounded-md px-1.5 py-1 leading-tight transition-colors md:justify-start",
 				dnd ? "md:cursor-grab md:active:cursor-grabbing" : "",
-				isPast ? "text-muted-foreground" : "text-plan",
+				isPast ? "bg-accent/40 text-muted-foreground" : "bg-muted text-plan",
 			)}
 			title={w.title}
 		>
-			<Icon size={16} className="shrink-0" />
-			<span className="hidden truncate text-sm font-medium md:inline">
+			<Icon size={14} className="shrink-0" />
+			<span className="hidden truncate text-xs font-medium md:inline">
 				{w.title}
 			</span>
 		</button>
@@ -454,14 +454,14 @@ export function DayEvent({
 		<Link
 			to={`/activities/${a.id}`}
 			className={cn(
-				"bg-accent/40 hover:bg-accent focus-visible:ring-ring rounded-md border-l-2 px-2 py-1.5 leading-tight transition-colors focus-visible:ring-2 focus-visible:outline-none",
+				"bg-accent/40 hover:bg-accent focus-visible:ring-ring rounded-md border-l-2 px-1.5 py-1 leading-tight transition-colors focus-visible:ring-2 focus-visible:outline-none",
 				isRace && "text-race border-race",
 			)}
 			style={isRace ? undefined : { borderLeftColor: color }}
 		>
-			<div className="flex items-center justify-center gap-1.5 md:justify-start">
-				<Icon size={16} className="shrink-0" />
-				<span className="hidden truncate text-sm font-medium md:inline">
+			<div className="flex items-center justify-center gap-1 md:justify-start">
+				<Icon size={14} className="shrink-0" />
+				<span className="hidden truncate text-xs font-medium md:inline">
 					{a.name ?? a.activity_type ?? "Activity"}
 				</span>
 			</div>

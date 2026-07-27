@@ -173,7 +173,8 @@ function CalendarInner() {
 							<ChevronRight />
 						</Button>
 					</div>
-					<Separator orientation="vertical" className="h-6" />
+					<div className="text-sm font-semibold sm:hidden">{month}</div>
+					<Separator orientation="vertical" className="hidden h-6 sm:block" />
 					<div className="flex items-center gap-1">
 						{presentCats.map((c) => {
 							const Icon = categoryIcon[c];
@@ -198,7 +199,7 @@ function CalendarInner() {
 						})}
 					</div>
 				</div>
-				<div className="order-first w-full text-center text-sm font-semibold sm:order-none sm:w-auto md:absolute md:left-1/2 md:-translate-x-1/2">
+				<div className="hidden text-sm font-semibold sm:block md:absolute md:left-1/2 md:-translate-x-1/2">
 					{month}
 				</div>
 			</div>
