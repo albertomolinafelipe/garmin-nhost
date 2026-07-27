@@ -321,59 +321,125 @@ export function TotalRow({
 	);
 }
 
+// Run/climb/strength totals for one week, matching the calendar's totals column.
+export function WeekTotalsBlock({ totals }: { totals?: WeekTotals }) {
+	return (
+		<div className="flex flex-col gap-1">
+			<div className="flex items-start gap-1.5">
+				<categoryIcon.running
+					size={12}
+					className="mt-0.5 shrink-0"
+					style={{ color: categoryColor.running }}
+				/>
+				<div className="leading-tight">
+					<div
+						className={cn(
+							"text-xs font-semibold",
+							!totals?.runKm && "text-muted-foreground font-normal",
+						)}
+					>
+						{(totals?.runKm ?? 0).toFixed(1)} km
+					</div>
+					<div className="text-muted-foreground text-[11px]">
+						{(totals?.runH ?? 0).toFixed(1)} h ·{" "}
+						{Math.round(totals?.runVert ?? 0)} m
+					</div>
+				</div>
+			</div>
+			<TotalRow
+				category="climbing"
+				value={`${(totals?.climbH ?? 0).toFixed(1)} h`}
+				zero={!totals?.climbH}
+			/>
+			<TotalRow
+				category="strength"
+				value={`${(totals?.weightsH ?? 0).toFixed(1)} h`}
+				zero={!totals?.weightsH}
+			/>
+		</div>
+	);
+}
+
 // A single-week slice of the calendar: seven day columns (Mon–Sun) with their
-// events. `weekStart` must be a Monday (use startOfWeek).
+// events. `weekStart` must be a Monday (use startOfWeek). Pass `totals` to show
+// a week-totals column on the right (md+).
 export function WeekStrip({
 	weekStart,
 	byDay,
 	workoutsByWeekDay,
+	totals,
+	requirements,
 }: {
 	weekStart: Date;
 	byDay: Map<string, CalendarActivity[]>;
 	workoutsByWeekDay?: Map<string, PlanWorkout[]>;
+	totals?: WeekTotals;
+	requirements?: PlanRequirement[];
 }) {
 	const today = dayKey(new Date());
+	const showTotals = totals !== undefined || requirements !== undefined;
+	const weekActivities = showTotals ? Array.from(byDay.values()).flat() : [];
 	return (
-		<div className="grid h-full grid-cols-7 overflow-hidden rounded-lg border">
-			{Array.from({ length: 7 }, (_, i) => i).map((i) => {
-				const day = addDays(weekStart, i);
-				const key = dayKey(day);
-				const events = byDay.get(key) ?? [];
-				const isToday = key === today;
-				return (
-					<div
-						key={key}
-						className="flex min-h-0 min-w-0 flex-col border-r last:border-r-0"
-					>
+		<div className="bg-card flex h-full overflow-hidden rounded-lg border">
+			<div className="grid min-w-0 flex-1 grid-cols-7">
+				{Array.from({ length: 7 }, (_, i) => i).map((i) => {
+					const day = addDays(weekStart, i);
+					const key = dayKey(day);
+					const events = byDay.get(key) ?? [];
+					const isToday = key === today;
+					return (
 						<div
-							className={cn(
-								"flex items-baseline justify-between gap-1 border-b px-1.5 py-1",
-								isToday && "bg-accent/50",
-							)}
+							key={key}
+							className="flex min-h-0 min-w-0 flex-col border-r last:border-r-0"
 						>
-							<span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
-								{WEEKDAYS[i]}
-							</span>
-							<span
+							<div
 								className={cn(
-									"text-xs",
-									isToday ? "font-semibold" : "text-muted-foreground",
+									"flex items-baseline justify-between gap-1 border-b px-1.5 py-1",
+									isToday && "bg-accent/50",
 								)}
 							>
-								{day.getDate()}
-							</span>
+								<span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+									{WEEKDAYS[i]}
+								</span>
+								<span
+									className={cn(
+										"text-xs",
+										isToday ? "font-semibold" : "text-muted-foreground",
+									)}
+								>
+									{day.getDate()}
+								</span>
+							</div>
+							<div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-1 pt-2">
+								{events.map((a) => (
+									<DayEvent key={a.id} a={a} />
+								))}
+								{workoutsByWeekDay ? (
+									<DayWorkouts day={day} byWeekDay={workoutsByWeekDay} />
+								) : null}
+							</div>
 						</div>
-						<div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto p-1">
-							{events.map((a) => (
-								<DayEvent key={a.id} a={a} />
-							))}
-							{workoutsByWeekDay ? (
-								<DayWorkouts day={day} byWeekDay={workoutsByWeekDay} />
-							) : null}
-						</div>
+					);
+				})}
+			</div>
+			{showTotals ? (
+				<aside className="bg-muted/30 hidden w-44 shrink-0 flex-col border-l md:flex">
+					<div className="flex items-center border-b px-2 py-1">
+						<span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+							Week totals
+						</span>
 					</div>
-				);
-			})}
+					<div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
+						<WeekTotalsBlock totals={totals} />
+						{requirements ? (
+							<WeekRequirements
+								requirements={requirements}
+								activities={weekActivities}
+							/>
+						) : null}
+					</div>
+				</aside>
+			) : null}
 		</div>
 	);
 }

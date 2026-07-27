@@ -198,7 +198,7 @@ export function Calendar() {
 												>
 													{day.getDate()}
 												</div>
-												<div className="mt-0.5 flex flex-col gap-0.5">
+												<div className="mt-2 flex flex-col gap-1">
 													{events.map((a) => (
 														<DayEvent key={a.id} a={a} />
 													))}

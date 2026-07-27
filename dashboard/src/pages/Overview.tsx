@@ -37,10 +37,9 @@ import {
 	computeWeekTotals,
 	indexWorkouts,
 	startOfWeek,
-	TotalRow,
 	WeekStrip,
 } from "@/components/calendar-week";
-import { categoryColor, categoryIcon, categoryOf } from "@/lib/activity-types";
+import { categoryColor, categoryOf } from "@/lib/activity-types";
 import { dayKey, fmtDuration } from "@/lib/format";
 import {
 	type CalendarActivity,
@@ -50,7 +49,11 @@ import {
 	useReadiness,
 	useSleep,
 } from "@/lib/queries";
-import { useAllPlanWorkoutsQuery } from "@/graphql/hooks";
+import {
+	useAllPlanRequirementsQuery,
+	useAllPlanWorkoutsQuery,
+} from "@/graphql/hooks";
+import { toIsoWeek } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
 const WINDOW_DAYS = 7; // trailing window each daily point aggregates
@@ -995,14 +998,19 @@ function ReadinessPanel() {
 // A slice of the calendar page pinned to the real current week (Mon–Sun).
 // Deliberately ignores WindowNav: this is a fixed "this week" snapshot.
 function WeekPanel({ className }: { className?: string }) {
-	const { data, isPending } = useActivities();
+	const { data } = useActivities();
 	const { data: workouts } = useAllPlanWorkoutsQuery();
+	const { data: requirements } = useAllPlanRequirementsQuery();
 	const activities = data?.activities ?? [];
 	const weekStart = useMemo(() => startOfWeek(new Date()), []);
 	const workoutsByWeekDay = useMemo(
 		() => indexWorkouts(workouts ?? []),
 		[workouts],
 	);
+	const weekRequirements = useMemo(() => {
+		const iso = toIsoWeek(weekStart);
+		return (requirements ?? []).filter((r) => r.week === iso);
+	}, [requirements, weekStart]);
 
 	const byDay = useMemo(() => {
 		const map = new Map<string, CalendarActivity[]>();
@@ -1022,55 +1030,16 @@ function WeekPanel({ className }: { className?: string }) {
 		[activities, weekStart],
 	);
 
-	const summary = (
-		<div className="flex items-center gap-3">
-			<div className="flex items-center gap-1.5">
-				<categoryIcon.running
-					size={12}
-					className="shrink-0"
-					style={{ color: categoryColor.running }}
-				/>
-				<span
-					className={cn(
-						"text-xs font-semibold",
-						!totals?.runKm && "text-muted-foreground font-normal",
-					)}
-				>
-					{(totals?.runKm ?? 0).toFixed(1)} km
-				</span>
-			</div>
-			<TotalRow
-				category="climbing"
-				value={`${(totals?.climbH ?? 0).toFixed(1)} h`}
-				zero={!totals?.climbH}
-			/>
-			<TotalRow
-				category="strength"
-				value={`${(totals?.weightsH ?? 0).toFixed(1)} h`}
-				zero={!totals?.weightsH}
+	return (
+		<div className={cn("min-h-0", className)}>
+			<WeekStrip
+				weekStart={weekStart}
+				byDay={byDay}
+				workoutsByWeekDay={workoutsByWeekDay}
+				totals={totals}
+				requirements={weekRequirements}
 			/>
 		</div>
-	);
-
-	return (
-		<Panel
-			title="This week"
-			action={summary}
-			showNav={false}
-			className={className}
-		>
-			<PanelBody
-				isPending={isPending}
-				isEmpty={false}
-				emptyText="Nothing this week."
-			>
-				<WeekStrip
-					weekStart={weekStart}
-					byDay={byDay}
-					workoutsByWeekDay={workoutsByWeekDay}
-				/>
-			</PanelBody>
-		</Panel>
 	);
 }
 
@@ -1089,8 +1058,8 @@ export function Overview() {
 function OverviewPanels() {
 	return (
 		<div className="flex flex-col gap-4 p-4">
-			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
-				<WeekPanel className="h-[280px] md:h-full md:flex-1" />
+			<div className="flex flex-col gap-4 md:h-[calc((100svh-4rem)/4)] md:min-h-[200px] md:flex-row">
+				<WeekPanel className="h-[220px] md:h-full md:flex-1" />
 			</div>
 			<div className={cn("flex flex-col gap-4 md:flex-row", ROW)}>
 				<LoadPanel
