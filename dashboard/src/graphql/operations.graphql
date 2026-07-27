@@ -12,7 +12,7 @@ query ActivitiesSmoke {
 }
 
 query CalendarActivities {
-  activities(order_by: {start_time: desc_nulls_last}, limit: 1000) {
+  activities(order_by: {start_time: desc_nulls_last}) {
     id
     name
     activity_type
