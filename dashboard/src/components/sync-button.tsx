@@ -1,8 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { iconifyIcon } from "@/lib/activity-types";
+
+const RefreshCw = iconifyIcon("mdi:refresh");
 import { useSyncActivitiesMutation } from "@/graphql/hooks";
 import { cn } from "@/lib/utils";
 

@@ -1,15 +1,16 @@
-import {
-	Activity,
-	CalendarDays,
-	ChevronDown,
-	LayoutDashboard,
-	LogIn,
-	LogOut,
-	Megaphone,
-	Settings,
-	Target,
-} from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
+
+import { iconifyIcon } from "@/lib/activity-types";
+
+const CalendarDays = iconifyIcon("mdi:calendar-month");
+const Activity = iconifyIcon("mdi:format-list-bulleted");
+const Target = iconifyIcon("material-symbols:target");
+const Settings = iconifyIcon("mdi:cog");
+const Megaphone = iconifyIcon("mdi:bullhorn");
+const ChevronDown = iconifyIcon("mdi:chevron-down");
+const LogIn = iconifyIcon("mdi:login");
+const LogOut = iconifyIcon("mdi:logout");
 import { NavLink } from "react-router-dom";
 
 import { LoginDialog } from "@/components/login-dialog";

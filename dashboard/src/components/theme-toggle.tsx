@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { iconifyIcon } from "@/lib/activity-types";
+
+const Sun = iconifyIcon("mdi:white-balance-sunny");
+const Moon = iconifyIcon("mdi:weather-night");
 
 type Theme = "light" | "dark";
 

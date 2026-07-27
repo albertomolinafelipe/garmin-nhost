@@ -1,23 +1,124 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
 	type Category,
+	CATEGORY_ORDER,
 	categoryColor,
 	categoryIcon,
 	categoryOf,
 	effectiveSubtype,
 } from "@/lib/activity-types";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import {
+	Sheet,
+	SheetContent,
+	SheetDescription,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { dayKey, fmtDistance, fmtDuration } from "@/lib/format";
-import { dayToken, sportIcon, toIsoWeek } from "@/lib/plans";
+import {
+	DAY_LABEL,
+	dayToken,
+	type Metric,
+	METRIC_META,
+	sportIcon,
+	toIsoWeek,
+} from "@/lib/plans";
 import { type CalendarActivity, num } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
+export interface PlanRequirement {
+	id: unknown;
+	week: string;
+	sport: string | null;
+	metric: string;
+	target: unknown;
+}
+
+export function indexRequirements(
+	reqs: PlanRequirement[],
+): Map<string, PlanRequirement[]> {
+	const map = new Map<string, PlanRequirement[]>();
+	for (const r of reqs) {
+		(map.get(r.week) ?? map.set(r.week, []).get(r.week))?.push(r);
+	}
+	return map;
+}
+
+function requirementActual(
+	acts: CalendarActivity[],
+	metric: string,
+	sport: string | null,
+): number {
+	let total = 0;
+	for (const a of acts) {
+		if (sport && categoryOf(a.activity_type, a.subtype) !== sport) continue;
+		if (metric === "sessions") total += 1;
+		else if (metric === "distance") total += num(a.distance_m);
+		else if (metric === "elevation") total += num(a.elevation_gain_m);
+		else if (metric === "duration") total += num(a.duration_s);
+	}
+	return total;
+}
+
+export function WeekRequirements({
+	requirements,
+	activities,
+}: {
+	requirements: PlanRequirement[];
+	activities: CalendarActivity[];
+}) {
+	if (requirements.length === 0) return null;
+	const sortKey = (sport: string | null) =>
+		sport ? CATEGORY_ORDER.indexOf(sport as Category) : -1;
+	const ordered = [...requirements].sort(
+		(a, b) => sortKey(a.sport) - sortKey(b.sport),
+	);
+	return (
+		<div className="mt-1 flex flex-col gap-1.5">
+			{ordered.map((r) => {
+				const meta = METRIC_META[r.metric as Metric];
+				const target = Number(r.target);
+				const actual = requirementActual(activities, r.metric, r.sport);
+				const pct = target > 0 ? Math.min(100, (actual / target) * 100) : 0;
+				const SportIcon = sportIcon(r.sport);
+				const MetricIcon = meta?.icon;
+				return (
+					<div key={String(r.id)} className="flex items-center gap-1.5">
+						<Progress
+							value={pct}
+							className="h-1"
+							indicatorClassName="bg-plan"
+						/>
+						<span className="text-muted-foreground flex w-20 shrink-0 items-center gap-1 text-[10px] tabular-nums">
+							<SportIcon size={11} className="shrink-0" />
+							{MetricIcon ? (
+								<MetricIcon size={11} className="shrink-0" />
+							) : null}
+							<span className="truncate">
+								{meta ? meta.format(target) : ""}
+							</span>
+						</span>
+					</div>
+				);
+			})}
+		</div>
+	);
+}
+
 export interface PlanWorkout {
 	id: unknown;
+	plan_id: unknown;
 	week: string;
 	day_of_week: string;
 	sport: string;
 	title: string;
+	description?: string | null;
 }
 
 // Index workouts by `${isoWeek}|${dayOfWeek}` for O(1) per-day lookup.
@@ -32,6 +133,63 @@ export function indexWorkouts(
 	return map;
 }
 
+function WorkoutChip({ w, isPast }: { w: PlanWorkout; isPast: boolean }) {
+	const navigate = useNavigate();
+	const isMobile = useIsMobile();
+	const [open, setOpen] = useState(false);
+	const Icon = sportIcon(w.sport);
+	const goToPlan = () => navigate(`/plans?plan=${w.plan_id}`);
+
+	const chip = (
+		<button
+			type="button"
+			onClick={() => (isMobile ? setOpen(true) : goToPlan())}
+			className={cn(
+				"bg-muted hover:bg-accent flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 leading-tight transition-colors md:justify-start",
+				isPast ? "text-muted-foreground" : "text-plan",
+			)}
+			title={w.title}
+		>
+			<Icon size={16} className="shrink-0" />
+			<span className="hidden truncate text-sm font-medium md:inline">
+				{w.title}
+			</span>
+		</button>
+	);
+
+	if (!isMobile) return chip;
+
+	return (
+		<>
+			{chip}
+			<Sheet open={open} onOpenChange={setOpen}>
+				<SheetContent side="bottom" className="gap-0">
+					<SheetHeader>
+						<SheetTitle className="flex items-center gap-2">
+							<Icon size={18} className="shrink-0" />
+							{w.title}
+						</SheetTitle>
+						<SheetDescription>
+							{w.sport} ·{" "}
+							{DAY_LABEL[w.day_of_week as keyof typeof DAY_LABEL] ??
+								w.day_of_week}{" "}
+							· {w.week}
+						</SheetDescription>
+					</SheetHeader>
+					{w.description ? (
+						<p className="text-muted-foreground px-4 text-sm">
+							{w.description}
+						</p>
+					) : null}
+					<SheetFooter>
+						<Button onClick={goToPlan}>Go to plan</Button>
+					</SheetFooter>
+				</SheetContent>
+			</Sheet>
+		</>
+	);
+}
+
 export function DayWorkouts({
 	day,
 	byWeekDay,
@@ -44,24 +202,9 @@ export function DayWorkouts({
 	const isPast = dayKey(day) < dayKey(new Date());
 	return (
 		<div className="mt-auto flex flex-col gap-1 pt-1">
-			{workouts.map((w) => {
-				const Icon = sportIcon(w.sport);
-				return (
-					<div
-						key={String(w.id)}
-						className={cn(
-							"bg-muted flex items-center gap-1.5 rounded-sm px-1.5 py-1 leading-tight",
-							isPast
-								? "text-muted-foreground"
-								: "text-fuchsia-600 dark:text-fuchsia-400",
-						)}
-						title={w.title}
-					>
-						<Icon size={11} className="shrink-0" />
-						<span className="truncate text-[10px] font-medium">{w.title}</span>
-					</div>
-				);
-			})}
+			{workouts.map((w) => (
+				<WorkoutChip key={String(w.id)} w={w} isPast={isPast} />
+			))}
 		</div>
 	);
 }
@@ -133,16 +276,16 @@ export function DayEvent({ a }: { a: CalendarActivity }) {
 	return (
 		<Link
 			to={`/activities/${a.id}`}
-			className="bg-accent/40 hover:bg-accent focus-visible:ring-ring rounded-sm border-l-2 px-1.5 py-1.5 leading-tight transition-colors focus-visible:ring-2 focus-visible:outline-none md:py-0.5"
+			className="bg-accent/40 hover:bg-accent focus-visible:ring-ring rounded-md border-l-2 px-2 py-1.5 leading-tight transition-colors focus-visible:ring-2 focus-visible:outline-none"
 			style={{ borderLeftColor: color }}
 		>
-			<div className="flex items-center justify-center gap-1 md:justify-start">
-				<Icon size={12} className="shrink-0" />
-				<span className="hidden truncate text-xs font-medium md:inline">
+			<div className="flex items-center justify-center gap-1.5 md:justify-start">
+				<Icon size={16} className="shrink-0" />
+				<span className="hidden truncate text-sm font-medium md:inline">
 					{a.name ?? a.activity_type ?? "Activity"}
 				</span>
 			</div>
-			<div className="text-muted-foreground hidden truncate text-[11px] md:block">
+			<div className="text-muted-foreground hidden truncate text-xs md:block">
 				{eventInfo(a)}
 			</div>
 		</Link>

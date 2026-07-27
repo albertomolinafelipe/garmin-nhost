@@ -7,12 +7,18 @@ import {
 	computeWeekTotals,
 	DayEvent,
 	DayWorkouts,
+	indexRequirements,
 	indexWorkouts,
 	startOfWeek,
 	TotalRow,
+	WeekRequirements,
 	WEEKDAYS,
 } from "@/components/calendar-week";
-import { useAllPlanWorkoutsQuery } from "@/graphql/hooks";
+import {
+	useAllPlanRequirementsQuery,
+	useAllPlanWorkoutsQuery,
+} from "@/graphql/hooks";
+import { toIsoWeek } from "@/lib/plans";
 import {
 	type Category,
 	CATEGORY_ORDER,
@@ -29,12 +35,26 @@ export function Calendar() {
 	const [filter, setFilter] = useState<Category | null>(null);
 	const { data, isLoading } = useActivities();
 	const { data: workouts } = useAllPlanWorkoutsQuery();
+	const { data: requirements } = useAllPlanRequirementsQuery();
 
 	const activities = data?.activities ?? [];
 	const workoutsByWeekDay = useMemo(
 		() => indexWorkouts(workouts ?? []),
 		[workouts],
 	);
+	const requirementsByWeek = useMemo(
+		() => indexRequirements(requirements ?? []),
+		[requirements],
+	);
+	const activitiesByWeek = useMemo(() => {
+		const map = new Map<string, CalendarActivity[]>();
+		for (const a of activities) {
+			if (!a.start_time) continue;
+			const key = toIsoWeek(new Date(a.start_time));
+			(map.get(key) ?? map.set(key, []).get(key))?.push(a);
+		}
+		return map;
+	}, [activities]);
 
 	const byDay = useMemo(() => {
 		const map = new Map<string, CalendarActivity[]>();
@@ -236,6 +256,10 @@ export function Calendar() {
 										category="strength"
 										value={`${(t?.weightsH ?? 0).toFixed(1)} h`}
 										zero={!t?.weightsH}
+									/>
+									<WeekRequirements
+										requirements={requirementsByWeek.get(toIsoWeek(w)) ?? []}
+										activities={activitiesByWeek.get(toIsoWeek(w)) ?? []}
 									/>
 								</div>
 							);

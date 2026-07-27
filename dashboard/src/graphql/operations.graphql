@@ -186,13 +186,25 @@ mutation DeletePlanRequirement($id: bigint!) {
   }
 }
 
+query AllPlanRequirements {
+  plan_requirements(order_by: {week: asc}) {
+    id
+    week
+    sport
+    metric
+    target
+  }
+}
+
 query AllPlanWorkouts {
   plan_workouts(order_by: {week: asc}) {
     id
+    plan_id
     week
     day_of_week
     sport
     title
+    description
   }
 }
 

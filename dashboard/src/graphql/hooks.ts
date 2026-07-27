@@ -17,6 +17,7 @@ import {
 	PlansDocument,
 	PlanDocument,
 	AllPlanWorkoutsDocument,
+	AllPlanRequirementsDocument,
 	type GeneratedPlanQueryVariables,
 	InsertPlanDocument,
 	type GeneratedInsertPlanMutationVariables,
@@ -129,6 +130,14 @@ export function usePlansQuery() {
 		queryKey: ["plans"],
 		queryFn: () => graphQLClient.request(PlansDocument),
 		select: (data) => data.plans,
+	});
+}
+
+export function useAllPlanRequirementsQuery() {
+	return useQuery({
+		queryKey: ["plan-requirements"],
+		queryFn: () => graphQLClient.request(AllPlanRequirementsDocument),
+		select: (data) => data.plan_requirements,
 	});
 }
 

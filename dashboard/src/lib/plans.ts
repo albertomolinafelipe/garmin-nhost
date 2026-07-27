@@ -6,14 +6,17 @@ import {
 	setISOWeekYear,
 	startOfISOWeek,
 } from "date-fns";
-import { Clock, Layers, Mountain, Repeat, Route } from "lucide-react";
+import { Route } from "lucide-react";
 
 import {
 	CATEGORY_ORDER,
 	categoryIcon,
+	iconifyIcon,
 	type Category,
 	type IconComponent,
 } from "./activity-types";
+
+const allSportsIcon = iconifyIcon("mdi:layers");
 
 // Mirrors the DB CHECK vocab for plans. These enums are the mutation-boundary
 // source of truth; the Postgres CHECK constraints are the backstop.
@@ -23,8 +26,8 @@ export const SPORTS: readonly Sport[] = CATEGORY_ORDER;
 
 // Icon for a requirement/workout sport; null means "all sports".
 export function sportIcon(sport: string | null): IconComponent {
-	if (!sport) return Layers;
-	return categoryIcon[sport as Category] ?? Layers;
+	if (!sport) return allSportsIcon;
+	return categoryIcon[sport as Category] ?? allSportsIcon;
 }
 
 export type Metric = "distance" | "elevation" | "duration" | "sessions";
@@ -82,7 +85,7 @@ export const METRIC_META: Record<
 	},
 	elevation: {
 		label: "Elevation",
-		icon: Mountain,
+		icon: iconifyIcon("material-symbols:elevation"),
 		activityColumn: "elevation_gain_m",
 		inputUnit: "m",
 		toBase: (m) => m,
@@ -91,7 +94,7 @@ export const METRIC_META: Record<
 	},
 	duration: {
 		label: "Duration",
-		icon: Clock,
+		icon: iconifyIcon("mdi:clock-outline"),
 		activityColumn: "duration_s",
 		inputUnit: "min",
 		toBase: (min) => min * 60,
@@ -104,7 +107,7 @@ export const METRIC_META: Record<
 	},
 	sessions: {
 		label: "Sessions",
-		icon: Repeat,
+		icon: iconifyIcon("mdi:repeat"),
 		activityColumn: null,
 		inputUnit: "",
 		toBase: (n) => n,

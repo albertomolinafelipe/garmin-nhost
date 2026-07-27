@@ -1,14 +1,8 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-	ChevronLeft,
-	ChevronRight,
-	Layers,
-	Pencil,
-	Plus,
-	Trash2,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { useSearchParams } from "react-router-dom";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 
@@ -412,6 +406,7 @@ function RequirementsSection({ plan }: { plan: Plan }) {
 	};
 
 	const SportIcon = sportIcon(sport === "all" ? null : sport);
+	const AllSportsIcon = sportIcon(null);
 	const MetricIcon = METRIC_META[metric as Metric].icon;
 
 	return (
@@ -503,7 +498,7 @@ function RequirementsSection({ plan }: { plan: Plan }) {
 							<SelectContent>
 								<SelectItem value="all">
 									<span className="flex items-center gap-1.5">
-										<Layers className="size-4" />
+										<AllSportsIcon className="size-4" />
 										All sports
 									</span>
 								</SelectItem>
@@ -820,6 +815,8 @@ export function Plans() {
 	const queryClient = useQueryClient();
 	const plans = usePlansQuery();
 	const remove = useDeletePlanMutation();
+	const [searchParams] = useSearchParams();
+	const paramId = searchParams.get("plan");
 	const [createOpen, setCreateOpen] = useState(false);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -841,6 +838,7 @@ export function Plans() {
 	);
 	const selected =
 		all.find((plan) => String(plan.id) === selectedId) ??
+		all.find((plan) => String(plan.id) === paramId) ??
 		active[0] ??
 		all[0] ??
 		null;

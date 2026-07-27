@@ -1,16 +1,6 @@
-import type { ComponentType, CSSProperties } from "react";
-import {
-	Activity,
-	Bike,
-	Dumbbell,
-	Footprints,
-	Mountain,
-	Snowflake,
-	Sun,
-	CloudLightning,
-	TreePine,
-	Waves,
-} from "lucide-react";
+import { createElement, type ComponentType, type CSSProperties } from "react";
+import { Icon } from "@iconify/react";
+import { Snowflake, Sun, CloudLightning } from "lucide-react";
 
 // Presentation-layer taxonomy that abstracts Garmin's many raw activity types
 // into a handful of categories, plus optional subtypes. Ported from garmin-dash.
@@ -20,6 +10,19 @@ export type IconComponent = ComponentType<{
 	size?: number;
 	style?: CSSProperties;
 }>;
+
+// Adapts an Iconify icon to our lucide-compatible IconComponent shape so the
+// categoryIcon map can mix lucide and Iconify glyphs transparently.
+export function iconifyIcon(name: string): IconComponent {
+	return ({ className, size = 24, style }) =>
+		createElement(Icon, {
+			icon: name,
+			width: size,
+			height: size,
+			className,
+			style,
+		});
+}
 
 export type Category =
 	| "running"
@@ -193,13 +196,13 @@ export function typeLabel(
 }
 
 export const categoryIcon: Record<Category, IconComponent> = {
-	running: Footprints,
-	climbing: Mountain,
-	strength: Dumbbell,
-	hiking: TreePine,
-	swimming: Waves,
-	cycling: Bike,
-	other: Activity,
+	running: iconifyIcon("mdi:run"),
+	climbing: iconifyIcon("mdi:rock-climbing"),
+	strength: iconifyIcon("mdi:weights"),
+	hiking: iconifyIcon("mdi:pine-tree"),
+	swimming: iconifyIcon("mdi:swim"),
+	cycling: iconifyIcon("mdi:bike"),
+	other: iconifyIcon("mdi:heart-pulse"),
 };
 
 // Category accent colors (Kanagawa "autumn" tones). One place to tweak per-category
