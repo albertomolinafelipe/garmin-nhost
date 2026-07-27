@@ -131,6 +131,11 @@ export function currentIsoWeek(): string {
 	return toIsoWeek(new Date());
 }
 
+// Date -> ISO weekday token ('mon'..'sun').
+export function dayToken(date: Date): Day {
+	return DAYS[(date.getDay() + 6) % 7];
+}
+
 // ISO week tokens are zero-padded and year-prefixed, so lexicographic order
 // matches chronological order. A plan is active when its range spans the week.
 export function planIsActive(

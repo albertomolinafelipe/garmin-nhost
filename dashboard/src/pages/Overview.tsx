@@ -35,6 +35,7 @@ import {
 import {
 	addDays,
 	computeWeekTotals,
+	indexWorkouts,
 	startOfWeek,
 	TotalRow,
 	WeekStrip,
@@ -49,6 +50,7 @@ import {
 	useReadiness,
 	useSleep,
 } from "@/lib/queries";
+import { useAllPlanWorkoutsQuery } from "@/graphql/hooks";
 import { cn } from "@/lib/utils";
 
 const WINDOW_DAYS = 7; // trailing window each daily point aggregates
@@ -994,8 +996,13 @@ function ReadinessPanel() {
 // Deliberately ignores WindowNav: this is a fixed "this week" snapshot.
 function WeekPanel({ className }: { className?: string }) {
 	const { data, isPending } = useActivities();
+	const { data: workouts } = useAllPlanWorkoutsQuery();
 	const activities = data?.activities ?? [];
 	const weekStart = useMemo(() => startOfWeek(new Date()), []);
+	const workoutsByWeekDay = useMemo(
+		() => indexWorkouts(workouts ?? []),
+		[workouts],
+	);
 
 	const byDay = useMemo(() => {
 		const map = new Map<string, CalendarActivity[]>();
@@ -1057,7 +1064,11 @@ function WeekPanel({ className }: { className?: string }) {
 				isEmpty={false}
 				emptyText="Nothing this week."
 			>
-				<WeekStrip weekStart={weekStart} byDay={byDay} />
+				<WeekStrip
+					weekStart={weekStart}
+					byDay={byDay}
+					workoutsByWeekDay={workoutsByWeekDay}
+				/>
 			</PanelBody>
 		</Panel>
 	);

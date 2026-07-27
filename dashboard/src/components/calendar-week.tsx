@@ -8,8 +8,63 @@ import {
 	effectiveSubtype,
 } from "@/lib/activity-types";
 import { dayKey, fmtDistance, fmtDuration } from "@/lib/format";
+import { dayToken, sportIcon, toIsoWeek } from "@/lib/plans";
 import { type CalendarActivity, num } from "@/lib/queries";
 import { cn } from "@/lib/utils";
+
+export interface PlanWorkout {
+	id: unknown;
+	week: string;
+	day_of_week: string;
+	sport: string;
+	title: string;
+}
+
+// Index workouts by `${isoWeek}|${dayOfWeek}` for O(1) per-day lookup.
+export function indexWorkouts(
+	workouts: PlanWorkout[],
+): Map<string, PlanWorkout[]> {
+	const map = new Map<string, PlanWorkout[]>();
+	for (const w of workouts) {
+		const key = `${w.week}|${w.day_of_week}`;
+		(map.get(key) ?? map.set(key, []).get(key))?.push(w);
+	}
+	return map;
+}
+
+export function DayWorkouts({
+	day,
+	byWeekDay,
+}: {
+	day: Date;
+	byWeekDay: Map<string, PlanWorkout[]>;
+}) {
+	const workouts = byWeekDay.get(`${toIsoWeek(day)}|${dayToken(day)}`) ?? [];
+	if (workouts.length === 0) return null;
+	const isPast = dayKey(day) < dayKey(new Date());
+	return (
+		<div className="mt-auto flex flex-col gap-1 pt-1">
+			{workouts.map((w) => {
+				const Icon = sportIcon(w.sport);
+				return (
+					<div
+						key={String(w.id)}
+						className={cn(
+							"bg-muted flex items-center gap-1.5 rounded-sm px-1.5 py-1 leading-tight",
+							isPast
+								? "text-muted-foreground"
+								: "text-fuchsia-600 dark:text-fuchsia-400",
+						)}
+						title={w.title}
+					>
+						<Icon size={11} className="shrink-0" />
+						<span className="truncate text-[10px] font-medium">{w.title}</span>
+					</div>
+				);
+			})}
+		</div>
+	);
+}
 
 export const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -128,9 +183,11 @@ export function TotalRow({
 export function WeekStrip({
 	weekStart,
 	byDay,
+	workoutsByWeekDay,
 }: {
 	weekStart: Date;
 	byDay: Map<string, CalendarActivity[]>;
+	workoutsByWeekDay?: Map<string, PlanWorkout[]>;
 }) {
 	const today = dayKey(new Date());
 	return (
@@ -167,6 +224,9 @@ export function WeekStrip({
 							{events.map((a) => (
 								<DayEvent key={a.id} a={a} />
 							))}
+							{workoutsByWeekDay ? (
+								<DayWorkouts day={day} byWeekDay={workoutsByWeekDay} />
+							) : null}
 						</div>
 					</div>
 				);

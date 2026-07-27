@@ -16,6 +16,7 @@ import {
 	type GeneratedSyncActivitiesMutationVariables,
 	PlansDocument,
 	PlanDocument,
+	AllPlanWorkoutsDocument,
 	type GeneratedPlanQueryVariables,
 	InsertPlanDocument,
 	type GeneratedInsertPlanMutationVariables,
@@ -128,6 +129,14 @@ export function usePlansQuery() {
 		queryKey: ["plans"],
 		queryFn: () => graphQLClient.request(PlansDocument),
 		select: (data) => data.plans,
+	});
+}
+
+export function useAllPlanWorkoutsQuery() {
+	return useQuery({
+		queryKey: ["plan-workouts"],
+		queryFn: () => graphQLClient.request(AllPlanWorkoutsDocument),
+		select: (data) => data.plan_workouts,
 	});
 }
 

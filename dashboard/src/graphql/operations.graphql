@@ -186,6 +186,16 @@ mutation DeletePlanRequirement($id: bigint!) {
   }
 }
 
+query AllPlanWorkouts {
+  plan_workouts(order_by: {week: asc}) {
+    id
+    week
+    day_of_week
+    sport
+    title
+  }
+}
+
 mutation InsertPlanWorkout($object: plan_workouts_insert_input!) {
   insert_plan_workouts_one(object: $object) {
     id

@@ -6,10 +6,13 @@ import {
 	addDays,
 	computeWeekTotals,
 	DayEvent,
+	DayWorkouts,
+	indexWorkouts,
 	startOfWeek,
 	TotalRow,
 	WEEKDAYS,
 } from "@/components/calendar-week";
+import { useAllPlanWorkoutsQuery } from "@/graphql/hooks";
 import {
 	type Category,
 	CATEGORY_ORDER,
@@ -25,8 +28,13 @@ export function Calendar() {
 	const [cursor, setCursor] = useState(() => new Date());
 	const [filter, setFilter] = useState<Category | null>(null);
 	const { data, isLoading } = useActivities();
+	const { data: workouts } = useAllPlanWorkoutsQuery();
 
 	const activities = data?.activities ?? [];
+	const workoutsByWeekDay = useMemo(
+		() => indexWorkouts(workouts ?? []),
+		[workouts],
+	);
 
 	const byDay = useMemo(() => {
 		const map = new Map<string, CalendarActivity[]>();
@@ -158,7 +166,7 @@ export function Calendar() {
 											<div
 												key={dayKey(day)}
 												className={cn(
-													"min-w-0 overflow-hidden border-r p-1 last:border-r-0",
+													"flex min-w-0 flex-col overflow-hidden border-r p-1 last:border-r-0",
 													offMonth && "bg-muted/30",
 												)}
 											>
@@ -175,6 +183,7 @@ export function Calendar() {
 														<DayEvent key={a.id} a={a} />
 													))}
 												</div>
+												<DayWorkouts day={day} byWeekDay={workoutsByWeekDay} />
 											</div>
 										);
 									},
