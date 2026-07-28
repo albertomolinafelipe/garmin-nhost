@@ -18,6 +18,7 @@ import {
 	categoryIcon,
 	categoryOf,
 	effectiveSubtype,
+	iconifyIcon,
 	sportColor,
 } from "@/lib/activity-types";
 import { Button } from "@/components/ui/button";
@@ -133,6 +134,7 @@ export interface PlanWorkout {
 	sport: string;
 	title: string;
 	description?: string | null;
+	completed_at?: string | null;
 }
 
 // Drag-and-drop: dragging a workout chip onto a day cell reschedules it to that
@@ -303,33 +305,76 @@ export function DayRaces({
 	);
 }
 
+const WorkoutDoneIcon = iconifyIcon("mdi:check-circle");
+const WorkoutTodoIcon = iconifyIcon("mdi:checkbox-blank-circle-outline");
+
 function WorkoutChip({ w, isPast }: { w: PlanWorkout; isPast: boolean }) {
 	const navigate = useNavigate();
 	const isMobile = useIsMobile();
 	const dnd = useWorkoutDnd();
+	const update = useUpdatePlanWorkoutMutation();
+	const queryClient = useQueryClient();
 	const [open, setOpen] = useState(false);
 	const Icon = sportIcon(w.sport);
 	const color = sportColor(w.sport);
+	const isDone = Boolean(w.completed_at);
 	const goToPlan = () => navigate(`/plans?plan=${w.plan_id}`);
 
+	const toggleDone = () => {
+		const completed_at = isDone ? null : new Date().toISOString();
+		void (async () => {
+			try {
+				await update.mutateAsync({ id: w.id, set: { completed_at } });
+				await queryClient.invalidateQueries({ queryKey: ["plan-workouts"] });
+			} catch {
+				toast.error("Could not update the workout");
+			}
+		})();
+	};
+
+	const DoneIcon = isDone ? WorkoutDoneIcon : WorkoutTodoIcon;
+
 	const chip = (
-		<button
-			type="button"
+		<div
 			{...workoutDragProps(dnd, w)}
-			onClick={() => (isMobile ? setOpen(true) : goToPlan())}
 			className={cn(
-				"hover:bg-accent flex items-center justify-center gap-1 rounded-md px-1.5 py-1 leading-tight transition-colors md:justify-start",
+				"group/chip hover:bg-accent flex items-center gap-1 rounded-md px-1.5 py-1 leading-tight transition-colors",
 				dnd ? "md:cursor-grab md:active:cursor-grabbing" : "",
 				isPast ? "bg-accent/40 text-muted-foreground" : "bg-muted",
 			)}
-			style={isPast ? undefined : { color }}
+			style={isPast || isDone ? undefined : { color }}
 			title={w.title}
 		>
-			<Icon size={14} className="shrink-0" />
-			<span className="hidden truncate text-xs font-medium md:inline">
-				{w.title}
-			</span>
-		</button>
+			<button
+				type="button"
+				onClick={() => (isMobile ? setOpen(true) : goToPlan())}
+				className="flex min-w-0 flex-1 items-center justify-center gap-1 hover:opacity-80 md:justify-start"
+			>
+				<Icon size={14} className="shrink-0" />
+				<span
+					className={cn(
+						"hidden truncate text-xs font-medium md:inline",
+						isDone && "text-muted-foreground line-through",
+					)}
+				>
+					{w.title}
+				</span>
+			</button>
+			<button
+				type="button"
+				onClick={toggleDone}
+				aria-label={isDone ? "Mark workout not done" : "Mark workout done"}
+				aria-pressed={isDone}
+				className={cn(
+					"shrink-0 transition-opacity",
+					isDone
+						? "text-emerald-500"
+						: "text-muted-foreground opacity-40 md:opacity-0 md:group-hover/chip:opacity-100",
+				)}
+			>
+				<DoneIcon size={14} className="shrink-0" />
+			</button>
+		</div>
 	);
 
 	if (!isMobile) return chip;
@@ -357,7 +402,15 @@ function WorkoutChip({ w, isPast }: { w: PlanWorkout; isPast: boolean }) {
 						</p>
 					) : null}
 					<SheetFooter>
-						<Button onClick={goToPlan}>Go to plan</Button>
+						<Button
+							variant={isDone ? "outline" : "default"}
+							onClick={toggleDone}
+						>
+							{isDone ? "Mark as not done" : "Mark as done"}
+						</Button>
+						<Button variant="ghost" onClick={goToPlan}>
+							Go to plan
+						</Button>
 					</SheetFooter>
 				</SheetContent>
 			</Sheet>

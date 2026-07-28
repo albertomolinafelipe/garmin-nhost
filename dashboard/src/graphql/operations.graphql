@@ -233,6 +233,7 @@ query AllPlanWorkouts {
     sport
     title
     description
+    completed_at
   }
 }
 
