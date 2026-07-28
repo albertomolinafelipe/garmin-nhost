@@ -134,7 +134,7 @@ export interface PlanWorkout {
 	sport: string;
 	title: string;
 	description?: string | null;
-	completed_at?: string | null;
+	completed_at?: unknown;
 }
 
 // Drag-and-drop: dragging a workout chip onto a day cell reschedules it to that
