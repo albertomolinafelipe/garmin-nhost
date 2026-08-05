@@ -30,7 +30,12 @@ value = '{{ secrets.GARMIN_PASSWORD }}'
 
 [[environment]]
 name = 'ONDRA_GARTH_DIR'
-value = '/tmp/garth'
+value = '/data/garth'
+
+# garth auto-persists refreshed OAuth2 tokens only when GARTH_HOME is set.
+[[environment]]
+name = 'GARTH_HOME'
+value = '/data/garth'
 
 # Seed tokens from a local login (base64 JSON of the garth token files) so ondra
 # resumes a pre-authenticated session — no headless MFA/device-verification.
@@ -45,6 +50,11 @@ publish = true
 
 [resources]
 replicas = 1
+
+[[resources.storage]]
+name = 'garth'
+capacity = 1
+path = '/data'
 
 [resources.compute]
 cpu = 125

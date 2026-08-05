@@ -56,6 +56,8 @@ def get_client(settings: Settings) -> Garmin:
     client = Garmin()
     try:
         client.login(str(token_dir))
+        # Persist any OAuth2 token garth refreshed during resume back to the volume.
+        client.garth.dump(str(token_dir))
         log.info("Garmin session resumed from token cache")
     except Exception:  # noqa: BLE001 -- garminconnect exposes several auth errors
         if not settings.garmin_email or not settings.garmin_password:
